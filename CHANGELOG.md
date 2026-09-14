@@ -6,6 +6,12 @@ Numbers follow the usual shape: **major** for a change that breaks old saved boa
 
 ---
 
+## 1.1.0 — 14 September 2026
+
+- Tag strips have a second mode: the tag name runs down the height of the strip, read bottom to top, with the strip widened to suit. Set it per board in the boards drawer under **Tag strips**.
+- Fixed: text on index cards was written straight over the ruled red margin. Headings and body now start clear of it, and clear of a tag strip when there is one.
+- Every item type now makes room for a tag strip rather than letting it sit under the text.
+
 ## 1.0.0 — 14 September 2026
 
 First published version.

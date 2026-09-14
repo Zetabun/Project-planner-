@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Pin It — a corkboard for planning projects
-  Version 1.0.0 · 14 September 2026
+  Version 1.1.0 · 14 September 2026
 
   TO RELEASE AN UPDATE: bump VERSION and BUILD in the script below
   (search for "const VERSION"), then add a matching entry at the top
@@ -413,8 +413,9 @@ body[data-theme="white"] .item.linkable .surface{box-shadow:0 0 0 2px rgba(var(-
 .t-card .surface{background:
     repeating-linear-gradient(180deg,transparent 0 25px, rgba(90,120,160,.28) 25px 26px),
     linear-gradient(180deg,#fbf6e9,#f0e7d2);
-  padding:10px 12px 12px; box-shadow:inset 0 0 0 1px rgba(0,0,0,.13)}
-.t-card .surface::before{content:""; position:absolute; left:22px; top:0; bottom:0; width:1px; background:rgba(190,70,60,.4)}
+  padding:10px 12px 12px calc(var(--strip) + 34px); box-shadow:inset 0 0 0 1px rgba(0,0,0,.13)}
+.t-card .surface::before{content:""; position:absolute; left:calc(var(--strip) + 22px); top:0; bottom:0;
+  width:1px; background:rgba(190,70,60,.4)}
 .t-card .ttl{font-family:var(--type); font-size:calc(var(--fs,1)*14px); letter-spacing:.01em; margin-bottom:4px; color:#1e1a15;
   border-bottom:1px solid rgba(0,0,0,.18); padding-bottom:3px}
 .t-card .tx{font-family:var(--hand); font-size:calc(var(--fs,1)*19px); line-height:calc(var(--fs,1)*26px); color:#2a2f45; overflow:hidden}
@@ -458,7 +459,10 @@ body[data-theme="white"] .item.linkable .surface{box-shadow:0 0 0 2px rgba(var(-
 .item.t-marker{filter:none}
 
 /* tag accents — a strip of colour down the edge, split when an item carries two */
-.tagstrip{position:absolute; left:0; top:0; bottom:0; width:11px; z-index:4; display:flex;
+.item{--strip:0px}
+.item.tagged{--strip:11px}
+.item.tagged.named{--strip:26px}
+.tagstrip{position:absolute; left:0; top:0; bottom:0; width:var(--strip); z-index:4; display:flex;
   flex-direction:column; overflow:hidden; pointer-events:none;
   box-shadow:1px 0 0 rgba(0,0,0,.14), inset -1px 0 2px rgba(0,0,0,.18)}
 .tagstrip i{flex:1; position:relative; min-height:0}
@@ -466,8 +470,14 @@ body[data-theme="white"] .item.linkable .surface{box-shadow:0 0 0 2px rgba(var(-
   background:linear-gradient(90deg,rgba(255,255,255,.25),transparent)}
 .tagstrip b{position:absolute; top:3px; left:0; right:1px; text-align:center; font:700 8px/1 var(--ui);
   color:#fff; opacity:.95; text-shadow:0 1px 1px rgba(0,0,0,.4)}
-.t-marker .tagstrip{left:-17px; width:9px; box-shadow:none}
-.t-tag .tagstrip{width:8px}
+/* named mode: the tag runs down the strip, read bottom to top like a book spine */
+.tagstrip.named i{display:flex; align-items:center; justify-content:center; overflow:hidden}
+.tagstrip.named span{writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap;
+  font:600 11px/1 var(--ui); letter-spacing:.04em; color:#fff; padding:6px 0;
+  text-shadow:0 1px 2px rgba(0,0,0,.35); max-height:100%; overflow:hidden}
+.t-marker .tagstrip{left:calc(-6px - var(--strip)); box-shadow:none}
+.t-marker.tagged{--strip:9px}
+.t-marker.tagged.named{--strip:24px}
 body[data-theme="white"] .tagstrip{box-shadow:none; border-radius:2px 0 0 2px}
 
 /* legend */
@@ -491,6 +501,14 @@ body[data-theme="white"] .tagstrip{box-shadow:none; border-radius:2px 0 0 2px}
   #legend{top:calc(48px + var(--safe-t)); left:8px; right:8px}
   .tagchip{height:28px; font-size:11.5px; padding:0 10px}
 }
+
+/* tagged items make room for the strip */
+.item.tagged .surface{padding-left:calc(var(--strip) + 9px)}
+.item.tagged.t-card .surface{padding-left:calc(var(--strip) + 34px)}
+.item.tagged.t-tag .surface{padding-left:calc(var(--strip) + 20px)}
+.item.tagged.t-tag .surface::before{left:calc(var(--strip) + 7px)}
+.item.tagged.t-photo .surface{padding-left:calc(var(--strip) + 9px)}
+.item.tagged.t-marker .surface{padding-left:0}
 
 /* stamp overlay */
 .stamp{position:absolute; right:-6px; bottom:6px; font-family:var(--type); font-size:15px; letter-spacing:.12em;
@@ -844,6 +862,13 @@ body[data-theme="white"] #btn-pen{display:grid}
         <button data-theme="white">Whiteboard</button>
       </div>
     </label>
+    <label class="field" style="width:100%; margin:2px 0 6px" id="tagstylefield">
+      <span>Tag strips</span>
+      <div class="seg" id="tagseg">
+        <button data-ts="bar">Colour only</button>
+        <button data-ts="named">Show names</button>
+      </div>
+    </label>
     <label class="field" style="width:100%; margin:2px 0 6px">
       <span>Text size — whole board</span>
       <div class="seg" id="fsseg">
@@ -939,13 +964,12 @@ body[data-theme="white"] #btn-pen{display:grid}
    matching entry to CHANGELOG.md. Shown in the boards drawer,
    saved with the data, and stamped into exported boards.
    ───────────────────────────────────────────────────────────── */
-const VERSION = "1.0.0";
+const VERSION = "1.1.0";
 const BUILD = "14 September 2026";
 const WHATSNEW = [
-  "Tags: colour accents down the edge of an item, with a legend and tap-to-filter",
-  "Freehand marker pen on the whiteboard theme",
-  "Two board styles — corkboard and whiteboard — with matching interface",
-  "Pictures shrink themselves to fit, and boards can be protected from browser clearing"
+  "Tag strips can now show the tag name running down the edge, not just a colour",
+  "Text on index cards clears the ruled margin instead of running over it",
+  "Every item makes room for its tag strip rather than letting it sit under the text"
 ];
 
 const $ = s => document.querySelector(s);
@@ -1046,6 +1070,7 @@ function normalise(b) {
   b.tags = b.tags.filter(t => t && t.id).slice(0, MAXTAGS);
   b.tags.forEach((t, i) => { if (!t.color) t.color = TAGC[i % TAGC.length]; if (!t.name) t.name = "Tag " + (i + 1); });
   if (!b.theme) b.theme = "cork";
+  if (b.tagStyle !== "named") b.tagStyle = "bar";
   if (!(+b.fs > 0)) b.fs = 1;
   if (!b.name) b.name = "Untitled board";
   b.items.forEach(i => {
@@ -1227,10 +1252,15 @@ function refresh(id) {
   }
   const ots = el.querySelector(".tagstrip"); if (ots) ots.remove();
   const tg = (it.tags || []).map(id => (board.tags || []).find(t => t.id === id)).filter(Boolean);
+  const named = board.tagStyle === "named";
+  el.classList.toggle("tagged", tg.length > 0);
+  el.classList.toggle("named", tg.length > 0 && named);
   if (tg.length) {
     const d = document.createElement("div");
-    d.className = "tagstrip";
-    d.innerHTML = tg.map(t => `<i style="background:${t.color}"><b>${esc((t.name[0] || "").toUpperCase())}</b></i>`).join("");
+    d.className = "tagstrip" + (named ? " named" : "");
+    d.innerHTML = tg.map(t => `<i style="background:${t.color}">${named
+      ? `<span>${esc(t.name)}</span>`
+      : `<b>${esc((t.name[0] || "").toUpperCase())}</b>`}</i>`).join("");
     el.appendChild(d);
   }
   const od = el.querySelector(".due"); if (od) od.remove();
@@ -2102,6 +2132,10 @@ async function exportPNG() {
     c.textBaseline = "top";
     const fs = it.fs || board.fs || 1;
     const FS = px => Math.round(px * fs) + "px ";
+    const tgs = (it.tags || []).map(id => (board.tags || []).find(t => t.id === id)).filter(Boolean);
+    const namedTags = board.tagStyle === "named";
+    const SW = tgs.length ? (namedTags ? (it.type === "marker" ? 24 : 26) : (it.type === "marker" ? 9 : 11)) : 0;
+    const PL = tgs.length ? SW + 9 : 0;            // left padding once a strip is there
 
     if (it.type !== "marker") {
       c.shadowColor = "rgba(40,22,8,.45)"; c.shadowBlur = 14; c.shadowOffsetY = 10;
@@ -2111,17 +2145,18 @@ async function exportPNG() {
     if (it.type === "photo") {
       paper(W_ ? "#fdfdfc" : "#f7f1e3");
       const fh = it.h - 46;
-      c.fillStyle = "#2a2520"; c.fillRect(9, 9, it.w - 18, fh - 9);
+      const fx = tgs.length ? PL : 9;
+      c.fillStyle = "#2a2520"; c.fillRect(fx, 9, it.w - fx - 9, fh - 9);
       const im = imgs[it.id];
       if (im) {
-        const bw = it.w - 18, bh = fh - 9;
+        const bw = it.w - fx - 9, bh = fh - 9;
         const r = Math.max(bw / im.width, bh / im.height);
         const dw = im.width * r, dh = im.height * r;
-        c.save(); c.beginPath(); c.rect(9, 9, bw, bh); c.clip();
-        c.drawImage(im, 9 + (bw - dw) / 2, 9 + (bh - dh) / 2, dw, dh); c.restore();
+        c.save(); c.beginPath(); c.rect(fx, 9, bw, bh); c.clip();
+        c.drawImage(im, fx + (bw - dw) / 2, 9 + (bh - dh) / 2, dw, dh); c.restore();
       }
       c.fillStyle = W_ ? "#2b2d33" : "#2b2a45"; c.font = FS(W_ ? 15 : 19) + HAND; c.textAlign = "center";
-      c.fillText((it.text || "").split("\n")[0].slice(0, 34), it.w / 2, fh + 12);
+      c.fillText((it.text || "").split("\n")[0].slice(0, 34), (fx + it.w - 9) / 2, fh + 12);
       c.textAlign = "left";
     }
     else if (it.type === "sticky") {
@@ -2130,76 +2165,90 @@ async function exportPNG() {
       sh.addColorStop(0, "rgba(0,0,0,0)"); sh.addColorStop(1, "rgba(0,0,0,.09)");
       c.fillStyle = sh; c.fillRect(0, it.h - 26, it.w, 26);
       c.fillStyle = "#33302a"; c.font = FS(W_ ? 17 : 21) + HAND;
-      lines(c, it.text, it.w - 26, 13, 14, Math.round((W_ ? 25 : 26) * fs), it.h - 24);
+      lines(c, it.text, it.w - (tgs.length ? PL : 13) - 13, tgs.length ? PL : 13, 14, Math.round((W_ ? 25 : 26) * fs), it.h - 24);
     }
     else if (it.type === "card") {
       paper(W_ ? "#fefefe" : "#f8f2e2");
       c.strokeStyle = W_ ? "rgba(96,124,160,.2)" : "rgba(90,120,160,.28)"; c.lineWidth = 1;
       for (let y = 25; y < it.h; y += 26) { c.beginPath(); c.moveTo(0, y + .5); c.lineTo(it.w, y + .5); c.stroke(); }
-      c.strokeStyle = "rgba(190,70,60,.4)"; c.beginPath(); c.moveTo(22.5, 0); c.lineTo(22.5, it.h); c.stroke();
+      const mx = SW + 22.5, cx = SW + 34;
+      c.strokeStyle = "rgba(190,70,60,.4)"; c.beginPath(); c.moveTo(mx, 0); c.lineTo(mx, it.h); c.stroke();
       c.fillStyle = "#1e1a15"; c.font = (W_ ? "bold " + FS(16) + HAND : FS(14) + TYPED);
-      c.fillText((it.title || "").slice(0, 30), 12, 10);
-      c.strokeStyle = "rgba(0,0,0,.18)"; c.beginPath(); c.moveTo(12, 30.5); c.lineTo(it.w - 12, 30.5); c.stroke();
+      c.fillText((it.title || "").slice(0, 30), cx, 10);
+      c.strokeStyle = "rgba(0,0,0,.18)"; c.beginPath(); c.moveTo(cx, 30.5); c.lineTo(it.w - 12, 30.5); c.stroke();
       c.fillStyle = "#2a2f45"; c.font = FS(W_ ? 17 : 19) + HAND;
-      lines(c, it.text, it.w - 26, 12, 36, Math.round((W_ ? 25 : 26) * fs), it.h - 44);
+      lines(c, it.text, it.w - cx - 12, cx, 36, Math.round((W_ ? 25 : 26) * fs), it.h - 44);
     }
     else if (it.type === "doc") {
       paper(W_ ? "#fbfbf9" : "#f2ecda");
       c.fillStyle = "#cfc3a6"; c.beginPath(); c.moveTo(it.w - 24, 0); c.lineTo(it.w, 24); c.lineTo(it.w - 24, 24); c.closePath(); c.fill();
       c.fillStyle = "#1e1a15"; c.font = FS(13) + TYPED;
-      c.fillText((it.title || "").slice(0, 26), 15, 14);
-      c.fillRect(15, 32, it.w - 30, 2);
+      const dl = tgs.length ? PL : 15;
+      c.fillText((it.title || "").slice(0, 26), dl, 14);
+      c.fillRect(dl, 32, it.w - dl - 15, 2);
       c.fillStyle = "#33302a"; c.font = FS(12) + TYPED;
-      lines(c, it.text, it.w - 30, 15, 42, Math.round(18 * fs), it.h - 56);
+      lines(c, it.text, it.w - dl - 15, dl, 42, Math.round(18 * fs), it.h - 56);
     }
     else if (it.type === "list") {
       paper(W_ ? "#fefefe" : "#f9f4e6");
       const done = it.tasks.filter(t => t.done).length;
       c.fillStyle = "#1e1a15"; c.font = (W_ ? "bold " + FS(15) + HAND : FS(13) + TYPED);
-      c.fillText((it.title || "").slice(0, 24), 12, 11);
+      const ll = tgs.length ? PL : 12;
+      c.fillText((it.title || "").slice(0, 24), ll, 11);
       c.fillStyle = "#8a2018"; c.textAlign = "right";
       c.fillText(done + "/" + it.tasks.length, it.w - 12, 11); c.textAlign = "left";
       let y = 32;
       it.tasks.forEach(t => {
         if (y > it.h - 18) return;
-        c.strokeStyle = "#5a5346"; c.lineWidth = 1.5; c.strokeRect(12.5, y + 3.5, 14, 14);
+        c.strokeStyle = "#5a5346"; c.lineWidth = 1.5; c.strokeRect(ll + .5, y + 3.5, 14, 14);
         c.font = FS(W_ ? 17 : 18) + HAND; c.fillStyle = t.done ? "#8d8676" : "#2a2f45";
-        if (t.done) { c.fillStyle = "#b02a1f"; c.fillText("✕", 15, y + 1); c.fillStyle = "#8d8676"; }
-        const ls = wrapText(c, t.t, it.w - 44);
-        c.fillText(ls[0] + (ls.length > 1 ? "…" : ""), 34, y + 1);
+        if (t.done) { c.fillStyle = "#b02a1f"; c.fillText("✕", ll + 3, y + 1); c.fillStyle = "#8d8676"; }
+        const tx = ll + 22;
+        const ls = wrapText(c, t.t, it.w - tx - 10);
+        c.fillText(ls[0] + (ls.length > 1 ? "…" : ""), tx, y + 1);
         if (t.done) {
           const tw = c.measureText(ls[0] + (ls.length > 1 ? "…" : "")).width;
           c.strokeStyle = "rgba(176,42,31,.8)"; c.lineWidth = 2;
-          c.beginPath(); c.moveTo(34, y + 12); c.lineTo(34 + tw, y + 12); c.stroke();
+          c.beginPath(); c.moveTo(tx, y + 12); c.lineTo(tx + tw, y + 12); c.stroke();
         }
         y += Math.round(25 * fs);
       });
     }
     else if (it.type === "tag") {
       paper(W_ ? "#efe9d8" : "#e8d9ab", 4);
-      c.fillStyle = "#2a2018"; c.beginPath(); c.arc(11, it.h / 2, 4, 0, 7); c.fill();
-      c.strokeStyle = "#c9a227"; c.lineWidth = 1.5; c.beginPath(); c.arc(11, it.h / 2, 4, 0, 7); c.stroke();
+      const dotx = SW + 11, txx = SW + 22;
+      c.fillStyle = "#2a2018"; c.beginPath(); c.arc(dotx, it.h / 2, 4, 0, 7); c.fill();
+      c.strokeStyle = "#c9a227"; c.lineWidth = 1.5; c.beginPath(); c.arc(dotx, it.h / 2, 4, 0, 7); c.stroke();
       c.fillStyle = "#231f1a"; c.font = (W_ ? "bold " + FS(15) + HAND : FS(13) + TYPED); c.textBaseline = "middle";
-      c.fillText((it.text || "").slice(0, 28), 22, it.h / 2); c.textBaseline = "top";
+      c.fillText((it.text || "").slice(0, 28), txx, it.h / 2); c.textBaseline = "top";
     }
     else if (it.type === "marker") {
       c.fillStyle = it.color || "#7d1810"; c.font = (W_ ? FS(34) + HANDB : "bold " + FS(40) + HAND);
       lines(c, it.text, it.w, 0, W_ ? 4 : 0, Math.round((W_ ? 44 : 42) * fs), it.h + 40);
     }
 
-    const tgs = (it.tags || []).map(id => (board.tags || []).find(t => t.id === id)).filter(Boolean);
     if (tgs.length) {
-      const sw = it.type === "tag" ? 8 : (it.type === "marker" ? 9 : 11);
-      const left = it.type === "marker" ? -17 : 0;
+      const left = it.type === "marker" ? -(SW + 6) : 0;
       const band = it.h / tgs.length;
       tgs.forEach((t, i) => {
         c.fillStyle = t.color;
-        c.fillRect(left, i * band, sw, band);
-        c.fillStyle = "rgba(255,255,255,.95)";
-        c.font = '700 8px ' + (W_ ? '"Kalam", cursive' : 'ui-sans-serif, sans-serif');
-        c.textAlign = "center"; c.textBaseline = "top";
-        c.fillText((t.name[0] || "").toUpperCase(), left + sw / 2, i * band + 3);
-        c.textAlign = "left";
+        c.fillRect(left, i * band, SW, band);
+        c.fillStyle = "rgba(255,255,255,.96)";
+        c.textAlign = "center"; c.textBaseline = "middle";
+        if (namedTags) {                            // name runs up the strip
+          c.save();
+          c.beginPath(); c.rect(left, i * band, SW, band); c.clip();
+          c.translate(left + SW / 2, i * band + band / 2);
+          c.rotate(-Math.PI / 2);
+          c.font = '600 11px ui-sans-serif, sans-serif';
+          c.fillText(t.name, 0, .5);
+          c.restore();
+        } else {
+          c.textBaseline = "top";
+          c.font = '700 8px ui-sans-serif, sans-serif';
+          c.fillText((t.name[0] || "").toUpperCase(), left + SW / 2, i * band + 3);
+        }
+        c.textAlign = "left"; c.textBaseline = "top";
       });
     }
     if (it.stamp) {
@@ -2956,7 +3005,17 @@ function applyTheme() {
   $$("#themeseg button").forEach(b => b.classList.toggle("on", b.dataset.theme === t));
   const f = (board && board.fs) || 1;
   $$("#fsseg button").forEach(b => b.classList.toggle("on", +b.dataset.fs === f));
+  const ts = (board && board.tagStyle) || "bar";
+  $$("#tagseg button").forEach(b => b.classList.toggle("on", b.dataset.ts === ts));
+  const tf = $("#tagstylefield");
+  if (tf) tf.style.display = (board && board.tags && board.tags.length) ? "" : "none";
 }
+$("#tagseg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (((board.tagStyle) || "bar") === b.dataset.ts) return;
+  board.tagStyle = b.dataset.ts;
+  applyTheme(); renderAll(); save(true);
+});
 $("#fsseg").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
   const v = +b.dataset.fs;

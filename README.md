@@ -93,6 +93,8 @@ Both are undoable, and picture exports render at whatever size you set.
 
 Tags group things across the board without moving them. A tagged item gets a strip of colour down its left edge — tape on cork, a marker stripe on the whiteboard — carrying the tag's initial, so you can tell at a glance that the red-edged notes are engine work and the green ones are gameplay. An item can carry more than one tag; the strip splits into bands rather than picking a winner.
 
+Strips come two ways, set per board in the boards drawer under **Tag strips**: **colour only**, a slim band carrying the tag's initial, or **show names**, a wider band with the whole tag name running up it like a book spine. Names are better on a board with a handful of tags you're still learning; colour only is better once you know them and want the space back.
+
 A legend sits under the title bar showing every tag with a live count, so nobody has to remember what red meant. Tap a chip to filter: everything without that tag fades back, along with the strings leading to it. Tap more chips to widen the filter, `Esc` to clear it.
 
 Tags are applied from an item's panel, or — much faster — by selecting a cluster with the lasso and using the tag button on the action bar, which toggles the whole group at once. Long-press a legend chip to rename it, recolour it, select everything carrying it, or delete it. Twelve tags per board, eight distinct colours.
