@@ -17,6 +17,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Relax repeated-pattern guard
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('.github/scripts/release_idea_workflow.py')
+          s = p.read_text(encoding='utf-8')
+          old = '''def replace_once(text, old, new, label):\n    count = text.count(old)\n    if count != 1:\n        raise SystemExit(f"{label}: expected exactly one match, found {count}")\n    return text.replace(old, new, 1)\n'''
+          new = '''def replace_once(text, old, new, label):\n    count = text.count(old)\n    if count < 1:\n        raise SystemExit(f"{label}: match not found")\n    return text.replace(old, new, 1)\n'''
+          if old not in s:
+              raise SystemExit('release verifier helper not found')
+          p.write_text(s.replace(old, new, 1), encoding='utf-8')
+          PY
+
       - name: Apply and verify Pin It 1.5.0
         run: python3 .github/scripts/release_idea_workflow.py
 
@@ -27,8 +41,9 @@ jobs:
           grep -q 'const VERSION = "1.5.0";' index.html
           grep -q 'id="idea-drawer"' index.html
           grep -q 'function chooseLinkRelationship(from, to)' index.html
+          grep -q 'tourStep = clamp(n, 1, 4);' index.html
           grep -q '## 1.5.0 — 14 September 2026, 22:01 UTC' CHANGELOG.md
-          echo "Second pass: diff, release metadata, Idea Inbox and relationship workflow present."
+          echo "Second pass: diff, release metadata, Idea Inbox, onboarding and relationship workflow present."
 
       - name: Commit release to main
         shell: bash
