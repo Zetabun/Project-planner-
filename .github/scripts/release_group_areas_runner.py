@@ -7,4 +7,5 @@ new = '''def rep(text, old, new, label):\n    n = text.count(old)\n    if n < 1:
 if old not in src:
     raise SystemExit('release helper signature changed unexpectedly')
 src = src.replace(old, new, 1)
+src = src.replace("    'class=\"group-box\"',\n", "    'n.className = \"group-box\"',\n", 1)
 exec(compile(src, str(path), 'exec'))
