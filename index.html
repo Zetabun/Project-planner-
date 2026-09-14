@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Pin It — a corkboard for planning projects
-  Version 1.5.0 · 14 September 2026, 22:01 UTC
+  Version 1.5.1 · 14 September 2026, 22:45 UTC
 
   TO RELEASE AN UPDATE: bump VERSION and BUILD, add the release to
   RELEASES in the script below, and add the same release at the top
@@ -460,7 +460,7 @@ body.ideas-open #idea-tab{opacity:0; pointer-events:none; transform:translateX(1
 #idea-list{flex:1; overflow:auto; padding:11px 12px 18px; -webkit-overflow-scrolling:touch}
 .idea-empty{padding:22px 10px; text-align:center; color:var(--pan-hint); font-size:12px; line-height:1.5}
 .idea-card{position:relative; margin:0 0 9px; padding:11px 10px 9px; border:1px solid var(--pan-line); border-radius:5px;
-  background:var(--pan-soft); box-shadow:0 3px 9px rgba(0,0,0,.12); touch-action:none; user-select:none; -webkit-user-select:none}
+  background:var(--pan-soft); box-shadow:0 3px 9px rgba(0,0,0,.12); touch-action:pan-y; user-select:none; -webkit-user-select:none}
 .idea-card:active{background:var(--pan-soft2)}
 .idea-text{font-family:var(--hand); font-size:18px; line-height:1.24; overflow-wrap:anywhere; white-space:pre-wrap}
 .idea-kind{margin-top:5px; color:var(--pan-hint); font:700 9px/1 var(--ui); letter-spacing:.09em; text-transform:uppercase}
@@ -971,7 +971,8 @@ body[data-theme="blueprint"] .tips li.ink{display:flex}
 
 /* context menu */
 #ctx{position:fixed; z-index:50; background:linear-gradient(180deg,var(--sheet-2),var(--sheet)); border:1px solid var(--pan-line);
-  border-radius:var(--r); box-shadow:0 14px 34px var(--ui-drop); padding:5px; display:none; min-width:172px}
+  border-radius:var(--r); box-shadow:0 14px 34px var(--ui-drop); padding:5px; display:none; min-width:172px;
+  max-height:calc(100vh - 16px); overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch}
 #ctx.show{display:block}
 #ctx button{display:flex; width:100%; gap:9px; align-items:center; padding:8px 10px; font-size:12.5px; color:var(--pan-fg);
   border-radius:2px; text-align:left}
@@ -1247,7 +1248,7 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
         <li><svg><use href="#i-sticky"/></svg><div><b>Use the Idea Inbox</b>Open the drawer on the right, jot down rough thoughts, then drag them onto the board when you are ready to organise them.</div></li>
         <li><svg><use href="#i-string"/></svg><div><b>Say why two things connect</b>After choosing two items, Pin It asks what the relationship means.<span class="mini-rel"><i>Expands into</i><i>Depends on</i><i>Affects</i><i>Blocked by</i></span></div></li>
         <li><svg><use href="#i-cal"/></svg><div><b>Then make it actionable</b>Add due dates, stamps and checklists once an idea becomes work you actually intend to do.</div></li>
-        <li class="ink"><svg><use href="#i-pen"/></svg><div><b>Keep capture loose</b>Not every thought needs a connection. If you cannot finish “this idea ___ that idea”, leave it unlinked for now.</div></li>
+        <li><svg><use href="#i-pen"/></svg><div><b>Keep capture loose</b>Not every thought needs a connection. If you cannot finish “this idea ___ that idea”, leave it unlinked for now.</div></li>
       </ul>
       <p class="hint">Everything saves in this browser as you go. No account, no upload.</p>
       <div class="tourfoot" id="tour-end"></div>
@@ -1295,14 +1296,25 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
    matching entry to CHANGELOG.md. Shown in the boards drawer,
    saved with the data, and stamped into exported boards.
    ───────────────────────────────────────────────────────────── */
-const VERSION = "1.5.0";
-const BUILD = "14 September 2026, 22:01 UTC";
+const VERSION = "1.5.1";
+const BUILD = "14 September 2026, 22:45 UTC";
 /*
   RELEASE HISTORY — mandatory for every future release.
   Before completing or pushing an update: bump VERSION/BUILD, add the new
   release here (newest first), and add the same release to CHANGELOG.md.
 */
 const RELEASES = [
+  {
+    version: "1.5.1", date: "14 September 2026, 22:45 UTC",
+    summary: "A mobile polish pass makes the new idea workflow safer and easier to use on small screens.",
+    items: [
+      "Idea Inbox cards now allow normal vertical drawer scrolling while preserving deliberate drag-out placement gestures.",
+      "Long relationship menus now scroll within the screen instead of extending beyond shorter mobile displays.",
+      "Protected photos from being converted into text-only Idea Inbox entries.",
+      "Restored Evidence tag terminology for the standalone tag item while keeping board tags as project-area labels.",
+      "Fixed the final onboarding guidance so it appears on every board theme."
+    ]
+  },
   {
     version: "1.5.0", date: "14 September 2026, 22:01 UTC",
     summary: "Ideas now have a clear workflow: capture them first, organise them by role, then connect them with meaningful relationships.",
@@ -1458,7 +1470,7 @@ const STAMPS = ["", "done", "urgent", "blocked", "idea", "review"];
 const SIZES = [["S", .85], ["M", 1], ["L", 1.2], ["XL", 1.45]];
 const TAGC = ["#c0392b", "#2e7d32", "#1f6feb", "#e0861a", "#7b4fa8", "#0f9b9b", "#c2185b", "#5d6773"];
 const MAXTAGS = 12;
-const TYPE_NAMES = { photo: "Photo", sticky: "Detail note", card: "Feature card", doc: "Report", list: "Implementation checklist", tag: "Area tag", marker: "Marker text" };
+const TYPE_NAMES = { photo: "Photo", sticky: "Detail note", card: "Feature card", doc: "Report", list: "Implementation checklist", tag: "Evidence tag", marker: "Marker text" };
 const DEFAULTS = {
   photo:  { w: 210, h: 236, text: "" },
   sticky: { w: 182, h: 182, text: "New note" },
@@ -2479,7 +2491,7 @@ function itemMenu(id, x, y) {
     <button data-a="dup">${ic("copy")}Duplicate</button>
     <button data-a="front">${ic("front")}Bring to front</button>
     <button data-a="back">${ic("back")}Send to back</button>
-    <button data-a="inbox">${ic("sticky")}Move to Idea Inbox</button>
+    ${it.type === "photo" ? "" : `<button data-a="inbox">${ic("sticky")}Move to Idea Inbox</button>`}
     <hr>
     <button data-a="del" class="danger">${ic("trash")}Remove from board</button>`, x, y);
   ctx.onclick = e => {
@@ -3905,6 +3917,7 @@ function pinInboxIdea(id, at, forcedKind) {
 }
 function storeItemInInbox(id) {
   const it = byId(id); if (!it) return;
+  if (it.type === "photo") { toast("Photos stay on the board — the Idea Inbox stores text ideas"); return; }
   snap();
   board.inbox = board.inbox || [];
   board.inbox.unshift({ id: uid(), text: ideaFromItem(it), kind: it.type === "card" ? "card" : "sticky", created: Date.now() });
@@ -3946,7 +3959,7 @@ ideaList.addEventListener("pointerdown", e => {
   const idea = (board.inbox || []).find(i => i.id === card.dataset.idea); if (!idea) return;
   inboxDrag = { id: idea.id, pointerId: e.pointerId, sx: e.clientX, sy: e.clientY, x: e.clientX, y: e.clientY, moved: false, ghost: null };
   try { card.setPointerCapture(e.pointerId); } catch (err) {}
-  e.preventDefault();
+  if (e.pointerType === "mouse") e.preventDefault();
 });
 ideaList.addEventListener("pointermove", e => {
   if (!inboxDrag || inboxDrag.pointerId !== e.pointerId) return;

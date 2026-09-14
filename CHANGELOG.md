@@ -8,6 +8,14 @@ Numbers follow the usual shape: **major** for a change that breaks old saved boa
 
 ---
 
+## 1.5.1 — 14 September 2026, 22:45 UTC
+
+- Idea Inbox cards now allow normal vertical drawer scrolling while preserving deliberate drag-out placement gestures.
+- Long relationship menus now scroll within the screen instead of extending beyond shorter mobile displays.
+- Protected photos from being converted into text-only Idea Inbox entries.
+- Restored **Evidence tag** terminology for the standalone tag item while keeping board tags as project-area labels.
+- Fixed the final onboarding guidance so it appears on Corkboard, Whiteboard and Blueprint themes alike.
+
 ## 1.5.0 — 14 September 2026, 22:01 UTC
 
 - Added a collapsible **Idea Inbox** on the right of every board for quick capture before organising. Ideas persist with the board, can be dragged onto the board with touch or mouse, or placed explicitly as a **Feature** or **Note**.
