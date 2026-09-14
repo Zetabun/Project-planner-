@@ -62,7 +62,7 @@ On a first visit you're asked what you're working on, shown the three board styl
 
 **Whiteboard** — a wiped melamine surface in an aluminium frame, with a marker pen you can write on it with. Everything goes up with torn masking tape instead of pins (sticky notes keep sticking themselves). String becomes marker strokes: slightly bowed, drawn stopping just short of each item, with an arrowhead showing which way the connection runs. Stamps are scrawled and circled, dates are underlined, and everything handwritten is in marker — Permanent Marker for headings, Kalam for notes.
 
-**Blueprint** — a navy drafting surface with a fine technical grid and blue drafting sheets throughout: sticky notes, index cards, reports, checklists, photo frames and evidence tags. White marker-style notes and headings, precise borders, typed report text and metal pins with coloured rims give it a workshop-plan feel. Sticky notes retain six distinct colour accents and folded corners. Titles, dates, stamps, editing fields, completion indicators and the mobile tool rail all match. Connections are straight drafting lines, with brighter ink colours for legibility.
+**Blueprint** — a navy drafting surface with a fine technical grid and blue drafting sheets throughout: sticky notes, index cards, reports, checklists, photo frames and evidence tags. White marker-style notes and headings, precise borders, typed report text and metal pins with coloured rims give it a workshop-plan feel. Sticky notes retain six distinct colour accents and folded corners. Titles, dates, stamps, editing fields, completion indicators and the mobile tool rail all match. Connections are straight drafting lines, with brighter ink colours for legibility. The technical grid is anchored to the board itself, so it pans and scales naturally with zoom.
 
 The interface follows the board: dark stained-wood controls and panels on cork, brushed light-steel ones on the whiteboard, and cool steel-blue chrome on the blueprint theme, with the accent shifting to match.
 
@@ -125,7 +125,7 @@ With several selected you can drag the whole cluster as one, duplicate it, or re
 
 When a cluster represents one system or subtopic, lasso two or more items and tap **Group area** on the selection bar. Give it a name such as **RAIN SYSTEM** and Pin It draws a faint labelled boundary behind those items.
 
-The area is deliberately not another rigid container: every note and card remains individually draggable, resizable and linkable. The boundary recalculates from its members, so it grows, shrinks and moves as the cluster changes. Tap the group label to select all of its contents, rename it, or remove only the boundary while leaving the work untouched.
+The area is deliberately not another rigid container: every note and card remains individually draggable, resizable and linkable. The boundary recalculates from its members, so it grows, shrinks and moves as the cluster changes. A small title band is reserved above the nearest item so the group name stays visually separate from its contents. Tap the group label to select all of its contents, rename it, or remove only the boundary while leaving the work untouched.
 
 Group areas are stored with the board, survive import/export and undo/redo, adapt to Corkboard, Whiteboard and Blueprint themes, count toward **Fit board**, and are included when the board is saved as a picture.
 

@@ -8,6 +8,12 @@ Numbers follow the usual shape: **major** for a change that breaks old saved boa
 
 ---
 
+## 1.6.1 — 14 September 2026, 23:38 UTC
+
+- Added extra breathing room between a group/system label and the nearest card or note.
+- Blueprint minor and major grid lines now scale proportionally as the board zooms.
+- Blueprint grid origin now follows board panning, keeping the drafting grid visually attached to the workspace rather than the screen.
+
 ## 1.6.0 — 14 September 2026, 23:15 UTC
 
 - Added **Group areas**: lasso two or more items and wrap them in a faint named system/subtopic boundary.

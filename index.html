@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Pin It — a corkboard for planning projects
-  Version 1.6.0 · 14 September 2026, 23:15 UTC
+  Version 1.6.1 · 14 September 2026, 23:38 UTC
 
   TO RELEASE AN UPDATE: bump VERSION and BUILD, add the release to
   RELEASES in the script below, and add the same release at the top
@@ -151,8 +151,10 @@ body[data-theme="blueprint"] #viewport{
     radial-gradient(120% 90% at 20% 0%, rgba(255,255,255,.08), rgba(255,255,255,0) 45%),
     radial-gradient(130% 110% at 80% 100%, rgba(0,0,0,.28), rgba(0,0,0,0) 52%),
     linear-gradient(180deg,#16344b 0%,#102d47 46%,#0d2740 100%);
-  background-size:20px 20px, 20px 20px, 100px 100px, 100px 100px, 100% 100%, 100% 100%, 100% 100%;
-  background-position:0 0, 0 0, -1px -1px, -1px -1px, 0 0, 0 0, 0 0;
+  background-size:var(--bp-minor,20px) var(--bp-minor,20px), var(--bp-minor,20px) var(--bp-minor,20px),
+    var(--bp-major,100px) var(--bp-major,100px), var(--bp-major,100px) var(--bp-major,100px), 100% 100%, 100% 100%, 100% 100%;
+  background-position:var(--bp-grid-x,0px) var(--bp-grid-y,0px), var(--bp-grid-x,0px) var(--bp-grid-y,0px),
+    var(--bp-grid-x,0px) var(--bp-grid-y,0px), var(--bp-grid-x,0px) var(--bp-grid-y,0px), 0 0, 0 0, 0 0;
 }
 body[data-theme="blueprint"] #grain{opacity:.03}
 body[data-theme="blueprint"] #zoomlvl,
@@ -1316,14 +1318,23 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
    matching entry to CHANGELOG.md. Shown in the boards drawer,
    saved with the data, and stamped into exported boards.
    ───────────────────────────────────────────────────────────── */
-const VERSION = "1.6.0";
-const BUILD = "14 September 2026, 23:15 UTC";
+const VERSION = "1.6.1";
+const BUILD = "14 September 2026, 23:38 UTC";
 /*
   RELEASE HISTORY — mandatory for every future release.
   Before completing or pushing an update: bump VERSION/BUILD, add the new
   release here (newest first), and add the same release to CHANGELOG.md.
 */
 const RELEASES = [
+  {
+    version: "1.6.1", date: "14 September 2026, 23:38 UTC",
+    summary: "Group labels get clearer breathing room and the Blueprint drafting grid now follows the board as it pans and zooms.",
+    items: [
+      "Reserved extra space beneath group/system labels so the first card or note no longer crowds the heading.",
+      "Made the Blueprint minor and major grid scale proportionally with board zoom instead of staying fixed to the screen.",
+      "Anchored the Blueprint grid to the board pan position so the drafting surface feels like part of the workspace rather than a screen overlay."
+    ]
+  },
   {
     version: "1.6.0", date: "14 September 2026, 23:15 UTC",
     summary: "Named group areas make related clusters read as systems while keeping every card and note independently editable.",
@@ -1807,8 +1818,9 @@ function groupBounds(g) {
   const members = (g.itemIds || []).map(byId).filter(Boolean);
   if (members.length < 2) return null;
   const pad = clamp(+g.pad || 42, 28, 120);
+  const labelGap = 18; // reserved title band so the group name never crowds the top item
   const x1 = Math.min(...members.map(i => i.x)) - pad;
-  const y1 = Math.min(...members.map(i => i.y)) - pad;
+  const y1 = Math.min(...members.map(i => i.y)) - pad - labelGap;
   const x2 = Math.max(...members.map(i => i.x + i.w)) + pad;
   const y2 = Math.max(...members.map(i => i.y + i.h)) + pad;
   return { x: x1, y: y1, w: x2 - x1, h: y2 - y1 };
@@ -2042,8 +2054,16 @@ function drawInk() {
 }
 
 /* ── view transform ── */
+function syncBlueprintBackdrop() {
+  const s = Math.max(.01, view.s || 1);
+  viewport.style.setProperty("--bp-minor", (20 * s) + "px");
+  viewport.style.setProperty("--bp-major", (100 * s) + "px");
+  viewport.style.setProperty("--bp-grid-x", (view.x || 0) + "px");
+  viewport.style.setProperty("--bp-grid-y", (view.y || 0) + "px");
+}
 function applyView() {
   world.style.transform = `translate(${view.x}px,${view.y}px) scale(${view.s})`;
+  syncBlueprintBackdrop();
   $("#zoomlvl").textContent = Math.round(view.s * 100) + "%";
   const r = viewport.getBoundingClientRect();
   view.w = Math.round(r.width); view.h = Math.round(r.height);
@@ -3899,6 +3919,7 @@ function applyTheme() {
   $$("#tagseg button").forEach(b => b.classList.toggle("on", b.dataset.ts === ts));
   const tf = $("#tagstylefield");
   if (tf) tf.style.display = (board && board.tags && board.tags.length) ? "" : "none";
+  syncBlueprintBackdrop();
 }
 $("#tagseg").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
