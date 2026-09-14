@@ -8,6 +8,14 @@ Numbers follow the usual shape: **major** for a change that breaks old saved boa
 
 ---
 
+## 1.4.1 — 14 September 2026, 20:04 UTC
+
+- Blueprint notes, index cards, reports, checklists, photos and tags now use blue drafting sheets, fine grids, white marker-style handwriting and crisp borders.
+- Sticky notes have six tinted sheets with coloured accent edges and folded corners; stored paper and ink choices are preserved when switching themes.
+- Restyled the board title, labels, dates, stamps, completion indicators, editing fields, resize handles and mobile tool rail to match Blueprint.
+- Connections are straight, high-contrast drafting lines, and both new and existing pen strokes stay visible on blue boards.
+- Picture exports now retain Blueprint sheets, colours, metal pins, headings and annotations instead of reverting to whiteboard paper and tape.
+
 ## 1.4.0 — 14 September 2026
 
 - Added a third board style: **Blueprint**.

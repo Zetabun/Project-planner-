@@ -62,11 +62,11 @@ On a first visit you're asked what you're working on, shown the three board styl
 
 **Whiteboard** — a wiped melamine surface in an aluminium frame, with a marker pen you can write on it with. Everything goes up with torn masking tape instead of pins (sticky notes keep sticking themselves). String becomes marker strokes: slightly bowed, drawn stopping just short of each item, with an arrowhead showing which way the connection runs. Stamps are scrawled and circled, dates are underlined, and everything handwritten is in marker — Permanent Marker for headings, Kalam for notes.
 
-**Blueprint** — a navy drafting surface with a faint technical grid, metal pins, crisp drawn connection lines and brighter steel-blue interface chrome. It keeps the pinned-paper feel of cork but looks cleaner and more technical, like a planning board lifted from a workshop wall.
+**Blueprint** — a navy drafting surface with a fine technical grid and blue drafting sheets throughout: sticky notes, index cards, reports, checklists, photo frames and evidence tags. White marker-style notes and headings, precise borders, typed report text and metal pins with coloured rims give it a workshop-plan feel. Sticky notes retain six distinct colour accents and folded corners. Titles, dates, stamps, editing fields, completion indicators and the mobile tool rail all match. Connections are straight drafting lines, with brighter ink colours for legibility.
 
 The interface follows the board: dark stained-wood controls and panels on cork, brushed light-steel ones on the whiteboard, and cool steel-blue chrome on the blueprint theme, with the accent shifting to match.
 
-Set it per board in the boards drawer under **Board style**, so a scruffy brainstorm, a clean client-facing plan and a technical planning board can all look different. New boards inherit the style of the one you're on. Picture exports match whichever style the board uses.
+Set it per board in the boards drawer under **Board style**, so a scruffy brainstorm, a clean client-facing plan and a technical planning board can all look different. New boards inherit the style of the one you're on. Picture exports match whichever style the board uses, including Blueprint sheets and metal pins. Switching styles preserves the underlying paper, pin and ink choices, so switching back restores the original colours.
 
 ## What's on the board
 
@@ -139,7 +139,7 @@ Boards drawer → **Save the board as a picture**. It draws the whole board — 
 
 The pen tool (whiteboard and blueprint boards, or press `P`) lets you write and draw straight onto the board in marker — circle a note, sketch an arrow, scrawl a reminder in your own hand.
 
-- Five marker colours and three nib widths, from the bar that appears at the bottom.
+- Five marker colours and three nib widths, from the bar that appears at the bottom. Blueprint displays these as pale drafting inks; existing strokes adapt automatically without rewriting the saved colours.
 - The eraser removes a whole stroke at a time, so a quick swipe clears a letter without nibbling at it.
 - Strokes are smoothed as you draw, so a shaky finger still reads as handwriting.
 - Two fingers pan and zoom as usual while the pen is active — only one finger draws.
@@ -151,7 +151,7 @@ Drawings are part of the board: they undo, save, export to the picture, and trav
 
 Tap the string tool (or press `L`), tap the first item, then tap the second. Tap any string to change its colour, switch solid/dashed, add a label like "blocks" or "feeds into", or cut it.
 
-Five colours: red, navy, gold, green and cream on cork; red, blue, orange, green and black marker on the whiteboard; and the same marker palette on blueprint boards.
+Five colours: red, navy, gold, green and cream on cork; red, blue, orange, green and black marker on the whiteboard; and coral, sky, amber, mint and white drafting ink on blueprint boards.
 
 ## Adding pictures
 
@@ -230,3 +230,9 @@ Use major for a change that breaks old saved boards, minor for new features, pat
 ## Editing the file
 
 Everything is in `index.html`, in this order: design tokens and chrome CSS → item and thread CSS → markup and icon sprites → state, storage and board model → rendering → pointer interaction → panels, images, export and init. Each section starts with a banner comment.
+
+## Blueprint maintenance and checks
+
+Blueprint CSS is scoped to `body[data-theme="blueprint"]`. Keep colour mappings (`BLUEPRINT`, `BP_NOTES`, `bpMarker`, `draftInk`) presentation-only; never rewrite saved item or stroke colours when changing themes. Keep `drawBlueprintItem` and the Blueprint branches of `exportPNG` aligned with the DOM styling. The app remains self-contained in `index.html`.
+
+Before a theme release, parse every inline script, check all seven item types and six sticky colours, edit text, toggle checklist completion, switch through all three themes and back, and save a picture. Check that date/stamp/connection labels stay readable, the pen palette matches its strokes, and mobile controls remain usable. Verify the newest embedded release and changelog agree with `VERSION`/`BUILD`.

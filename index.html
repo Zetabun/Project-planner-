@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Pin It — a corkboard for planning projects
-  Version 1.4.0 · 14 September 2026
+  Version 1.4.1 · 14 September 2026, 20:04 UTC
 
   TO RELEASE AN UPDATE: bump VERSION and BUILD, add the release to
   RELEASES in the script below, and add the same release at the top
@@ -111,9 +111,12 @@ body[data-theme="white"] #marquee{border-color:rgba(40,90,170,.85); background:r
 
 /* ───────────── blueprint theme ───────────── */
 body[data-theme="blueprint"]{
-  --paper:#f6efe0; --paper-edge:#ddd2bf; --manila:#e6d7bc; --newsprint:#eef0ea;
-  --ink:#13314a; --ink-soft:#5f7690; --ink-red:#c4483e;
-  --thread-red:#c4483e; --thread-navy:#dceaf0; --thread-gold:#e3b341; --thread-green:#6fb38c; --thread-cream:#f5f2e8;
+  --paper:#19476b; --paper-edge:#73b3cf; --manila:#214e70; --newsprint:#163e60;
+  --bp-text:#edf7ff; --bp-muted:#afd0e4; --bp-line:rgba(157,212,239,.4);
+  --bp-mono:"SFMono-Regular",Consolas,"Liberation Mono",monospace;
+  --type:var(--bp-mono); --brass:#a7e3ff; --brass-lo:#73b3cf;
+  --ink:#edf7ff; --ink-soft:#afd0e4; --ink-red:#ff9b94;
+  --thread-red:#ff9b94; --thread-navy:#8dd8ff; --thread-gold:#f5d887; --thread-green:#9bdfbd; --thread-cream:#edf7ff;
   --frame:#213646; --frame-hi:#4f6371; --frame-lo:#0d1720;
   --sheet:#102435; --sheet-2:#173247;
   --ui-1:#274154; --ui-2:#1a2f3f; --ui-fg:#e3edf4; --ui-line:rgba(220,234,240,.18);
@@ -162,33 +165,85 @@ body[data-theme="blueprint"] .pin i{
   background:radial-gradient(circle at 34% 28%, #fff9 0 12%, transparent 40%), linear-gradient(180deg,#cfd7dd,#7a8790 72%,#445059);
   box-shadow:0 3px 4px rgba(0,0,0,.42), inset 0 -2px 3px rgba(0,0,0,.25);
 }
-body[data-theme="blueprint"] .t-marker .tx{font-family:var(--hand-bold); font-weight:var(--hand-w); letter-spacing:.01em; color:#dceaf0; text-shadow:0 1px 0 rgba(0,0,0,.28)}
-body[data-theme="blueprint"] .t-card .ttl,
-body[data-theme="blueprint"] .t-list .ttl,
-body[data-theme="blueprint"] .t-tag .tx{font-family:var(--hand); font-weight:700; font-size:calc(var(--fs,1)*16px); letter-spacing:0}
-body[data-theme="blueprint"] .t-list .ttl b{font-family:var(--hand); font-size:calc(var(--fs,1)*13px)}
+/* Blueprint sheets use the same palette in the DOM and PNG renderer below.
+   Keep these rules theme-scoped: stored paper/pin/ink colours must survive switching. */
+body[data-theme="blueprint"] .item:where(:not(.t-marker)) .surface{
+  background-color:var(--bp-sheet,#19476b);
+  background-image:linear-gradient(rgba(174,220,245,.055) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(174,220,245,.055) 1px,transparent 1px);
+  background-size:20px 20px;
+  box-shadow:inset 0 0 0 1px var(--bp-line),inset 0 0 0 5px rgba(10,31,52,.12);
+  border-radius:2px;
+}
+body[data-theme="blueprint"] .t-sticky .surface{
+  background-color:var(--bp-note,#244966);
+  box-shadow:inset 0 0 0 1px var(--bp-accent,#f5d887),inset 0 4px 0 var(--bp-accent,#f5d887);
+}
+body[data-theme="blueprint"] .t-sticky .surface::after{
+  left:auto; right:0; bottom:0; width:17px; height:17px; pointer-events:none;
+  background:linear-gradient(135deg,transparent 49%,var(--bp-accent,#f5d887) 50%);
+  opacity:.7;
+}
+body[data-theme="blueprint"] .t-sticky .tx{font-family:var(--hand); font-size:calc(var(--fs,1)*19px); line-height:1.35}
+body[data-theme="blueprint"] .t-card .surface::before{background:var(--bp-line)}
+body[data-theme="blueprint"] .t-doc{--bp-sheet:#163e60}
+body[data-theme="blueprint"] .t-doc .surface::after{border-color:#73b3cf transparent transparent #73b3cf; box-shadow:none; opacity:.65; pointer-events:none}
+body[data-theme="blueprint"] .t-photo{--bp-sheet:#214e70}
+body[data-theme="blueprint"] .t-photo .frame{background:#102d47; box-shadow:0 0 0 1px var(--bp-line)}
+body[data-theme="blueprint"] .t-photo .drop{color:var(--bp-muted); background:repeating-linear-gradient(135deg,#173c59 0 8px,#1b4260 8px 9px)}
+body[data-theme="blueprint"] .t-photo .cap{font-family:var(--hand); font-size:calc(var(--fs,1)*16px); line-height:1.2}
+body[data-theme="blueprint"] .t-tag{--bp-sheet:#214e70}
+body[data-theme="blueprint"] .t-tag .surface::before{background:#102d47; box-shadow:inset 0 0 0 1.5px #8dd8ff}
 body[data-theme="blueprint"] .t-sticky .tx,
 body[data-theme="blueprint"] .t-card .tx,
-body[data-theme="blueprint"] .t-list li{font-family:var(--hand); font-size:calc(var(--fs,1)*17px); line-height:1.45}
-body[data-theme="blueprint"] .t-photo .cap{font-family:var(--hand); font-size:calc(var(--fs,1)*15px)}
-body[data-theme="blueprint"] .t-card .surface{background:linear-gradient(180deg,#f7f1e3,#ece1cf)}
-body[data-theme="blueprint"] .t-card .surface::before{background:rgba(94,167,217,.24)}
-body[data-theme="blueprint"] .t-doc .surface{background:linear-gradient(180deg,#f1ece1,#e3ded1)}
-body[data-theme="blueprint"] .t-doc .surface::after{border-color:#d0c7b7 transparent transparent #d0c7b7}
-body[data-theme="blueprint"] .t-list .surface{background:linear-gradient(180deg,#f7f4ec,#ebe4d7)}
-body[data-theme="blueprint"] .t-photo .surface{background:linear-gradient(180deg,#fffefb,#ece5d9)}
-body[data-theme="blueprint"] .t-tag .surface{background:linear-gradient(180deg,#efe4be,#e1d29f)}
-body[data-theme="blueprint"] .stamp{color:#3b79a8}
-body[data-theme="blueprint"] .stamp::after{opacity:.16}
-body[data-theme="blueprint"] .due,
-body[data-theme="blueprint"] .tlabel{color:#dceaf0}
-body[data-theme="blueprint"] .donebanner b{background:#6fb38c; font-family:var(--hand); color:#173247}
-body[data-theme="blueprint"] .donepill{background:#6fb38c; font-family:var(--hand); color:#173247}
-body[data-theme="blueprint"] .tagchip.donechip i{background:#6fb38c}
-body[data-theme="blueprint"] #empty{background:linear-gradient(180deg,#173247,#11273b); border-color:rgba(220,234,240,.16)}
-body[data-theme="blueprint"] #empty h3{font-family:var(--hand-bold); color:#eef6fb}
-body[data-theme="blueprint"] #empty p{font-family:var(--hand); color:#bfd0de}
-body[data-theme="blueprint"] .item.linkable .surface{box-shadow:0 0 0 2px rgba(var(--sel),.65)}
+body[data-theme="blueprint"] .t-doc .tx,
+body[data-theme="blueprint"] .t-list li,
+body[data-theme="blueprint"] .t-tag .tx,
+body[data-theme="blueprint"] .t-photo .cap{color:var(--bp-text)}
+body[data-theme="blueprint"] .t-card .ttl,
+body[data-theme="blueprint"] .t-doc .ttl,
+body[data-theme="blueprint"] .t-list .ttl{
+  font-family:var(--hand); font-weight:700; font-size:calc(var(--fs,1)*16px);
+  letter-spacing:.01em; line-height:1.35; color:#edf7ff; border-bottom:1px solid var(--bp-line); padding-bottom:5px;
+}
+body[data-theme="blueprint"] .t-card .tx,
+body[data-theme="blueprint"] .t-list li{font-family:var(--hand); font-size:calc(var(--fs,1)*18px); line-height:1.35}
+body[data-theme="blueprint"] .t-doc .tx{font-family:var(--bp-mono); font-size:calc(var(--fs,1)*12px); line-height:1.55}
+body[data-theme="blueprint"] .t-tag .tx{font-family:var(--hand); font-size:calc(var(--fs,1)*16px); letter-spacing:.025em}
+body[data-theme="blueprint"] .t-list .ttl b{font:500 calc(var(--fs,1)*11px) var(--bp-mono); color:#9bdfbd; background:#19476b; opacity:1; padding:2px 4px}
+body[data-theme="blueprint"] .t-list li .bx{border-color:#8dd8ff; color:#9bdfbd; border-radius:0}
+body[data-theme="blueprint"] .t-list li.done{color:var(--bp-muted); text-decoration-color:#9bdfbd}
+body[data-theme="blueprint"] .t-marker .tx{
+  font-family:var(--hand-bold); font-size:calc(var(--fs,1)*34px); font-weight:400;
+  letter-spacing:.01em; color:var(--bp-accent,#edf7ff); text-shadow:0 2px 8px #0d2740;
+}
+body[data-theme="blueprint"] .pin i{box-shadow:0 0 0 2px var(--pinc),0 3px 4px rgba(0,0,0,.42),inset 0 -2px 3px rgba(0,0,0,.25)}
+body[data-theme="blueprint"] .stamp{color:#8dd8ff; background:#102d47; font-size:12px; letter-spacing:.08em; border-width:1px; opacity:1; text-shadow:none; mix-blend-mode:normal}
+body[data-theme="blueprint"] .stamp::after{display:none}
+body[data-theme="blueprint"] .stamp.done{color:#9bdfbd}
+body[data-theme="blueprint"] .stamp.urgent{color:#ff9b94}
+body[data-theme="blueprint"] .stamp.blocked{color:#f5d887}
+body[data-theme="blueprint"] .stamp.review{color:#d6bcff}
+body[data-theme="blueprint"] .due{background:#102d47; color:#bfe9ff; box-shadow:0 0 0 1px currentColor,0 2px 5px #102435; font-size:10px}
+body[data-theme="blueprint"] .due.over,body[data-theme="blueprint"] .due.today{color:#ff9b94}
+body[data-theme="blueprint"] .due.soon{color:#f5d887}
+body[data-theme="blueprint"] .tlabel{background:#102d47; color:#edf7ff; border:1px solid var(--bp-line); box-shadow:none; transform:translate(-50%,-50%); font-size:11px}
+body[data-theme="blueprint"] .donebanner b,
+body[data-theme="blueprint"] .donepill{background:#9bdfbd; font-family:var(--bp-mono); color:#102d47}
+body[data-theme="blueprint"] .tagchip.donechip i{background:#9bdfbd}
+body[data-theme="blueprint"] .tagstrip{box-shadow:1px 0 0 var(--bp-line)}
+body[data-theme="blueprint"] .tagstrip i::after{display:none}
+body[data-theme="blueprint"] .item .edit{background:#102d47; outline-color:#8dd8ff; caret-color:#edf7ff}
+body[data-theme="blueprint"] .grip::after{border-color:#8dd8ff}
+body[data-theme="blueprint"] .ph{opacity:.7}
+body[data-theme="blueprint"] #caseplate{background:#19476b; color:#edf7ff; transform:none; box-shadow:inset 0 0 0 1px #73b3cf,0 4px 14px rgba(0,0,0,.24)}
+body[data-theme="blueprint"] #caseplate::before,body[data-theme="blueprint"] #caseplate::after{display:none}
+body[data-theme="blueprint"] #caseplate .no{color:#8dd8ff; border-bottom:1px solid var(--bp-line); padding-bottom:3px; margin-bottom:3px}
+body[data-theme="blueprint"] #empty{background:#19476b; border:1px solid var(--bp-line); transform:translate(-50%,-50%)}
+body[data-theme="blueprint"] #empty h3{font-family:var(--bp-mono); color:#eef6fb}
+body[data-theme="blueprint"] #empty p{font-family:var(--ui); color:#bfd0de; font-size:16px; line-height:1.5}
+body[data-theme="blueprint"] .item.linkable .surface{outline:2px solid #8dd8ff; outline-offset:3px}
+@media(max-width:720px){body[data-theme="blueprint"] #tools{background:linear-gradient(180deg,transparent,#102435 40%)}}
 
 /* ───────────── stage: wooden frame + cork ───────────── */
 #stage{position:fixed; inset:0; overflow:hidden;
@@ -781,6 +836,8 @@ body[data-theme="blueprint"] .tips li.ink{display:flex}
 .tprev em{position:absolute; left:50%; top:26px; transform:translateX(-50%) rotate(-3deg); width:56px; height:38px;
   background:#f7e06a; font-family:var(--hand); font-style:normal; font-size:14px; color:#33302a;
   display:grid; place-items:center; box-shadow:0 3px 6px rgba(0,0,0,.3)}
+.tprev.blueprint em{background:#244966; color:#edf7ff; font-family:Consolas,monospace; box-shadow:inset 0 0 0 1px #f5d887,inset 0 3px 0 #f5d887}
+.tprev.blueprint .tpin{background:linear-gradient(#e3edf4,#7a8790)}
 .tprev .tpin{position:absolute; left:50%; top:19px; margin-left:-5px; width:10px; height:10px; border-radius:50%;
   background:radial-gradient(circle at 34% 30%,#fff9 0 14%,transparent 42%),#c0342a; z-index:2;
   box-shadow:0 2px 3px rgba(0,0,0,.5)}
@@ -1138,14 +1195,25 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
    matching entry to CHANGELOG.md. Shown in the boards drawer,
    saved with the data, and stamped into exported boards.
    ───────────────────────────────────────────────────────────── */
-const VERSION = "1.4.0";
-const BUILD = "14 September 2026";
+const VERSION = "1.4.1";
+const BUILD = "14 September 2026, 20:04 UTC";
 /*
   RELEASE HISTORY — mandatory for every future release.
   Before completing or pushing an update: bump VERSION/BUILD, add the new
   release here (newest first), and add the same release to CHANGELOG.md.
 */
 const RELEASES = [
+  {
+    version: "1.4.1", date: "14 September 2026, 20:04 UTC",
+    summary: "A complete drafting-board treatment for notes, sticky notes and the rest of the planner.",
+    items: [
+      "Blueprint notes, index cards, reports, checklists, photos and tags now use blue drafting sheets, fine grids, white marker-style handwriting and crisp borders.",
+      "Sticky notes have six tinted sheets with coloured accent edges and folded corners; stored paper and ink choices are preserved when switching themes.",
+      "Restyled the board title, labels, dates, stamps, completion indicators, editing fields, resize handles and mobile tool rail to match Blueprint.",
+      "Connections are straight, high-contrast drafting lines, and both new and existing pen strokes stay visible on blue boards.",
+      "Picture exports now retain Blueprint sheets, colours, metal pins, headings and annotations instead of reverting to whiteboard paper and tape."
+    ]
+  },
   {
     version: "1.4.0", date: "14 September 2026",
     summary: "A third board theme adds a blueprint planning style with drafting-board visuals.",
@@ -1237,13 +1305,24 @@ const PINS = ["#c0342a", "#23486b", "#c2932a", "#3a6b4c", "#efe6d2", "#6d3b8f"];
 const TAPES = ["rgba(235,227,204,.86)", "rgba(252,252,250,.9)", "rgba(126,168,214,.78)",
   "rgba(233,158,168,.78)", "rgba(152,200,162,.78)", "rgba(52,54,60,.85)"];
 const MARKER = { red: "#cf2f26", navy: "#1d4f9e", gold: "#d08a12", green: "#2c7d43", cream: "#24262c" };
+const BLUEPRINT = {
+  red:"#ff9b94", navy:"#8dd8ff", gold:"#f5d887", green:"#9bdfbd", cream:"#edf7ff"
+};
+const BP_NOTES = [
+  ["#244966","#f5d887"], ["#493e61","#ffb5cd"], ["#194e70","#8dd8ff"],
+  ["#204f54","#9bdfbd"], ["#4c444d","#ffc592"], ["#373f68","#d6bcff"]
+];
+const bpNote = color => BP_NOTES[Math.max(0, STICKY.indexOf(color))];
+const bpMarker = color => ({"#7d1810":BLUEPRINT.cream,"#1d3f66":BLUEPRINT.navy,
+  "#2f5c3c":BLUEPRINT.green,"#5c3a7a":"#d6bcff","#1e1a15":BLUEPRINT.cream,"#8a5a12":BLUEPRINT.gold}[color] || BLUEPRINT.cream);
+const draftInk = color => isBlueprint() ? (BLUEPRINT[Object.keys(MARKER).find(k => MARKER[k] === color)] || color) : color;
 const THREAD_NAMES = { cork: { red: "Red", navy: "Navy", gold: "Gold", green: "Green", cream: "Cream" },
   white: { red: "Red", navy: "Blue", gold: "Orange", green: "Green", cream: "Black" },
   blueprint: { red: "Red", navy: "Sky", gold: "Amber", green: "Green", cream: "White" } };
 const isWhite = () => !!board && board.theme === "white";
 const isBlueprint = () => !!board && board.theme === "blueprint";
 const isDraftTheme = () => !!board && (board.theme === "white" || board.theme === "blueprint");
-const threadCol = k => isDraftTheme() ? (MARKER[k] || MARKER.cream) : (THREADS[k] || THREADS.red);
+const threadCol = k => isBlueprint() ? (BLUEPRINT[k] || BLUEPRINT.cream) : isWhite() ? (MARKER[k] || MARKER.cream) : (THREADS[k] || THREADS.red);
 function hashN(s) { let h = 2166136261; for (let i = 0; i < String(s).length; i++) { h ^= String(s).charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
 const STAMPS = ["", "done", "urgent", "blocked", "idea", "review"];
 const SIZES = [["S", .85], ["M", 1], ["L", 1.2], ["XL", 1.45]];
@@ -1497,6 +1576,8 @@ function place(el, it) {
   el.style.setProperty("--fs", it.fs || (board && board.fs) || 1);
   el.style.setProperty("--tr", ((hashN(it.id) % 11) - 5).toFixed(1) + "deg");
   if (it.type === "sticky" || it.type === "marker") el.style.setProperty("--sc", it.color || STICKY[0]);
+  el.style.setProperty("--bp-note", bpNote(it.color)[0]);
+  el.style.setProperty("--bp-accent", it.type === "marker" ? bpMarker(it.color) : bpNote(it.color)[1]);
 }
 function refresh(id) {
   const it = byId(id), el = els.get(id); if (!it || !el) return;
@@ -1582,8 +1663,8 @@ function linkGeom(l, A, B) {
   const dx = p2.x - p1.x, dy = p2.y - p1.y, len = Math.hypot(dx, dy) || 1;
   const px = -dy / len, py = dx / len;
   const h = hashN(l.id || "x");
-  const bow = (((h % 7) - 3) / 3) * Math.min(30, len * .08);
-  const w1 = ((h >> 3) % 5 - 2) * 1.5, w2 = ((h >> 7) % 5 - 2) * 1.5;
+  const bow = isBlueprint() ? 0 : (((h % 7) - 3) / 3) * Math.min(30, len * .08);
+  const w1 = isBlueprint() ? 0 : ((h >> 3) % 5 - 2) * 1.5, w2 = isBlueprint() ? 0 : ((h >> 7) % 5 - 2) * 1.5;
   const o1 = bow * .9 + w1, o2 = bow * 1.05 + w2;
   const c1 = { x: p1.x + dx * .32 + px * o1, y: p1.y + dy * .32 + py * o1 };
   const c2 = { x: p1.x + dx * .68 + px * o2, y: p1.y + dy * .68 + py * o2 };
@@ -1691,9 +1772,9 @@ function drawInk() {
   svg.style.left = r.x + "px"; svg.style.top = r.y + "px";
   let out = "";
   (board.ink || []).forEach(s => {
-    out += `<path d="${inkPath(s.pts)}" stroke="${s.c}" stroke-width="${s.w}" opacity="${s.c === "#f2f4f5" ? 1 : .92}"/>`;
+    out += `<path d="${inkPath(s.pts)}" stroke="${draftInk(s.c)}" stroke-width="${s.w}" opacity="${s.c === "#f2f4f5" ? 1 : .92}"/>`;
   });
-  if (live) out += `<path d="${inkPath(live.pts)}" stroke="${live.c}" stroke-width="${live.w}" opacity=".92"/>`;
+  if (live) out += `<path d="${inkPath(live.pts)}" stroke="${draftInk(live.c)}" stroke-width="${live.w}" opacity=".92"/>`;
   svg.innerHTML = out;
 }
 
@@ -1856,9 +1937,9 @@ const INKS = [MARKER.cream, MARKER.red, MARKER.navy, MARKER.green, MARKER.gold];
 const NIBS = [3, 5.5, 9];
 function buildPenBar() {
   $("#pb-colors").innerHTML = INKS.map(c =>
-    `<button class="swatch ${c === penColor ? "on" : ""}" data-ink="${c}" style="background:${c}" aria-label="ink"></button>`).join("");
+    `<button class="swatch ${c === penColor ? "on" : ""}" data-ink="${c}" style="background:${draftInk(c)}" aria-label="ink"></button>`).join("");
   $("#pb-sizes").innerHTML = NIBS.map(w =>
-    `<button class="nib ${w === penSize ? "on" : ""}" data-nib="${w}" style="color:${penColor}" aria-label="nib">
+    `<button class="nib ${w === penSize ? "on" : ""}" data-nib="${w}" style="color:${draftInk(penColor)}" aria-label="nib">
        <i style="width:${w + 3}px;height:${w + 3}px"></i></button>`).join("");
   $('#penbar [data-pen="erase"]').classList.toggle("on", penMode === "erase");
 }
@@ -2299,6 +2380,89 @@ function rrect(c, x, y, w, h, r) {
 }
 function rand(seed) { let s = seed; return () => (s = s * 16807 % 2147483647) / 2147483647; }
 
+/* Drafting sheets for picture export; colours and spacing mirror Blueprint CSS. */
+function drawBlueprintItem(c, it, fs, SW, imgs) {
+  const mono = '"SFMono-Regular", Consolas, "Liberation Mono", monospace';
+  const sans = '"Kalam", "Segoe Print", cursive';
+  const font = (px, family = sans, weight = "") => weight + " " + (px * fs) + "px " + family;
+  const line = (x1,y1,x2,y2,col) => { c.strokeStyle=col; c.lineWidth=1; c.beginPath(); c.moveTo(x1,y1); c.lineTo(x2,y2); c.stroke(); };
+  c.save();
+  if (it.type === "marker") {
+    c.shadowColor="transparent"; c.fillStyle=bpMarker(it.color); c.font=font(34,'"Permanent Marker", "Kalam", cursive');
+    lines(c,it.text,it.w,0,0,36*fs,it.h+40); c.restore(); return;
+  }
+  const note=bpNote(it.color), bg=it.type === "sticky" ? note[0] : it.type === "doc" ? "#163e60" : ["photo","tag"].includes(it.type) ? "#214e70" : "#19476b";
+  c.shadowColor="rgba(7,16,26,.34)"; c.fillStyle=bg; c.fillRect(0,0,it.w,it.h);
+  c.shadowColor="transparent"; c.shadowBlur=0; c.shadowOffsetY=0;
+  c.beginPath(); c.rect(0,0,it.w,it.h); c.clip();
+  for(let x=0;x<it.w;x+=20) line(x+.5,0,x+.5,it.h,"rgba(174,220,245,.055)");
+  for(let y=0;y<it.h;y+=20) line(0,y+.5,it.w,y+.5,"rgba(174,220,245,.055)");
+  c.strokeStyle=it.type === "sticky" ? note[1] : "rgba(157,212,239,.4)"; c.lineWidth=1; c.strokeRect(.5,.5,it.w-1,it.h-1);
+  if(it.type === "sticky") {
+    c.fillStyle=note[1]; c.fillRect(0,0,it.w,4);
+    c.beginPath(); c.moveTo(it.w-17,it.h); c.lineTo(it.w,it.h-17); c.lineTo(it.w,it.h); c.fill();
+  }
+  if(it.type === "doc") {
+    c.fillStyle="#73b3cf"; c.beginPath(); c.moveTo(it.w-24,0); c.lineTo(it.w,24); c.lineTo(it.w-24,24); c.fill();
+  }
+  c.fillStyle="#edf7ff";
+  if(it.type === "photo") {
+    const x=SW+9, w=it.w-x-9, h=it.h-55, im=imgs[it.id];
+    c.fillStyle="#102d47"; c.fillRect(x,9,w,h);
+    if(im) {
+      const r=Math.max(w/im.width,h/im.height);
+      c.save(); c.beginPath(); c.rect(x,9,w,h); c.clip();
+      c.drawImage(im,x+(w-im.width*r)/2,9+(h-im.height*r)/2,im.width*r,im.height*r); c.restore();
+    } else {
+      c.fillStyle="#afd0e4"; c.font=font(12); c.textAlign="center"; c.fillText("Tap to add a picture",x+w/2,9+h/2,w-12); c.textAlign="left";
+    }
+    c.fillStyle="#edf7ff"; c.font=font(16); c.textAlign="center";
+    c.fillText((it.text || "").split("\n")[0],x+w/2,it.h-30,w-12);
+  } else if(it.type === "tag") {
+    c.fillStyle="#102d47"; c.beginPath(); c.arc(SW+11,it.h/2,4,0,7); c.fill();
+    c.strokeStyle="#8dd8ff"; c.lineWidth=1.5; c.stroke();
+    c.fillStyle="#edf7ff"; c.font=font(16); c.textBaseline="middle";
+    c.fillText(it.text || "",SW+20,it.h/2,it.w-SW-32);
+  } else {
+    const x=it.type === "card" ? SW+34 : SW ? SW+9 : it.type === "doc" ? 15 : it.type === "sticky" ? 13 : 12;
+    let y=it.type === "doc" || it.type === "sticky" ? 14 : 11;
+    if(it.type === "card") line(SW+22.5,0,SW+22.5,it.h,"rgba(157,212,239,.4)");
+    if(it.type !== "sticky") {
+      c.fillStyle="#edf7ff"; c.font=font(16,sans,"700");
+      c.fillText(it.title || "",x,y,Math.max(1,it.w-x-(it.due ? 86 : 15)));
+      y+=21.6*fs+5;
+      line(x,y,it.w-12,y,"rgba(157,212,239,.4)"); y+=it.type === "doc" ? 8 : 7;
+    }
+    c.fillStyle="#edf7ff";
+    if(it.type === "list") {
+      const size=15*fs;
+      for(const t of it.tasks || []) {
+        c.font=font(18); const rows=wrapText(c,t.t,Math.max(1,it.w-x-size-20));
+        if(y+24.3*fs>it.h-22) break;
+        c.strokeStyle="#8dd8ff"; c.lineWidth=1.5; c.strokeRect(x,y+3,size,size);
+        c.fillStyle=t.done ? "#9bdfbd" : "#edf7ff";
+        if(t.done) c.fillText("✕",x+1,y+1,size);
+        c.fillStyle=t.done ? "#afd0e4" : "#edf7ff";
+        for(const row of rows) {
+          if(y+24.3*fs>it.h-22) break;
+          c.fillText(row,x+size+8,y);
+          if(t.done) line(x+size+8,y+11*fs,x+size+8+c.measureText(row).width,y+11*fs,"#9bdfbd");
+          y+=24.3*fs;
+        }
+        y+=6;
+      }
+      c.fillStyle=bg; c.fillRect(it.w-60,it.h-24,52,20);
+      c.fillStyle="#9bdfbd"; c.font=font(11,mono); c.textAlign="right";
+      c.fillText((it.tasks || []).filter(t=>t.done).length+"/"+(it.tasks || []).length,it.w-16,it.h-21);
+    } else {
+      const px=it.type === "sticky" ? 19 : it.type === "doc" ? 12 : 18;
+      c.font=font(px,it.type === "doc" ? mono : sans);
+      lines(c,it.text,it.w-x-13,x,y,px*fs*(it.type === "doc" ? 1.55 : 1.35),it.h-y-12);
+    }
+  }
+  c.restore();
+}
+
 async function exportPNG() {
   if (!board.items.length && !(board.ink || []).length) { toast("Pin something to the board first"); return; }
   toast("Drawing the board…", 4000);
@@ -2311,9 +2475,9 @@ async function exportPNG() {
 
   const blueprint = isBlueprint();
   const W_ = isWhite() || blueprint;
-  const HAND = W_ ? '"Kalam", cursive' : '"Caveat", cursive';
-  const HANDB = W_ ? '"Permanent Marker", cursive' : '"Caveat", cursive';
-  const TYPED = W_ ? '"Kalam", cursive' : '"Special Elite", monospace';
+  const HAND = blueprint ? 'Consolas, monospace' : W_ ? '"Kalam", cursive' : '"Caveat", cursive';
+  const HANDB = blueprint ? 'Consolas, monospace' : W_ ? '"Permanent Marker", cursive' : '"Caveat", cursive';
+  const TYPED = blueprint ? 'Consolas, monospace' : W_ ? '"Kalam", cursive' : '"Special Elite", monospace';
 
   const cv = document.createElement("canvas");
   cv.width = Math.round(W * sc); cv.height = Math.round(H * sc);
@@ -2332,7 +2496,9 @@ async function exportPNG() {
     c.strokeStyle = "rgba(220,234,240,.16)";
     for (let x = Math.floor(x0 / 100) * 100; x <= x0 + W; x += 100) { c.beginPath(); c.moveTo(x, y0); c.lineTo(x, y0 + H); c.stroke(); }
     for (let y = Math.floor(y0 / 100) * 100; y <= y0 + H; y += 100) { c.beginPath(); c.moveTo(x0, y); c.lineTo(x0 + W, y); c.stroke(); }
-    c.globalAlpha = .12; c.fillStyle = "#ffffff"; c.fillRect(x0, y0, W * .34, H * .08);
+    c.strokeStyle = "rgba(220,234,240,.065)"; c.lineWidth = 1;
+    for(let x=Math.floor(x0/20)*20;x<=x0+W;x+=20){c.beginPath();c.moveTo(x,y0);c.lineTo(x,y0+H);c.stroke();}
+    for(let y=Math.floor(y0/20)*20;y<=y0+H;y+=20){c.beginPath();c.moveTo(x0,y);c.lineTo(x0+W,y);c.stroke();}
     c.globalAlpha = 1;
   } else if (W_) {
     const g = c.createLinearGradient(x0, y0, x0 + W * .3, y0 + H);
@@ -2385,11 +2551,16 @@ async function exportPNG() {
     if (l.label) {
       c.save(); c.translate(geo.mid.x, geo.mid.y);
       c.textAlign = "center"; c.textBaseline = "middle";
-      if (W_) {
+      if (blueprint) {
+        c.font='11px Consolas, monospace'; const tw=c.measureText(l.label).width+16;
+        c.fillStyle="#102d47"; c.fillRect(-tw/2,-10,tw,20);
+        c.strokeStyle="rgba(157,212,239,.4)"; c.lineWidth=1; c.strokeRect(-tw/2,-10,tw,20);
+        c.fillStyle="#edf7ff"; c.fillText(l.label,0,0);
+      } else if (W_) {
         c.font = 'bold 15px ' + HAND;
-        c.strokeStyle = "#f6f7f7"; c.lineWidth = 7; c.lineJoin = "round";
+        c.strokeStyle = blueprint ? "#102d47" : "#f6f7f7"; c.lineWidth = 7; c.lineJoin = "round";
         c.strokeText(l.label, 0, 0);
-        c.fillStyle = "#33363d"; c.fillText(l.label, 0, 0);
+        c.fillStyle = blueprint ? "#edf7ff" : "#33363d"; c.fillText(l.label, 0, 0);
       } else {
         c.rotate(-.035);
         c.font = '11px "Special Elite", monospace';
@@ -2429,7 +2600,8 @@ async function exportPNG() {
     }
     const paper = (fill, r) => { c.fillStyle = fill; r ? rrect(c, 0, 0, it.w, it.h, r) : c.beginPath(), r || c.rect(0, 0, it.w, it.h); c.fill(); c.shadowColor = "transparent"; c.shadowBlur = 0; c.shadowOffsetY = 0; };
 
-    if (it.type === "photo") {
+    if (blueprint) { drawBlueprintItem(c, it, fs, SW, imgs); c.shadowColor="transparent"; c.shadowBlur=0; c.shadowOffsetY=0; }
+    else if (it.type === "photo") {
       paper(W_ ? "#fdfdfc" : "#f7f1e3");
       const fh = it.h - 46;
       const fx = tgs.length ? PL : 9;
@@ -2539,17 +2711,18 @@ async function exportPNG() {
       });
     }
     if (it.stamp && !it.done) {
-      const col = { done: "#3a6b4c", urgent: "#b3271e", blocked: "#8a5a12", idea: "#23486b", review: "#5c3a7a" }[it.stamp];
+      const col = (blueprint ? {done:BLUEPRINT.green,urgent:BLUEPRINT.red,blocked:BLUEPRINT.gold,idea:BLUEPRINT.navy,review:"#d6bcff"} : { done: "#3a6b4c", urgent: "#b3271e", blocked: "#8a5a12", idea: "#23486b", review: "#5c3a7a" })[it.stamp];
       c.save();
       c.translate(it.w - (W_ ? 20 : 12), it.type === "photo" ? 30 : it.h - (W_ ? 20 : 12));
       c.rotate(-.19);
       c.font = W_ ? '14px ' + HANDB : '15px "Special Elite", monospace';
       const t = it.stamp.toUpperCase(), tw = c.measureText(t).width, bw = tw + 24;
       c.globalAlpha = W_ ? .9 : .82; c.strokeStyle = col; c.fillStyle = col; c.lineWidth = W_ ? 2.5 : 1.4;
-      if (W_) {
+      if (W_ && !blueprint) {
         c.save(); c.translate(-bw / 2, 0); c.rotate(.05);
         c.beginPath(); c.ellipse(0, 0, bw / 2 + 4, 16, 0, 0, 7); c.stroke(); c.restore();
       } else {
+        if(blueprint){c.fillStyle="#102d47";c.fillRect(-bw,-13,bw,26);c.fillStyle=col;}
         c.strokeRect(-bw, -13, bw, 26);
         c.strokeRect(-bw + 3, -10, bw - 6, 20);
       }
@@ -2564,25 +2737,31 @@ async function exportPNG() {
         c.save();
         c.beginPath(); c.rect(it.w - R, 0, R, R); c.clip();
         c.translate(it.w, 0); c.rotate(Math.PI / 4);
-        c.fillStyle = W_ ? "#2c7d43" : "#3f7551";
+        c.fillStyle = blueprint ? "#9bdfbd" : W_ ? "#2c7d43" : "#3f7551";
         c.fillRect(-90, 12, 180, 20);
-        c.fillStyle = "#eff7f0";
-        c.font = W_ ? 'bold 12px "Kalam", cursive' : '10.5px "Special Elite", monospace';
+        c.fillStyle = blueprint ? "#102d47" : "#eff7f0";
+        c.font = blueprint ? '11px Consolas, monospace' : W_ ? 'bold 12px "Kalam", cursive' : '10.5px "Special Elite", monospace';
         c.textAlign = "center"; c.textBaseline = "middle";
         c.fillText("DONE", 0, 22.5);
         c.restore(); c.textAlign = "left"; c.textBaseline = "top";
       } else {
         c.font = '10.5px "Special Elite", monospace';
         const tw = c.measureText("DONE").width + 14;
-        c.fillStyle = W_ ? "#2c7d43" : "#3a6b4c";
+        c.fillStyle = blueprint ? "#9bdfbd" : W_ ? "#2c7d43" : "#3a6b4c";
         c.fillRect(it.w - 11 - tw, -10, tw, 17);
-        c.fillStyle = "#eff7f0"; c.fillText("DONE", it.w - 4 - tw, -6);
+        c.fillStyle = blueprint ? "#102d47" : "#eff7f0"; c.fillText("DONE", it.w - 4 - tw, -6);
       }
     }
     if (it.due && !it.done) {
       const st = dueState(it.due), t = dueLabel(it.due);
       const boxed = it.type === "card" || it.type === "doc" || it.type === "list";
-      if (W_) {
+      if (blueprint) {
+        c.font='10px Consolas, monospace';
+        const col={over:BLUEPRINT.red,today:BLUEPRINT.red,soon:BLUEPRINT.gold,later:"#bfe9ff"}[st];
+        const tw=c.measureText(t).width+16,x=it.w-12-tw,y=boxed?9:-9;
+        c.fillStyle="#102d47";c.fillRect(x,y,tw,17);c.strokeStyle=col;c.lineWidth=1;c.strokeRect(x,y,tw,17);
+        c.fillStyle=col;c.fillText(t,x+8,y+3);
+      } else if (W_) {
         c.font = 'bold 14px ' + HAND;
         const col = { over: "#cf2f26", today: "#cf2f26", soon: "#d08a12", later: "#1d4f9e" }[st];
         const tw = c.measureText(t).width;
@@ -2599,7 +2778,7 @@ async function exportPNG() {
         c.fillStyle = "#fdf6e6"; c.fillText(t, x + 7, y + 4);
       }
     }
-    if (W_) {
+    if (W_ && !blueprint) {
       if (it.type !== "marker" && it.type !== "sticky") {
         const tw = it.type === "tag" ? 52 : 76, th = it.type === "tag" ? 22 : 27;
         c.save(); c.translate(it.w / 2, -13 + th / 2);
@@ -2621,7 +2800,8 @@ async function exportPNG() {
         c.restore();
       }
     } else if (it.type !== "marker") {
-      c.fillStyle = it.pin || PINS[0];
+      c.fillStyle = blueprint ? "#b8c9d6" : (it.pin || PINS[0]);
+      if(blueprint){c.strokeStyle=it.pin || PINS[0];c.lineWidth=2;c.beginPath();c.arc(it.w/2,-1,8,0,7);c.stroke();}
       c.beginPath(); c.arc(it.w / 2, -1, 7, 0, 7); c.fill();
       c.fillStyle = "rgba(255,255,255,.45)";
       c.beginPath(); c.arc(it.w / 2 - 2, -3.5, 2.1, 0, 7); c.fill();
@@ -2632,7 +2812,7 @@ async function exportPNG() {
 
   /* freehand goes on last, matching the board */
   (board.ink || []).forEach(st => {
-    c.strokeStyle = st.c; c.lineWidth = st.w; c.lineCap = "round"; c.lineJoin = "round";
+    c.strokeStyle = draftInk(st.c); c.lineWidth = st.w; c.lineCap = "round"; c.lineJoin = "round";
     c.globalAlpha = .92; c.stroke(new Path2D(inkPath(st.pts))); c.globalAlpha = 1;
   });
 
@@ -2642,10 +2822,10 @@ async function exportPNG() {
   c.save(); c.translate(x0 + 34, y0 + 26); c.rotate(-.008);
   c.textAlign = "left"; c.textBaseline = "top";
   c.shadowColor = "rgba(0,0,0,.4)"; c.shadowBlur = 16; c.shadowOffsetY = 8;
-  c.fillStyle = "#f2eada"; c.fillRect(0, 0, tw, 64); c.shadowColor = "transparent";
-  c.fillStyle = "#8a2018"; c.font = '11px "Special Elite", monospace';
+  c.fillStyle = blueprint ? "#19476b" : "#f2eada"; c.fillRect(0, 0, tw, 64); c.shadowColor = "transparent";
+  c.fillStyle = blueprint ? "#8dd8ff" : "#8a2018"; c.font = blueprint ? "11px Consolas, monospace" : '11px "Special Elite", monospace';
   c.fillText(board.no || "CASE FILE", 20, 13);
-  c.fillStyle = "#231f1a"; c.font = W_ ? '22px ' + HANDB : '22px "Special Elite", monospace';
+  c.fillStyle = blueprint ? "#edf7ff" : "#231f1a"; c.font = W_ ? '22px ' + HANDB : '22px "Special Elite", monospace';
   c.fillText(nm, 20, W_ ? 28 : 30);
   c.restore();
 
@@ -3217,8 +3397,8 @@ function openInspector() {
 
   if (it.type === "sticky" || it.type === "marker") {
     const pal = it.type === "sticky" ? STICKY : ["#7d1810", "#1d3f66", "#2f5c3c", "#5c3a7a", "#1e1a15", "#8a5a12"];
-    h += field(it.type === "sticky" ? "Paper" : "Ink", `<div class="swatches">${pal.map(c =>
-      `<button class="sw ${it.color === c ? "sel" : ""}" data-col="${c}" style="background:${c}"></button>`).join("")}</div>`);
+    h += field(it.type === "sticky" ? (isBlueprint() ? "Sheet accent" : "Paper") : "Ink", `<div class="swatches">${pal.map(c =>
+      `<button class="sw ${it.color === c ? "sel" : ""}" data-col="${c}" style="background:${isBlueprint() ? (it.type === "sticky" ? bpNote(c)[1] : bpMarker(c)) : c}"></button>`).join("")}</div>`);
   }
   h += field("Due", `<input type="date" data-f="due" value="${esc(it.due || "")}">`);
   if (isWhite())
@@ -3379,6 +3559,7 @@ function plate() {
 function applyTheme() {
   const t = (board && board.theme) || "cork";
   document.body.dataset.theme = t;
+  if (penMode) buildPenBar();
   const tc = document.querySelector('meta[name="theme-color"]');
   if (tc) tc.content = t === "white" ? "#8d949c" : (t === "blueprint" ? "#16344b" : "#2e2118");
   $$("#themeseg button").forEach(b => b.classList.toggle("on", b.dataset.theme === t));
