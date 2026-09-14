@@ -8,6 +8,14 @@ Numbers follow the usual shape: **major** for a change that breaks old saved boa
 
 ---
 
+## 1.4.0 — 14 September 2026
+
+- Added a third board style: **Blueprint**.
+- Blueprint boards use a navy drafting surface with a technical grid, cool steel-blue chrome and pinned paper notes with metal tacks.
+- Connections on blueprint boards now render as crisp drawn planning lines rather than sagging string.
+- Enabled the pen tool on blueprint boards, matching the existing whiteboard freehand workflow.
+- Updated the board-style picker, onboarding flow, picture export and README documentation to include the new theme.
+
 ## 1.3.0 — 14 September 2026
 
 - Added a visible **What's new** button to the boards drawer.

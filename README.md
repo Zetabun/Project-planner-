@@ -1,6 +1,6 @@
 # Pin It
 
-A corkboard for planning projects. Pin photos, notes, cards and checklists, then run red string between them to show what connects to what. One HTML file, no build step, no dependencies beyond two Google Fonts.
+A planning board for projects. Pin photos, notes, cards and checklists, then connect them to show what belongs together. One HTML file, no build step, no dependencies beyond Google Fonts.
 
 Works on desktop and mobile. Boards are saved in the browser and can be exported as JSON.
 
@@ -54,17 +54,19 @@ Two things worth knowing. The icon only appears from the published URL, not from
 
 ## First run
 
-On a first visit you're asked what you're working on, shown the two board styles to pick from, and given three short pointers. You can then start empty or start with a small worked example to poke at. It never appears again after that — reopen it any time from the boards drawer under **How this works**.
+On a first visit you're asked what you're working on, shown the three board styles to pick from, and given three short pointers. You can then start empty or start with a small worked example to poke at. It never appears again after that — reopen it any time from the boards drawer under **How this works**.
 
-## Two board styles
+## Three board styles
 
 **Corkboard** — cork, brass pins, red waxed string that sags under its own weight, typewriter labels and rubber stamps.
 
 **Whiteboard** — a wiped melamine surface in an aluminium frame, with a marker pen you can write on it with. Everything goes up with torn masking tape instead of pins (sticky notes keep sticking themselves). String becomes marker strokes: slightly bowed, drawn stopping just short of each item, with an arrowhead showing which way the connection runs. Stamps are scrawled and circled, dates are underlined, and everything handwritten is in marker — Permanent Marker for headings, Kalam for notes.
 
-The interface follows the board: dark stained-wood controls and panels on cork, brushed light-steel ones on the whiteboard, with the accent shifting from string red to marker red.
+**Blueprint** — a navy drafting surface with a faint technical grid, metal pins, crisp drawn connection lines and brighter steel-blue interface chrome. It keeps the pinned-paper feel of cork but looks cleaner and more technical, like a planning board lifted from a workshop wall.
 
-Set it per board in the boards drawer under **Board style**, so a scruffy brainstorm and a client-facing plan can look different. New boards inherit the style of the one you're on. Picture exports match whichever style the board uses.
+The interface follows the board: dark stained-wood controls and panels on cork, brushed light-steel ones on the whiteboard, and cool steel-blue chrome on the blueprint theme, with the accent shifting to match.
+
+Set it per board in the boards drawer under **Board style**, so a scruffy brainstorm, a clean client-facing plan and a technical planning board can all look different. New boards inherit the style of the one you're on. Picture exports match whichever style the board uses.
 
 ## What's on the board
 
@@ -78,7 +80,7 @@ Set it per board in the boards drawer under **Board style**, so a scruffy brains
 | Evidence tag | Small luggage-tag label — owners, references, numbers |
 | Marker text | Handwriting straight on the cork, for section headings |
 
-Every item takes a coloured pin (or a tape colour on the whiteboard — masking, gaffer, blue painter's, washi) and an optional stamp: Done, Urgent, Blocked, Idea, Review.
+Every item takes a coloured pin (or a tape colour on the whiteboard — masking, gaffer, blue painter's, washi) and an optional stamp: Done, Urgent, Blocked, Idea, Review. Blueprint boards keep the pin system, but with cleaner metal tacks and drafting-board styling.
 
 ## Text size
 
@@ -103,7 +105,7 @@ Finished items drop their due date, since the ribbon covers it.
 
 ## Tags
 
-Tags group things across the board without moving them. A tagged item gets a strip of colour down its left edge — tape on cork, a marker stripe on the whiteboard — carrying the tag's initial, so you can tell at a glance that the red-edged notes are engine work and the green ones are gameplay. An item can carry more than one tag; the strip splits into bands rather than picking a winner.
+Tags group things across the board without moving them. A tagged item gets a strip of colour down its left edge — tape on cork, a marker stripe on the whiteboard, and the same cleaner stripe treatment on blueprint — carrying the tag's initial, so you can tell at a glance that the red-edged notes are engine work and the green ones are gameplay. An item can carry more than one tag; the strip splits into bands rather than picking a winner.
 
 Strips come two ways, set per board in the boards drawer under **Tag strips**: **colour only**, a slim band carrying the tag's initial, or **show names**, a wider band with the whole tag name running up it like a book spine. Names are better on a board with a handful of tags you're still learning; colour only is better once you know them and want the space back.
 
@@ -133,9 +135,9 @@ Select an item and the board fades back everything it isn't tied to: direct conn
 
 Boards drawer → **Save the board as a picture**. It draws the whole board — cork, string, pins, stamps, dates and the case plate — to a PNG at up to 2600px and downloads it. Good for sending someone the plan without sending them the app.
 
-## Writing on the whiteboard
+## Writing on whiteboards and blueprint boards
 
-The pen tool (whiteboard only, or press `P`) lets you write and draw straight onto the board in marker — circle a note, sketch an arrow, scrawl a reminder in your own hand.
+The pen tool (whiteboard and blueprint boards, or press `P`) lets you write and draw straight onto the board in marker — circle a note, sketch an arrow, scrawl a reminder in your own hand.
 
 - Five marker colours and three nib widths, from the bar that appears at the bottom.
 - The eraser removes a whole stroke at a time, so a quick swipe clears a letter without nibbling at it.
@@ -149,7 +151,7 @@ Drawings are part of the board: they undo, save, export to the picture, and trav
 
 Tap the string tool (or press `L`), tap the first item, then tap the second. Tap any string to change its colour, switch solid/dashed, add a label like "blocks" or "feeds into", or cut it.
 
-Five colours: red, navy, gold, green and cream on cork; red, blue, orange, green and black marker on the whiteboard.
+Five colours: red, navy, gold, green and cream on cork; red, blue, orange, green and black marker on the whiteboard; and the same marker palette on blueprint boards.
 
 ## Adding pictures
 
@@ -167,7 +169,7 @@ Transparent PNGs are flattened onto white rather than going black, and the board
 |---|---|
 | `L` | String mode |
 | `T` | Show or hide the dates strip |
-| `P` | Pen, on a whiteboard |
+| `P` | Pen, on a whiteboard or blueprint board |
 | `D` | Mark the selection done, or put it back |
 | `Esc` | Clear a tag filter (then selection, then modes) |
 | Corner handle | Resize an item (text keeps its size — use Text size for that) |
@@ -209,7 +211,7 @@ To sync across devices you'd need a small backend — a Cloudflare Worker with K
 
 The boards drawer has a **What's new** button. It opens the full release history, newest first, with the current release expanded and every previous release available underneath. The version stamp at the bottom of the drawer opens the same view. The history is embedded in `index.html`, so it still works when the app is running as a single local/offline file.
 
-The historical list is intentionally retrospective: versions `1.0.0`, `1.1.0`, `1.1.1`, `1.2.0` and every later release must remain available rather than replacing the previous entry.
+The historical list is intentionally retrospective: versions `1.0.0`, `1.1.0`, `1.1.1`, `1.2.0`, `1.3.0` and every later release must remain available rather than replacing the previous entry.
 
 ## Releasing an update
 
