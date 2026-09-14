@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Apply Pin It 1.6.0 group areas
-        run: python3 .github/scripts/release_group_areas.py
+        run: python3 .github/scripts/release_group_areas_runner.py
 
       - name: Second pass checks
         shell: bash
@@ -45,13 +45,15 @@ jobs:
           assert html.count('version: "1.6.0"') == 1
           assert html.count('const VERSION = "1.6.0";') == 1
           assert html.count('const BUILD = "14 September 2026, 23:15 UTC";') == 1
-          print(f'Second pass: {len(scripts)} inline scripts parse and release metadata is singular.')
+          assert html.count('function groupBounds(g)') == 1
+          assert html.count('function createGroupArea(ids)') == 1
+          print(f'Second pass: {len(scripts)} inline scripts parse and group-area wiring is singular.')
           PY
 
       - name: Commit release to main
         shell: bash
         run: |
-          rm -f .github/workflows/release-group-areas.yml .github/scripts/release_group_areas.py
+          rm -f .github/workflows/release-group-areas.yml .github/scripts/release_group_areas.py .github/scripts/release_group_areas_runner.py
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
