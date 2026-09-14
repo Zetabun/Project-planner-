@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#2e2118">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Pin It">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23a97741'/%3E%3Cpath d='M-2 20 Q32 44 66 26' stroke='%23b3271e' stroke-width='5' fill='none'/%3E%3Crect x='17' y='20' width='30' height='30' fill='%23f7e06a' transform='rotate(-5 32 35)'/%3E%3Ccircle cx='31' cy='21' r='5.5' fill='%23c0342a'/%3E%3C/svg%3E">
+<link rel="manifest" href="manifest.json">
 <meta name="description" content="Pin It — a corkboard for planning projects. Photos, notes and red string.">
 <title>Pin It — evidence board</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -540,6 +548,20 @@ body[data-theme="white"] .tips li.ink{display:flex}
   #penbar .nib{width:28px; height:28px}
 }
 
+/* safety notices */
+#notice[hidden]{display:none}
+#notice{position:fixed; left:0; right:0; bottom:0; z-index:65; display:flex; justify-content:center;
+  padding:14px 14px calc(14px + var(--safe-b)); pointer-events:none; animation:rise .3s cubic-bezier(.2,.8,.25,1)}
+.nt-card{pointer-events:auto; width:min(420px,100%); padding:16px 18px 14px; border-radius:8px;
+  background:linear-gradient(180deg,var(--sheet-2),var(--sheet)); color:var(--pan-fg);
+  border:1px solid var(--pan-line); box-shadow:0 20px 50px rgba(0,0,0,.45)}
+.nt-card h3{font-family:var(--type); font-size:16px; margin:0 0 6px; color:var(--pan-head)}
+.nt-card p{font-size:13px; line-height:1.55; color:var(--pan-sub); margin:0}
+.nt-card ol{margin:10px 0 0; padding-left:20px; font-size:12.5px; line-height:1.7; color:var(--pan-sub)}
+.nt-foot{display:flex; gap:8px; justify-content:flex-end; margin-top:14px}
+.nt-foot .btn{padding:10px 16px}
+#backuplab.stale{color:var(--thread-red)}
+
 /* storage meter */
 #meter{height:6px; border-radius:4px; background:var(--pan-soft2); overflow:hidden}
 #meter i{display:block; height:100%; background:var(--ok); transition:width .3s}
@@ -760,7 +782,7 @@ body[data-theme="white"] #btn-pen{display:grid}
   <div class="body" id="caselist"></div>
   <footer>
     <button class="btn primary wide" id="btn-newcase"><svg><use href="#i-plus"/></svg>New board</button>
-    <button class="btn" id="btn-export"><svg><use href="#i-down"/></svg>Export</button>
+    <button class="btn" id="btn-export"><svg><use href="#i-down"/></svg>Back up</button>
     <button class="btn" id="btn-import"><svg><use href="#i-up"/></svg>Import</button>
     <label class="field" style="width:100%; margin:2px 0 4px">
       <span>Board style</span>
@@ -781,6 +803,8 @@ body[data-theme="white"] #btn-pen{display:grid}
       <div id="meter"><i></i></div>
       <div class="hint" id="meterlab" style="margin-top:5px"></div>
     </div>
+    <div class="hint" id="backuplab" style="width:100%"></div>
+    <button class="btn wide" id="btn-protect"><svg><use href="#i-pin"/></svg>Protect these boards from being cleared</button>
     <button class="btn wide" id="btn-shrink"><svg><use href="#i-down"/></svg>Shrink the pictures on this board</button>
     <button class="btn wide" id="btn-tour"><svg><use href="#i-chev"/></svg>How this works</button>
     <div class="hint" style="width:100%">Boards are stored in this browser. Export to keep a copy or move to another device.</div>
@@ -833,6 +857,18 @@ body[data-theme="white"] #btn-pen{display:grid}
       <p class="hint">Everything saves in this browser as you go. No account, no upload.</p>
       <div class="tourfoot" id="tour-end"></div>
     </section>
+  </div>
+</div>
+
+<div id="notice" hidden>
+  <div class="nt-card">
+    <h3 id="nt-title"></h3>
+    <p id="nt-body"></p>
+    <ol id="nt-steps" hidden></ol>
+    <div class="nt-foot">
+      <button class="btn" id="nt-no">Not now</button>
+      <button class="btn primary" id="nt-yes"></button>
+    </div>
   </div>
 </div>
 
@@ -891,7 +927,7 @@ const store = (() => {
 const KEY = "pinit.v1";
 
 /* ── state ── */
-let DB = { boards: [], current: null };
+let DB = { boards: [], current: null, lastBackup: 0, flags: {} };
 let FRESH = false;
 let board = null;
 let sel = null;             // selected item id
@@ -988,6 +1024,7 @@ function load() {
   }
   board = DB.boards.find(b => b.id === DB.current) || DB.boards[0];
   DB.boards.forEach(normalise);
+  if (!DB.flags) DB.flags = {};
   DB.current = board.id;
   view = Object.assign({ x: 0, y: 0, s: 1 }, board.view || {});
 }
@@ -2152,6 +2189,131 @@ async function exportPNG() {
   }, "image/png");
 }
 
+/* ═══════════════ keeping boards alive ═══════════════ */
+/* iOS clears script-writable storage for sites left alone for about a week of
+   Safari use. Three defences: ask for persistent mode, nudge people to install,
+   and keep them honest about backups. */
+const onIOS = /iP(hone|ad|od)/.test(navigator.userAgent) ||
+  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const installed = () => window.navigator.standalone === true ||
+  (matchMedia && matchMedia("(display-mode: standalone)").matches);
+let persisted = null;
+
+async function checkPersist() {
+  if (!navigator.storage || !navigator.storage.persisted) return null;
+  try { persisted = await navigator.storage.persisted(); } catch (e) { persisted = null; }
+  return persisted;
+}
+async function askPersist(loud) {
+  if (!navigator.storage || !navigator.storage.persist) {
+    if (loud) toast("This browser can't lock storage — back up instead", 4000);
+    return false;
+  }
+  try {
+    if (await navigator.storage.persisted()) { persisted = true; renderMeter(); return true; }
+    persisted = await navigator.storage.persist();
+  } catch (e) { persisted = false; }
+  renderMeter();
+  if (loud) toast(persisted
+    ? "Done — these boards are exempt from automatic clearing"
+    : (onIOS && !installed()
+      ? "Safari said no. Add to Home Screen and it will stick."
+      : "The browser declined. Back up regularly instead."), 5000);
+  return persisted;
+}
+/* one quiet attempt, on the first real interaction (some browsers need a gesture) */
+function quietPersistOnce() {
+  const go = () => {
+    removeEventListener("pointerdown", go, true);
+    if (persisted !== true) askPersist(false);
+  };
+  addEventListener("pointerdown", go, true);
+}
+
+function markBackup() { DB.lastBackup = Date.now(); save(true); renderMeter(); }
+function backupAge() {
+  if (!DB.lastBackup) return null;
+  return Math.floor((Date.now() - DB.lastBackup) / 86400000);
+}
+function backupLine() {
+  const el = $("#backuplab"); if (!el) return;
+  const d = backupAge();
+  const total = DB.boards.reduce((n, b) => n + b.items.length, 0);
+  let txt;
+  if (!total) txt = "Nothing to back up yet.";
+  else if (d === null) txt = "Never backed up. Use Back up to keep a copy.";
+  else if (d === 0) txt = "Backed up today.";
+  else txt = `Last backup ${d} day${d === 1 ? "" : "s"} ago.`;
+  if (persisted === true) txt += " Storage is protected on this device.";
+  el.textContent = txt;
+  el.classList.toggle("stale", total > 0 && (d === null || d > 14));
+  const btn = $("#btn-protect");
+  if (btn) btn.style.display = persisted === true ? "none" : "";
+}
+
+/* on a phone, a share sheet beats a file dropped into Downloads */
+async function shareBoard(b) {
+  try {
+    const json = JSON.stringify({ pinit: 1, board: b }, null, 1);
+    const name = (b.name.replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "-").toLowerCase() || "board") + ".pinit.json";
+    const file = new File([json], name, { type: "application/json" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: b.name });
+      markBackup();
+      return true;
+    }
+  } catch (e) {
+    if (e && e.name === "AbortError") return true;   // user closed the sheet
+  }
+  return false;
+}
+
+/* one small card, used for both nudges */
+function showNotice(o) {
+  $("#nt-title").textContent = o.title;
+  $("#nt-body").textContent = o.body;
+  const steps = $("#nt-steps");
+  steps.hidden = !o.steps;
+  if (o.steps) steps.innerHTML = o.steps.map(t => `<li>${esc(t)}</li>`).join("");
+  $("#nt-yes").textContent = o.action;
+  $("#notice").hidden = false;
+  $("#nt-yes").onclick = () => { $("#notice").hidden = true; o.onYes && o.onYes(); };
+  $("#nt-no").onclick = () => { $("#notice").hidden = true; o.onNo && o.onNo(); };
+}
+function flag(k) { DB.flags = DB.flags || {}; return DB.flags[k]; }
+function setFlag(k, v) { DB.flags = DB.flags || {}; DB.flags[k] = v; save(true); }
+
+async function safetyCheck() {
+  if (!$("#notice").hidden) return;               // never talk over an open notice
+  const total = DB.boards.reduce((n, b) => n + b.items.length, 0);
+  if (!total) return;
+  await checkPersist();
+  backupLine();
+  if (onIOS && !installed() && !flag("iosNudge") && total >= 4) {
+    setFlag("iosNudge", 1);
+    showNotice({
+      title: "Keep these boards safe",
+      body: "Safari clears saved data for sites it hasn't seen in about a week of use — so a fortnight away could empty this. Adding it to your home screen exempts it, and it opens full-screen.",
+      steps: ["Tap the Share button", "Scroll to Add to Home Screen", "Tap Add"],
+      action: "Got it",
+      onYes: () => askPersist(false)
+    });
+    return;
+  }
+  const d = backupAge();
+  if (total >= 4 && (d === null || d > 21) && !flag("backupNudge" + (d === null ? "" : Math.floor(d / 21)))) {
+    setFlag("backupNudge" + (d === null ? "" : Math.floor(d / 21)), 1);
+    showNotice({
+      title: d === null ? "Worth keeping a copy" : "It has been a while",
+      body: d === null
+        ? "Your boards live in this browser only. A backup is one file with the pictures inside it — keep it in Files or email it to yourself."
+        : `Your last backup was ${d} days ago. Boards have changed since then.`,
+      action: "Back up now",
+      onYes: () => download(board)
+    });
+  }
+}
+
 /* ═══════════════ getting started ═══════════════ */
 let tourStep = 1, tourMode = "first", tourPick = null;
 const tourWrap = () => $("#tourwrap");
@@ -2244,6 +2406,7 @@ function renderMeter() {
   const pics = DB.boards.reduce((n, b) => n + b.items.filter(i => i.src).length, 0);
   $("#meterlab").textContent = `${fmtBytes(used)} used of about 5 MB · ${pics} picture${pics === 1 ? "" : "s"}`;
   $("#btn-shrink").style.display = board.items.some(i => i.src) ? "" : "none";
+  backupLine();
 }
 /* second pass over everything already on the board, tighter budget */
 async function shrinkAll() {
@@ -2547,6 +2710,8 @@ function plate() { $("#casename").textContent = board.name; $("#caseno").textCon
 function applyTheme() {
   const t = (board && board.theme) || "cork";
   document.body.dataset.theme = t;
+  const tc = document.querySelector('meta[name="theme-color"]');
+  if (tc) tc.content = t === "white" ? "#8d949c" : "#2e2118";
   $$("#themeseg button").forEach(b => b.classList.toggle("on", b.dataset.theme === t));
   const f = (board && board.fs) || 1;
   $$("#fsseg button").forEach(b => b.classList.toggle("on", +b.dataset.fs === f));
@@ -2656,16 +2821,19 @@ function addItem(type) {
 $$("[data-add]").forEach(b => b.addEventListener("click", () => { setPen(null); if (linking) cancelLink(); addItem(b.dataset.add); }));
 
 /* ═══════════════ export / import ═══════════════ */
-function download(b) {
+async function download(b) {
+  if (await shareBoard(b)) return;                 // phones: straight to Files, Mail, wherever
   const blob = new Blob([JSON.stringify({ pinit: 1, board: b }, null, 1)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = b.name.replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "-").toLowerCase() + ".pinit.json";
+  a.download = (b.name.replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "-").toLowerCase() || "board") + ".pinit.json";
   a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-  toast("Board exported");
+  markBackup();
+  toast("Backed up — keep that file somewhere safe");
 }
 $("#btn-export").addEventListener("click", () => download(board));
 $("#btn-shrink").addEventListener("click", () => { closePanel("cases"); shrinkAll(); });
+$("#btn-protect").addEventListener("click", () => askPersist(true));
 $("#btn-tour").addEventListener("click", () => { closePanel("cases"); setTimeout(() => startTour("again"), 240); });
 $("#btn-import").addEventListener("click", () => { $("#jsonpick").value = ""; $("#jsonpick").click(); });
 $("#jsonpick").addEventListener("change", e => {
@@ -2784,6 +2952,8 @@ if (board.items.length) {
   if (resized || (!v.x && !v.y) || !anyVisible()) fitBoard(false);
 }
 updateUndo();
+quietPersistOnce();
+setTimeout(safetyCheck, 2600);
 if (FRESH) startTour("first");
 else if (!store.persistent) toast("This browser won't save boards — export before you close the tab.", 5000);
 </script>
