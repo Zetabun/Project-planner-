@@ -1,0 +1,2259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#2e2118">
+<meta name="description" content="Pin It — a corkboard for planning projects. Photos, notes and red string.">
+<title>Pin It — evidence board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cork-1:#c99a5c; --cork-2:#ab7b41; --cork-3:#8a5e30; --cork-dot:#6d4622; --cork-lite:#e0bb82;
+  --frame:#2e2118; --frame-hi:#4c3724; --frame-lo:#1a120c;
+  --paper:#f1e9d7; --paper-edge:#d7cab0; --manila:#e7d3a1; --newsprint:#e8e4d8;
+  --ink:#231f1a; --ink-soft:#6a6157; --ink-red:#b02a1f;
+  --thread-red:#b3271e; --thread-navy:#23486b; --thread-cream:#efe6d2; --thread-gold:#c2932a; --thread-green:#3a6b4c;
+  --brass:#c9a227; --brass-lo:#8a6c14;
+  --sheet:#1f1810; --sheet-2:#2a2018;
+  --ok:#5d8f5a;
+  --ui: ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --type: "Special Elite", "Courier New", monospace;
+  --hand: "Caveat", "Bradley Hand", cursive;
+  --hand-bold: "Caveat", "Bradley Hand", cursive;
+  --hand-w:700;
+  --r: 3px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-t: env(safe-area-inset-top, 0px);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html,body{height:100%; margin:0; overflow:hidden; overscroll-behavior:none}
+body{
+  font-family:var(--ui); color:var(--ink); background:var(--frame);
+  -webkit-font-smoothing:antialiased; touch-action:none;
+}
+button{font-family:inherit; color:inherit; cursor:pointer; border:0; background:none}
+input,textarea{font-family:inherit}
+:focus-visible{outline:2px solid var(--brass); outline-offset:2px}
+
+/* ───────────── whiteboard theme ───────────── */
+body[data-theme="white"]{
+  --paper:#fbfaf6; --ink:#22242a;
+  --hand:"Kalam","Segoe Print",cursive;
+  --hand-bold:"Permanent Marker","Kalam",cursive;
+  --hand-w:400;
+  --thread-red:#cf2f26; --thread-navy:#1d4f9e; --thread-gold:#d08a12;
+  --thread-green:#2c7d43; --thread-cream:#24262c;
+  --frame:#8d949c; --frame-hi:#c8ced4; --frame-lo:#5b6169;
+}
+body[data-theme="white"] #stage{
+  background:linear-gradient(180deg,#c8ced4 0%,#a7aeb6 10%,#878e97 70%,#666d75 100%);
+}
+body[data-theme="white"] #stage::after{
+  box-shadow: inset 0 0 0 11px #9aa1a9, inset 0 0 0 12px rgba(255,255,255,.5),
+              inset 0 0 0 14px rgba(90,98,108,.6),
+              inset 0 0 34px 10px rgba(60,70,82,.2), inset 0 0 120px rgba(70,80,92,.12);
+}
+body[data-theme="white"] #viewport{
+  background-color:#f7f8f7;
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='520' height='520'><filter id='s'><feTurbulence type='fractalNoise' baseFrequency='.006 .05' numOctaves='2' seed='3'/><feColorMatrix type='saturate' values='0'/></filter><rect width='520' height='520' filter='url(%23s)' opacity='.35'/></svg>"),
+    linear-gradient(114deg, rgba(255,255,255,.9) 0 18%, rgba(228,235,238,.55) 30%, rgba(255,255,255,0) 52%),
+    radial-gradient(120% 90% at 22% -10%, #ffffff, #f4f6f6 46%, #e7eaea 100%);
+  background-size:520px 520px, 100% 100%, 100% 100%;
+  background-blend-mode:soft-light, screen, normal;
+}
+body[data-theme="white"] #grain{opacity:.05}
+body[data-theme="white"] #zoomlvl{color:#4a5158; text-shadow:0 1px 0 rgba(255,255,255,.8)}
+body[data-theme="white"] #savetag{color:#4a5158; text-shadow:0 1px 0 rgba(255,255,255,.8)}
+body[data-theme="white"] #marquee{border-color:rgba(40,90,170,.85); background:rgba(60,120,210,.1)}
+
+/* ───────────── stage: wooden frame + cork ───────────── */
+#stage{position:fixed; inset:0; overflow:hidden;
+  background:
+    linear-gradient(180deg,#4c3724 0%,#33241a 12%,#2a1d14 60%,#1c130d 100%);
+}
+#stage::after{ /* frame bevel drawn over everything but UI */
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:6;
+  box-shadow: inset 0 0 0 10px var(--frame), inset 0 0 0 11px rgba(255,220,160,.14),
+              inset 0 0 44px 12px rgba(20,12,6,.55), inset 0 0 140px rgba(20,12,6,.35);
+}
+#viewport{position:absolute; inset:10px; overflow:hidden; cursor:grab;
+  background-color:#b8823f;
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='c'><feTurbulence type='fractalNoise' baseFrequency='.62' numOctaves='4' seed='9'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='linear' slope='1.35' intercept='-.34'/></feComponentTransfer></filter><rect width='300' height='300' filter='url(%23c)'/></svg>"),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600'><filter id='b'><feTurbulence type='fractalNoise' baseFrequency='.012' numOctaves='3' seed='4'/><feColorMatrix type='saturate' values='0'/></filter><rect width='600' height='600' filter='url(%23b)' opacity='.55'/></svg>"),
+    radial-gradient(130% 100% at 26% -6%, rgba(255,229,186,.34), rgba(0,0,0,0) 58%),
+    radial-gradient(130% 120% at 74% 112%, rgba(58,31,9,.5), rgba(0,0,0,0) 62%),
+    linear-gradient(178deg, var(--cork-1), var(--cork-2) 55%, var(--cork-3));
+  background-size:300px 300px, 620px 620px, 100% 100%, 100% 100%, 100% 100%;
+  background-blend-mode:multiply, soft-light, normal, normal, normal;
+}
+#viewport.panning{cursor:grabbing}
+#grain{position:absolute; inset:0; pointer-events:none; opacity:.16; z-index:5; mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/><feColorMatrix type='saturate' values='0'/></filter><rect width='180' height='180' filter='url(%23n)' opacity='.55'/></svg>");
+}
+#world{position:absolute; top:0; left:0; width:100%; height:100%;
+  transform-origin:0 0; will-change:transform;}
+#threads{position:absolute; top:0; left:0; overflow:visible; pointer-events:none; z-index:1}
+#threads path{pointer-events:stroke; cursor:pointer}
+
+/* ───────────── top bar ───────────── */
+#topbar{position:absolute; z-index:20; top:calc(14px + var(--safe-t)); left:14px; right:14px;
+  display:flex; gap:8px; align-items:flex-start; pointer-events:none}
+.bar-group{display:flex; gap:6px; align-items:center; pointer-events:auto}
+.chip{
+  display:inline-flex; align-items:center; gap:7px; height:38px; padding:0 12px;
+  background:linear-gradient(180deg,#3a2a1d,#241a12); color:#e9dcc2;
+  border:1px solid rgba(255,224,170,.18); border-radius:var(--r);
+  box-shadow:0 3px 0 rgba(0,0,0,.35), 0 8px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,230,180,.12);
+  font-size:13px; letter-spacing:.02em; white-space:nowrap; transition:transform .08s, filter .15s;
+}
+.chip:hover{filter:brightness(1.16)}
+.chip:active{transform:translateY(2px); box-shadow:0 1px 0 rgba(0,0,0,.35), 0 4px 10px rgba(0,0,0,.3)}
+.chip.on{background:linear-gradient(180deg,#6d3229,#4a1f18); border-color:rgba(255,180,150,.4); color:#ffd9cc}
+.chip svg{width:16px; height:16px; flex:none}
+.chip.icon{width:38px; padding:0; justify-content:center}
+
+#caseplate{
+  pointer-events:auto; position:relative; padding:7px 16px 9px; min-width:0;
+  background:linear-gradient(180deg,#f4ecd8,#e2d5b8); color:#231f1a;
+  font-family:var(--type); font-size:15px; line-height:1.15;
+  border-radius:2px; transform:rotate(-.5deg);
+  box-shadow:0 10px 20px rgba(0,0,0,.4), inset 0 0 0 1px rgba(0,0,0,.12);
+  cursor:pointer; max-width:44vw;
+}
+#caseplate::before,#caseplate::after{ /* tape */
+  content:""; position:absolute; top:-9px; width:34px; height:18px; background:rgba(240,232,205,.55);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.35); transform:rotate(-7deg);
+}
+#caseplate::before{left:-10px}
+#caseplate::after{right:-10px; transform:rotate(6deg)}
+#caseplate .no{font-size:9.5px; letter-spacing:.22em; color:#8a2018; display:block}
+#caseplate .nm{display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+#spacer{flex:1}
+
+#savetag{font-family:var(--type); font-size:11px; color:#f0e2c6; opacity:0; transition:opacity .4s;
+  padding:0 4px; align-self:center}
+#savetag.show{opacity:.75}
+
+/* ───────────── search ───────────── */
+#searchwrap{position:relative; pointer-events:auto}
+#search{height:38px; width:0; padding:0; opacity:0; border:1px solid transparent; border-radius:var(--r);
+  background:linear-gradient(180deg,#f4ecd8,#e4d8bd); color:#231f1a; font-size:13px;
+  transition:width .22s ease, opacity .18s, padding .22s;}
+#searchwrap.open #search{width:min(38vw,220px); padding:0 10px; opacity:1; border-color:rgba(0,0,0,.25)}
+
+/* ───────────── tool rail ───────────── */
+#tools{position:absolute; z-index:20; left:14px; bottom:calc(14px + var(--safe-b));
+  display:flex; flex-direction:column; gap:8px}
+.tool{width:46px; height:46px; display:grid; place-items:center; position:relative;
+  background:linear-gradient(180deg,#3a2a1d,#231a12); color:#ecdcbc;
+  border:1px solid rgba(255,224,170,.18); border-radius:var(--r);
+  box-shadow:0 3px 0 rgba(0,0,0,.4), 0 10px 20px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,230,180,.1);
+  transition:transform .08s, filter .15s}
+.tool:hover{filter:brightness(1.18)}
+.tool:active{transform:translateY(2px)}
+.tool.on{background:linear-gradient(180deg,#6d3229,#4a1f18); color:#ffd8cb; border-color:rgba(255,180,150,.45)}
+.tool svg{width:22px; height:22px}
+.tool .tip{position:absolute; left:56px; top:50%; transform:translateY(-50%) scale(.9);
+  font-family:var(--type); font-size:12px; background:#f2ead6; color:#231f1a; padding:4px 9px;
+  border-radius:2px; white-space:nowrap; opacity:0; pointer-events:none; transition:.14s;
+  box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.tool:hover .tip{opacity:1; transform:translateY(-50%) scale(1)}
+
+#zoomrail{position:absolute; z-index:20; right:14px; bottom:calc(14px + var(--safe-b));
+  display:flex; flex-direction:column; gap:6px; align-items:center;
+  transition:transform .26s cubic-bezier(.2,.8,.25,1)}
+body.inspecting #zoomrail{transform:translateX(calc(-1 * min(300px,84vw)))}
+body.tl #zoomrail{bottom:calc(90px + var(--safe-b))}
+#zoomrail .chip.icon{width:40px; height:40px}
+#zoomlvl{font-family:var(--type); font-size:11px; color:#eadfc6; opacity:.8}
+
+/* ───────────── drawers / sheets ───────────── */
+.scrim{position:fixed; inset:0; background:rgba(12,8,4,.55); z-index:30; opacity:0; pointer-events:none;
+  transition:opacity .22s; backdrop-filter:blur(2px)}
+.scrim.show{opacity:1; pointer-events:auto}
+.panel{
+  position:fixed; z-index:31; background:linear-gradient(180deg,var(--sheet-2),var(--sheet));
+  color:#eee1c8; box-shadow:0 0 60px rgba(0,0,0,.6);
+  display:flex; flex-direction:column; transition:transform .26s cubic-bezier(.2,.8,.25,1);
+}
+#cases{top:0; bottom:0; left:0; width:min(330px,86vw); transform:translateX(-104%);
+  border-right:1px solid rgba(255,220,160,.16); padding-top:var(--safe-t)}
+#cases.show{transform:none}
+#inspect{top:0; bottom:0; right:0; width:min(300px,84vw); transform:translateX(104%);
+  border-left:1px solid rgba(255,220,160,.16); padding-top:var(--safe-t)}
+#inspect.show{transform:none}
+.panel h2{font-family:var(--type); font-size:16px; margin:0; letter-spacing:.02em; color:#f3e6cb}
+.panel header{display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:16px 16px 12px; border-bottom:1px solid rgba(255,220,160,.14)}
+.panel .body{overflow:auto; padding:12px; flex:1; -webkit-overflow-scrolling:touch}
+.panel footer{padding:12px; border-top:1px solid rgba(255,220,160,.14); display:flex; gap:8px; flex-wrap:wrap;
+  padding-bottom:calc(12px + var(--safe-b))}
+.xbtn{width:32px; height:32px; display:grid; place-items:center; border-radius:var(--r); color:#d8c9ab}
+.xbtn:hover{background:rgba(255,255,255,.08)}
+
+.caseitem{display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:10px 11px;
+  border-radius:var(--r); background:rgba(255,240,210,.05); border:1px solid rgba(255,220,160,.1);
+  margin-bottom:7px; transition:.14s}
+.caseitem:hover{background:rgba(255,240,210,.11)}
+.caseitem.active{background:rgba(179,39,30,.24); border-color:rgba(255,150,130,.4)}
+.caseitem .pinico{color:var(--thread-red); flex:none; opacity:.85}
+.caseitem .meta{flex:1; min-width:0}
+.caseitem .t{font-family:var(--type); font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.caseitem .s{font-size:11px; color:#b6a88c; margin-top:2px}
+.caseitem .go{opacity:.5}
+
+.field{display:block; margin-bottom:12px}
+.field span{display:block; font-size:11px; letter-spacing:.06em; color:#b8a888; margin-bottom:5px}
+.field input[type=text], .field input[type=date], .field textarea, .field select{
+  width:100%; background:#120d08; color:#f0e4ca; border:1px solid rgba(255,220,160,.2);
+  border-radius:var(--r); padding:8px 10px; font-size:13px}
+.field textarea{min-height:70px; resize:vertical}
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:9px 12px; font-size:12.5px;
+  border-radius:var(--r); background:rgba(255,240,210,.08); border:1px solid rgba(255,220,160,.18); color:#eee1c8;
+  transition:.14s}
+.btn:hover{background:rgba(255,240,210,.16)}
+.btn.primary{background:linear-gradient(180deg,#8f2f24,#6a2018); border-color:rgba(255,160,140,.35); color:#ffe6dc}
+.btn.primary:hover{filter:brightness(1.15)}
+.btn.danger:hover{background:rgba(179,39,30,.3); border-color:rgba(255,120,100,.5)}
+.btn.wide{width:100%}
+.btn svg{width:15px; height:15px}
+.row{display:flex; gap:7px; flex-wrap:wrap}
+.hint{font-size:11.5px; color:#a99a7e; line-height:1.5}
+.swatches{display:flex; gap:7px; flex-wrap:wrap}
+.sw{width:30px; height:30px; border-radius:50%; border:2px solid transparent; box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.sw.sel{border-color:#fff; transform:scale(1.06)}
+.seg{display:flex; border:1px solid rgba(255,220,160,.18); border-radius:var(--r); overflow:hidden}
+.seg button{flex:1; padding:8px 4px; font-size:11.5px; color:#cdbb9b; background:rgba(255,240,210,.04)}
+.seg button.on{background:rgba(179,39,30,.35); color:#ffe2d8}
+input[type=range]{-webkit-appearance:none; appearance:none; height:22px; background:none; width:100%}
+input[type=range]::-webkit-slider-runnable-track{height:4px; border-radius:3px;
+  background:linear-gradient(90deg,rgba(255,220,160,.2),rgba(255,220,160,.35))}
+input[type=range]::-moz-range-track{height:4px; border-radius:3px; background:rgba(255,220,160,.28)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:18px; height:18px; margin-top:-7px;
+  border-radius:50%; background:radial-gradient(circle at 34% 30%,#fff9 0 14%,transparent 42%),var(--thread-red);
+  box-shadow:0 2px 5px rgba(0,0,0,.5)}
+input[type=range]::-moz-range-thumb{width:18px; height:18px; border:0; border-radius:50%;
+  background:var(--thread-red); box-shadow:0 2px 5px rgba(0,0,0,.5)}
+
+/* selection bar (mobile) */
+#selbar{position:absolute; z-index:22; left:50%; transform:translate(-50%,14px); bottom:calc(70px + var(--safe-b));
+  display:none; gap:5px; padding:5px; border-radius:6px; opacity:0; transition:opacity .18s, transform .18s;
+  background:linear-gradient(180deg,rgba(58,42,29,.97),rgba(30,22,15,.97));
+  border:1px solid rgba(255,220,160,.2); box-shadow:0 12px 28px rgba(0,0,0,.5)}
+#selbar.show{display:flex; opacity:1; transform:translate(-50%,0)}
+#selbar.multi [data-s="edit"],#selbar.multi [data-s="link"],#selbar.multi [data-s="style"]{display:none}
+#selbar .count{display:none; align-items:center; padding:0 12px 0 8px; font-family:var(--type); font-size:12.5px; color:#f0e2c6}
+#selbar.multi .count{display:flex}
+body.tl #selbar{bottom:calc(92px + var(--safe-b))}
+#selbar button{width:46px; height:44px; display:grid; place-items:center; border-radius:4px; color:#ecdcbc}
+#selbar button svg{width:20px; height:20px}
+#selbar button:active{background:rgba(255,240,210,.15)}
+#selbar button.danger{color:#f0a498}
+</style>
+<style>
+/* ───────────── pinned items ───────────── */
+.item{position:absolute; z-index:2; transform-origin:50% 8px; will-change:transform;
+  filter:drop-shadow(0 12px 14px rgba(40,22,8,.45)) drop-shadow(0 2px 2px rgba(40,22,8,.35));
+  transition:filter .18s, opacity .25s;}
+.item.dragging{filter:drop-shadow(0 26px 26px rgba(30,16,4,.5)); z-index:900 !important; cursor:grabbing}
+.item.dim{opacity:.22; filter:grayscale(.7) drop-shadow(0 8px 10px rgba(40,22,8,.35))}
+.item.hit{animation:flash .9s ease}
+.item.faint{opacity:.3}
+.item.near{opacity:.72}
+@keyframes flash{0%,100%{filter:drop-shadow(0 12px 14px rgba(40,22,8,.45))}
+  40%{filter:drop-shadow(0 0 0 rgba(0,0,0,0)) drop-shadow(0 0 14px rgba(255,214,120,.95))}}
+.item .surface{position:relative; width:100%; height:100%; cursor:grab; overflow:hidden;
+  -webkit-user-select:none; user-select:none; -webkit-touch-callout:none}
+.item .edit{-webkit-user-select:text; user-select:text}
+.item.sel .surface{box-shadow:0 0 0 2px rgba(255,214,120,.9), 0 0 0 6px rgba(255,214,120,.22)}
+
+/* ── whiteboard: tape instead of pins, marker instead of string ── */
+.tape{display:none}
+body[data-theme="white"] .pin{display:none}
+body[data-theme="white"] .tape{
+  display:block; position:absolute; left:50%; top:-13px; width:76px; height:27px; margin-left:-38px;
+  z-index:3; pointer-events:none; transform:rotate(var(--tr,-2.5deg));
+  background-color:var(--tapec,rgba(235,227,204,.86));
+  background-image:repeating-linear-gradient(90deg,rgba(255,255,255,.16) 0 2px,rgba(0,0,0,.03) 2px 4px);
+  box-shadow:0 2px 4px rgba(40,50,60,.2), inset 0 0 0 1px rgba(255,255,255,.3);
+  clip-path:polygon(2% 0%,98% 0%,95% 18%,100% 42%,96% 66%,99% 100%,3% 100%,0% 74%,4% 46%,1% 21%);
+}
+body[data-theme="white"] .t-sticky .tape,
+body[data-theme="white"] .t-marker .tape{display:none}
+body[data-theme="white"] .t-tag .tape{width:52px; margin-left:-26px; top:-11px; height:22px}
+body[data-theme="white"] .item{filter:drop-shadow(0 8px 10px rgba(50,60,70,.22)) drop-shadow(0 1px 1px rgba(50,60,70,.18))}
+body[data-theme="white"] .item.dragging{filter:drop-shadow(0 20px 22px rgba(40,50,60,.3))}
+body[data-theme="white"] .item.t-marker{filter:none}
+body[data-theme="white"] .item.dim{filter:grayscale(.5) drop-shadow(0 6px 8px rgba(50,60,70,.18))}
+
+/* handwriting is marker on this board */
+body[data-theme="white"] .t-marker .tx{
+  font-family:var(--hand-bold); font-weight:var(--hand-w); letter-spacing:.01em;
+  text-shadow:0 1px 0 rgba(255,255,255,.5);
+}
+body[data-theme="white"] .t-card .ttl,
+body[data-theme="white"] .t-list .ttl,
+body[data-theme="white"] .t-tag .tx{font-family:var(--hand); font-weight:700; font-size:16px; letter-spacing:0}
+body[data-theme="white"] .t-list .ttl b{font-family:var(--hand); font-size:13px}
+body[data-theme="white"] .t-sticky .tx,
+body[data-theme="white"] .t-card .tx,
+body[data-theme="white"] .t-list li{font-family:var(--hand); font-size:17px; line-height:1.45}
+body[data-theme="white"] .t-photo .cap{font-family:var(--hand); font-size:15px}
+
+/* marker-circled stamp */
+body[data-theme="white"] .stamp{
+  border:0; font-family:var(--hand-bold); font-size:14px; letter-spacing:.02em; padding:4px 10px;
+  transform:rotate(-6deg); opacity:.9; mix-blend-mode:normal}
+body[data-theme="white"] .stamp::after{
+  content:""; position:absolute; inset:-5px -9px; border:2.5px solid currentColor;
+  border-radius:48% 52% 50% 50%/60% 40% 58% 42%; transform:rotate(3deg)}
+body[data-theme="white"] .due{
+  background:none; color:var(--thread-navy); font-family:var(--hand); font-weight:700; font-size:14px;
+  padding:0 2px; box-shadow:none; border-bottom:2.5px solid currentColor; left:13px; bottom:-13px}
+body[data-theme="white"] .due.over,body[data-theme="white"] .due.today{color:var(--thread-red)}
+body[data-theme="white"] .due.soon{color:var(--thread-gold)}
+
+/* paper reads fresh, not aged, against a white board */
+body[data-theme="white"] .t-card .surface{background:
+  repeating-linear-gradient(180deg,transparent 0 25px, rgba(96,124,160,.2) 25px 26px),
+  linear-gradient(180deg,#ffffff,#f6f8f9)}
+body[data-theme="white"] .t-card .surface::before{background:rgba(196,96,88,.32)}
+body[data-theme="white"] .t-doc .surface{background:linear-gradient(180deg,#fdfdfb,#f1f3f2)}
+body[data-theme="white"] .t-doc .surface::after{border-color:#dfe2e1 transparent transparent #dfe2e1}
+body[data-theme="white"] .t-list .surface{background:linear-gradient(180deg,#ffffff,#f5f7f6)}
+body[data-theme="white"] .t-photo .surface{background:linear-gradient(180deg,#ffffff,#f3f4f2)}
+body[data-theme="white"] .t-tag .surface{background:linear-gradient(180deg,#f5f0e2,#e8e1cd)}
+
+/* line labels are written on the board, not printed on paper */
+body[data-theme="white"] .tlabel{
+  background:none; box-shadow:none; color:#33363d; font-family:var(--hand); font-weight:700; font-size:15px;
+  padding:0 4px; text-shadow:0 0 5px #f7f8f7,0 0 5px #f7f8f7,0 0 9px #f7f8f7,0 0 12px #f7f8f7}
+
+body[data-theme="white"] #empty{background:linear-gradient(180deg,#fff,#f1f2f0);
+  box-shadow:0 12px 24px rgba(50,60,70,.22)}
+body[data-theme="white"] #empty h3{font-family:var(--hand-bold)}
+body[data-theme="white"] #empty p{font-family:var(--hand)}
+
+/* the pin that holds it */
+.pin{position:absolute; left:50%; top:-9px; width:22px; height:22px; margin-left:-11px; z-index:3;
+  pointer-events:none}
+.pin i{display:block; width:14px; height:14px; margin:4px auto 0; border-radius:50%;
+  background:radial-gradient(circle at 33% 28%, #fff8 0 12%, transparent 40%), radial-gradient(circle at 50% 45%, var(--pinc,#c0342a), #000a 140%);
+  box-shadow:0 3px 4px rgba(0,0,0,.5), inset 0 -2px 3px rgba(0,0,0,.45)}
+.item.linkable .pin i{animation:pulse 1.1s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 7px rgba(255,214,120,.35), 0 3px 4px rgba(0,0,0,.5)}}
+
+/* photo — polaroid */
+.t-photo .surface{background:linear-gradient(180deg,#fdfaf2,#efe7d6); padding:9px 9px 0;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.1)}
+.t-photo .frame{width:100%; height:calc(100% - 46px); background:#2a2520; overflow:hidden; position:relative}
+.t-photo img{width:100%; height:100%; object-fit:cover; display:block}
+.t-photo .frame::after{content:""; position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(120deg,rgba(255,255,255,.22),transparent 32%), inset 0 0 20px rgba(0,0,0,.4);
+  box-shadow:inset 0 0 26px rgba(0,0,0,.45)}
+.t-photo .cap{height:46px; display:flex; align-items:center; justify-content:center; text-align:center;
+  font-family:var(--hand); font-size:19px; line-height:1.05; color:#2b2a45; padding:0 6px; overflow:hidden}
+.t-photo .drop{position:absolute; inset:9px 9px 46px; display:grid; place-items:center; text-align:center;
+  color:#7a6f5c; font-size:11.5px; background:repeating-linear-gradient(45deg,#e7dfcd 0 8px,#ddd4c0 8px 16px)}
+
+/* sticky */
+.t-sticky .surface{padding:14px 13px; background:var(--sc,#f7e06a);
+  box-shadow:inset 0 -22px 30px rgba(0,0,0,.07), inset 0 1px 0 rgba(255,255,255,.5)}
+.t-sticky .surface::after{content:""; position:absolute; left:0; right:0; bottom:0; height:26px;
+  background:linear-gradient(180deg,transparent,rgba(0,0,0,.09))}
+.t-sticky .tx{font-family:var(--hand); font-size:21px; line-height:1.22; color:#33302a; height:100%;
+  overflow:hidden; word-break:break-word}
+
+/* index card */
+.t-card .surface{background:
+    repeating-linear-gradient(180deg,transparent 0 25px, rgba(90,120,160,.28) 25px 26px),
+    linear-gradient(180deg,#fbf6e9,#f0e7d2);
+  padding:10px 12px 12px; box-shadow:inset 0 0 0 1px rgba(0,0,0,.13)}
+.t-card .surface::before{content:""; position:absolute; left:22px; top:0; bottom:0; width:1px; background:rgba(190,70,60,.4)}
+.t-card .ttl{font-family:var(--type); font-size:14px; letter-spacing:.01em; margin-bottom:4px; color:#1e1a15;
+  border-bottom:1px solid rgba(0,0,0,.18); padding-bottom:3px}
+.t-card .tx{font-family:var(--hand); font-size:19px; line-height:26px; color:#2a2f45; overflow:hidden}
+
+/* document / report */
+.t-doc .surface{background:linear-gradient(180deg,#f6f1e2,#e9e0c9); padding:14px 15px;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.t-doc .surface::after{content:""; position:absolute; right:0; top:0; border-width:0 24px 24px 0; border-style:solid;
+  border-color:#cfc3a6 transparent transparent #cfc3a6; box-shadow:-2px 2px 3px rgba(0,0,0,.15)}
+.t-doc .ttl{font-family:var(--type); font-size:13px; letter-spacing:.06em; color:#1e1a15;
+  border-bottom:2px solid #1e1a15; padding-bottom:5px; margin-bottom:8px}
+.t-doc .tx{font-family:var(--type); font-size:12px; line-height:1.55; color:#33302a; overflow:hidden}
+
+/* checklist */
+.t-list .surface{background:linear-gradient(180deg,#fffdf4,#f2ecd9); padding:11px 12px;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.t-list .ttl{font-family:var(--type); font-size:13px; margin-bottom:7px; color:#1e1a15;
+  display:flex; justify-content:space-between; gap:8px; align-items:baseline}
+.t-list .ttl b{font-weight:400; font-size:11px; color:#8a2018}
+.t-list ul{list-style:none; margin:0; padding:0; overflow:hidden}
+.t-list li{display:flex; gap:8px; align-items:flex-start; font-family:var(--hand); font-size:18px;
+  line-height:1.25; color:#2a2f45; padding:3px 0; cursor:pointer}
+.t-list li .bx{width:15px; height:15px; flex:none; margin-top:3px; border:1.5px solid #5a5346; border-radius:2px;
+  display:grid; place-items:center; color:var(--ink-red); font-size:14px; font-family:var(--hand)}
+.t-list li.done{color:#8d8676; text-decoration:line-through; text-decoration-color:rgba(176,42,31,.8);
+  text-decoration-thickness:2px}
+
+/* evidence tag */
+.t-tag .surface{background:linear-gradient(180deg,#f0e3bd,#ddcb9c); padding:9px 12px 9px 20px;
+  display:flex; align-items:center; border-radius:2px 8px 8px 2px; box-shadow:inset 0 0 0 1px rgba(0,0,0,.16)}
+.t-tag .surface::before{content:""; position:absolute; left:7px; top:50%; margin-top:-4px; width:8px; height:8px;
+  border-radius:50%; background:#2a2018; box-shadow:inset 0 0 0 1.5px #c9a227}
+.t-tag .tx{font-family:var(--type); font-size:13px; letter-spacing:.04em; color:#231f1a; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis}
+
+/* marker text straight on the cork */
+.t-marker .surface{background:none; display:flex; align-items:center; overflow:visible}
+.t-marker .tx{font-family:var(--hand); font-weight:700; font-size:40px; line-height:1.05; color:var(--sc,#7d1810);
+  text-shadow:0 1px 0 rgba(255,230,190,.28); word-break:break-word}
+.t-marker .pin{display:none}
+.item.t-marker{filter:none}
+
+/* stamp overlay */
+.stamp{position:absolute; right:-6px; bottom:6px; font-family:var(--type); font-size:15px; letter-spacing:.12em;
+  padding:3px 9px; border:3px double currentColor; border-radius:3px; transform:rotate(-11deg); opacity:.82;
+  pointer-events:none; z-index:4; mix-blend-mode:multiply}
+.stamp.done{color:#3a6b4c} .stamp.urgent{color:#b3271e} .stamp.blocked{color:#8a5a12}
+.stamp.idea{color:#23486b} .stamp.review{color:#5c3a7a}
+.t-photo .stamp{bottom:auto; top:16px; right:0}
+.t-tag .stamp{display:none}
+
+/* resize + edit affordances */
+.grip{position:absolute; right:-6px; bottom:-6px; width:22px; height:22px; z-index:5; cursor:nwse-resize;
+  opacity:0; transition:opacity .15s}
+.grip::after{content:""; position:absolute; right:6px; bottom:6px; width:11px; height:11px;
+  border-right:2px solid rgba(0,0,0,.45); border-bottom:2px solid rgba(0,0,0,.45)}
+.item.sel .grip{opacity:1}
+.item .edit{position:absolute; inset:0; width:100%; height:100%; border:0; padding:inherit; margin:0;
+  background:rgba(255,255,255,.75); resize:none; outline:2px solid var(--brass); z-index:6}
+
+/* thread labels */
+.tlabel{position:absolute; z-index:2; transform:translate(-50%,-50%) rotate(var(--rot,-2deg));
+  font-family:var(--type); font-size:11px; padding:3px 8px; background:#f3ead5; color:#231f1a;
+  box-shadow:0 3px 7px rgba(0,0,0,.4); border-radius:2px; cursor:pointer; white-space:nowrap; max-width:160px;
+  overflow:hidden; text-overflow:ellipsis}
+
+.ph{opacity:.35; font-style:italic}
+
+/* due date tab */
+.due{position:absolute; left:11px; bottom:-9px; z-index:4; font-family:var(--type); font-size:10.5px;
+  padding:2px 8px 3px; color:#fdf6e6; background:#4b4235; border-radius:2px; pointer-events:none;
+  box-shadow:0 3px 6px rgba(0,0,0,.4)}
+.due.over,.due.today{background:var(--thread-red)}
+.due.soon{background:#8a5a12}
+.t-marker .due{bottom:0}
+
+/* marquee */
+#marquee{position:fixed; z-index:23; display:none; pointer-events:none;
+  border:1.5px dashed rgba(255,226,170,.9); background:rgba(255,214,120,.12); border-radius:2px}
+
+/* timeline */
+#timeline{position:absolute; z-index:19; left:76px; right:72px; bottom:14px; height:64px; display:none;
+  background:linear-gradient(180deg,rgba(44,33,22,.96),rgba(26,19,13,.96));
+  border:1px solid rgba(255,220,160,.18); border-radius:4px; box-shadow:0 12px 26px rgba(0,0,0,.45)}
+#timeline.show{display:block}
+body.inspecting #timeline{right:calc(min(300px,84vw) + 16px)}
+.tl-rule{position:absolute; left:4%; right:4%; top:31px; height:2px; border-radius:2px;
+  background:linear-gradient(90deg,rgba(255,220,160,.1),rgba(255,220,160,.3),rgba(255,220,160,.1))}
+.tl-mark{position:absolute; top:24px; transform:translateX(-50%); display:flex; flex-direction:column;
+  align-items:center; gap:5px; color:#e9dcc2; padding:0}
+.tl-dot{width:13px; height:13px; border-radius:50%; background:var(--thread-cream);
+  box-shadow:0 0 0 3px rgba(26,19,13,.96), 0 1px 3px rgba(0,0,0,.6); transition:transform .12s}
+.tl-mark:hover .tl-dot{transform:scale(1.25)}
+.tl-mark.over .tl-dot{background:var(--thread-red)}
+.tl-mark.today .tl-dot{background:#e8a72c}
+.tl-mark.soon .tl-dot{background:var(--thread-gold)}
+.tl-mark.later .tl-dot{background:var(--thread-green)}
+.tl-lab{font-family:var(--type); font-size:10.5px; white-space:nowrap; opacity:.85}
+.tl-now{position:absolute; top:12px; bottom:10px; width:1px; background:rgba(255,130,100,.75)}
+.tl-now span{position:absolute; top:-3px; left:5px; font-family:var(--type); font-size:9px; color:#ffbcab}
+.tl-empty{font-family:var(--type); font-size:12px; color:#b6a88c; text-align:center; line-height:62px}
+
+/* empty state */
+#empty{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) rotate(-1.5deg); z-index:2;
+  width:min(330px,80vw); padding:26px 24px; text-align:center; pointer-events:none;
+  background:linear-gradient(180deg,#f6efdd,#e9dfc6); box-shadow:0 16px 30px rgba(0,0,0,.4)}
+#empty h3{font-family:var(--type); font-size:19px; margin:0 0 8px}
+#empty p{font-family:var(--hand); font-size:20px; line-height:1.3; margin:0; color:#3b3730}
+
+/* toast */
+#toast{position:fixed; left:50%; bottom:calc(22px + var(--safe-b)); transform:translate(-50%,20px); z-index:60;
+  background:#f2ead6; color:#231f1a; font-family:var(--type); font-size:13px; padding:9px 16px; border-radius:2px;
+  box-shadow:0 10px 26px rgba(0,0,0,.5); opacity:0; pointer-events:none; transition:.22s; max-width:80vw; text-align:center}
+#toast.show{opacity:1; transform:translate(-50%,0)}
+
+/* context menu */
+#ctx{position:fixed; z-index:50; background:linear-gradient(180deg,#2b2118,#1d1610); border:1px solid rgba(255,220,160,.2);
+  border-radius:var(--r); box-shadow:0 14px 34px rgba(0,0,0,.55); padding:5px; display:none; min-width:172px}
+#ctx.show{display:block}
+#ctx button{display:flex; width:100%; gap:9px; align-items:center; padding:8px 10px; font-size:12.5px; color:#e9dcc2;
+  border-radius:2px; text-align:left}
+#ctx button:hover{background:rgba(255,240,210,.12)}
+#ctx button.danger:hover{background:rgba(179,39,30,.35)}
+#ctx hr{border:0; border-top:1px solid rgba(255,220,160,.14); margin:4px 2px}
+#ctx svg{width:15px; height:15px; opacity:.8; flex:none}
+
+/* mobile */
+@media (max-width:720px){
+  #topbar{top:calc(8px + var(--safe-t)); left:8px; right:8px; gap:5px}
+  #caseplate{max-width:38vw; font-size:12.5px; padding:5px 10px 7px}
+  #caseplate .no{font-size:8.5px}
+  .chip{height:34px; font-size:12px}
+  .chip.icon{width:34px}
+  .chip svg{width:15px; height:15px}
+  #savetag{display:none}
+  #timeline{left:8px; right:8px; bottom:calc(58px + var(--safe-b)); height:60px}
+  body.tl #selbar{bottom:calc(128px + var(--safe-b))}
+  #selbar{bottom:calc(64px + var(--safe-b))}
+  #tools{left:0; right:0; bottom:0; flex-direction:row; gap:4px; padding:6px 7px calc(6px + var(--safe-b));
+    background:linear-gradient(180deg,rgba(20,13,7,0),rgba(20,13,7,.94) 40%);
+    justify-content:stretch}
+  .tool{flex:1 1 0; min-width:0; max-width:60px; width:auto; height:44px}
+  .tool svg{width:20px; height:20px}
+  .tool .tip{display:none}
+  #zoomrail{right:8px; bottom:calc(64px + var(--safe-b)); flex-direction:column}
+  body.inspecting #zoomrail{transform:none}
+  body.tl #zoomrail{bottom:calc(126px + var(--safe-b))}
+  #searchwrap.open #search{width:46vw}
+  .panel{transition:transform .24s cubic-bezier(.2,.85,.3,1)}
+  #inspect{top:auto; bottom:0; left:0; right:0; width:auto; height:min(70vh,520px); transform:translateY(104%);
+    border-left:0; border-top:1px solid rgba(255,220,160,.2); border-radius:12px 12px 0 0}
+  #inspect.show{transform:none}
+  .stamp{font-size:13px}
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important; transition-duration:.06s !important}}
+</style>
+</head>
+<body>
+<svg style="display:none">
+ <defs>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="M16 16l4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-photo" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="1.5" stroke="currentColor" stroke-width="1.7" fill="none"/><circle cx="8.5" cy="9.5" r="1.8" fill="currentColor"/><path d="M4 17l5-5 4 4 3-2.5 4 3.5" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/></symbol>
+  <symbol id="i-sticky" viewBox="0 0 24 24"><path d="M4 4h16v11l-5 5H4z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/><path d="M20 15h-5v5" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/></symbol>
+  <symbol id="i-card" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1.5" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M7 10h10M7 13.5h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/><path d="M14 3v4h4M9 12h6M9 15.5h6M9 8.5h3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M4 7l2 2 3-3M4 14l2 2 3-3" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 8h8M12 15h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 11V4h7l10 10-7 7z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></symbol>
+  <symbol id="i-marker" viewBox="0 0 24 24"><path d="M5 19l2-5L17 4l3 3-10 10z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/><path d="M4 21h7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+  <symbol id="i-string" viewBox="0 0 24 24"><circle cx="5" cy="6" r="2.2" fill="currentColor"/><circle cx="19" cy="18" r="2.2" fill="currentColor"/><path d="M5.5 8c0 7 4 3 6 6s3.5 3.5 7 3.5" stroke="currentColor" stroke-width="1.7" fill="none"/></symbol>
+  <symbol id="i-lasso" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2" stroke="currentColor" stroke-width="1.7" fill="none" stroke-dasharray="3.5 3"/><circle cx="20.5" cy="19.5" r="2.2" fill="currentColor"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="8.5" cy="14.5" r="1.3" fill="currentColor"/><circle cx="13" cy="14.5" r="1.3" fill="currentColor"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
+  <symbol id="i-fit" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 7H5V3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.5 7.5A8 8 0 1 1 4.7 14" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></symbol>
+  <symbol id="i-redo" viewBox="0 0 24 24"><path d="M15 7h4V3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 7.5A8 8 0 1 0 19.3 14" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21v-7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M8 4h8l-1.5 6 3 4H6.5l3-4z" fill="currentColor"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="1.5" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M16 5H5v11" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 4h4M6 7l1 13h10l1-13M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/></symbol>
+  <symbol id="i-front" viewBox="0 0 24 24"><rect x="3" y="3" width="12" height="12" rx="1.5" stroke="currentColor" stroke-width="1.7" fill="none"/><rect x="9" y="9" width="12" height="12" rx="1.5" fill="currentColor" opacity=".85"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="1.5" stroke="currentColor" stroke-width="1.7" fill="none"/><rect x="3" y="3" width="12" height="12" rx="1.5" fill="currentColor" opacity=".85"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 20V9m0 0L8 13m4-4l4 4M5 4h14" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+ </defs>
+</svg>
+
+<div id="stage">
+  <div id="viewport">
+    <div id="world">
+      <svg id="threads"></svg>
+    </div>
+    <div id="grain"></div>
+  </div>
+
+  <div id="topbar">
+    <div class="bar-group">
+      <button class="chip icon" id="btn-cases" title="Boards" aria-label="Boards"><svg><use href="#i-menu"/></svg></button>
+      <div id="caseplate" title="Rename this board">
+        <span class="no" id="caseno">CASE FILE</span>
+        <span class="nm" id="casename">Untitled</span>
+      </div>
+    </div>
+    <div id="spacer"></div>
+    <div class="bar-group">
+      <span id="savetag">saved</span>
+      <div id="searchwrap">
+        <input id="search" type="text" placeholder="Find on board" autocomplete="off" spellcheck="false">
+      </div>
+      <button class="chip icon" id="btn-time" title="Dates" aria-label="Show dates"><svg><use href="#i-cal"/></svg></button>
+      <button class="chip icon" id="btn-search" title="Search" aria-label="Search"><svg><use href="#i-search"/></svg></button>
+      <button class="chip icon" id="btn-undo" title="Undo" aria-label="Undo"><svg><use href="#i-undo"/></svg></button>
+      <button class="chip icon" id="btn-redo" title="Redo" aria-label="Redo"><svg><use href="#i-redo"/></svg></button>
+    </div>
+  </div>
+
+  <div id="tools">
+    <button class="tool" data-add="photo"><svg><use href="#i-photo"/></svg><span class="tip">Photo</span></button>
+    <button class="tool" data-add="sticky"><svg><use href="#i-sticky"/></svg><span class="tip">Sticky note</span></button>
+    <button class="tool" data-add="card"><svg><use href="#i-card"/></svg><span class="tip">Index card</span></button>
+    <button class="tool" data-add="doc"><svg><use href="#i-doc"/></svg><span class="tip">Report</span></button>
+    <button class="tool" data-add="list"><svg><use href="#i-list"/></svg><span class="tip">Checklist</span></button>
+    <button class="tool" data-add="tag"><svg><use href="#i-tag"/></svg><span class="tip">Evidence tag</span></button>
+    <button class="tool" data-add="marker"><svg><use href="#i-marker"/></svg><span class="tip">Marker text</span></button>
+    <button class="tool" id="btn-link"><svg><use href="#i-string"/></svg><span class="tip">Run string (L)</span></button>
+    <button class="tool" id="btn-lasso"><svg><use href="#i-lasso"/></svg><span class="tip">Select several</span></button>
+  </div>
+
+  <div id="zoomrail">
+    <button class="chip icon" id="btn-zin" aria-label="Zoom in"><svg><use href="#i-plus"/></svg></button>
+    <span id="zoomlvl">100%</span>
+    <button class="chip icon" id="btn-zout" aria-label="Zoom out"><svg><use href="#i-minus"/></svg></button>
+    <button class="chip icon" id="btn-fit" aria-label="Fit board"><svg><use href="#i-fit"/></svg></button>
+  </div>
+
+  <div id="timeline"></div>
+
+  <div id="selbar">
+    <span class="count"></span>
+    <button data-s="edit" aria-label="Edit text"><svg><use href="#i-card"/></svg></button>
+    <button data-s="link" aria-label="Run string from here"><svg><use href="#i-string"/></svg></button>
+    <button data-s="style" aria-label="Style and stamp"><svg><use href="#i-pin"/></svg></button>
+    <button data-s="dup" aria-label="Duplicate"><svg><use href="#i-copy"/></svg></button>
+    <button data-s="del" class="danger" aria-label="Remove"><svg><use href="#i-trash"/></svg></button>
+  </div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+
+<aside class="panel" id="cases" aria-label="Boards">
+  <header>
+    <h2>Case files</h2>
+    <button class="xbtn" data-close="cases" aria-label="Close"><svg width="18" height="18"><use href="#i-x"/></svg></button>
+  </header>
+  <div class="body" id="caselist"></div>
+  <footer>
+    <button class="btn primary wide" id="btn-newcase"><svg><use href="#i-plus"/></svg>New board</button>
+    <button class="btn" id="btn-export"><svg><use href="#i-down"/></svg>Export</button>
+    <button class="btn" id="btn-import"><svg><use href="#i-up"/></svg>Import</button>
+    <label class="field" style="width:100%; margin:2px 0 4px">
+      <span>Board style</span>
+      <div class="seg" id="themeseg">
+        <button data-theme="cork">Corkboard</button>
+        <button data-theme="white">Whiteboard</button>
+      </div>
+    </label>
+    <button class="btn wide" id="btn-png"><svg><use href="#i-photo"/></svg>Save the board as a picture</button>
+    <div class="hint" style="width:100%">Boards are stored in this browser. Export to keep a copy or move to another device.</div>
+  </footer>
+</aside>
+
+<aside class="panel" id="inspect" aria-label="Item settings">
+  <header>
+    <h2 id="inspect-title">Item</h2>
+    <button class="xbtn" data-close="inspect" aria-label="Close"><svg width="18" height="18"><use href="#i-x"/></svg></button>
+  </header>
+  <div class="body" id="inspect-body"></div>
+  <footer id="inspect-foot"></footer>
+</aside>
+
+<div id="marquee"></div>
+<div id="ctx"></div>
+<div id="toast"></div>
+<input type="file" id="filepick" accept="image/*" hidden>
+<input type="file" id="jsonpick" accept="application/json,.json" hidden>
+<script>
+"use strict";
+/* ═══════════════ Pin It — evidence board ═══════════════ */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+const STICKY = ["#f7e06a", "#f4a8b8", "#a8dbef", "#bfe3a4", "#f6c082", "#d9c4ef"];
+const THREADS = { red: "#b3271e", navy: "#23486b", gold: "#c2932a", green: "#3a6b4c", cream: "#efe6d2" };
+const PINS = ["#c0342a", "#23486b", "#c2932a", "#3a6b4c", "#efe6d2", "#6d3b8f"];
+const TAPES = ["rgba(235,227,204,.86)", "rgba(252,252,250,.9)", "rgba(126,168,214,.78)",
+  "rgba(233,158,168,.78)", "rgba(152,200,162,.78)", "rgba(52,54,60,.85)"];
+const MARKER = { red: "#cf2f26", navy: "#1d4f9e", gold: "#d08a12", green: "#2c7d43", cream: "#24262c" };
+const THREAD_NAMES = { cork: { red: "Red", navy: "Navy", gold: "Gold", green: "Green", cream: "Cream" },
+  white: { red: "Red", navy: "Blue", gold: "Orange", green: "Green", cream: "Black" } };
+const isWhite = () => !!board && board.theme === "white";
+const threadCol = k => isWhite() ? (MARKER[k] || MARKER.cream) : (THREADS[k] || THREADS.red);
+function hashN(s) { let h = 2166136261; for (let i = 0; i < String(s).length; i++) { h ^= String(s).charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+const STAMPS = ["", "done", "urgent", "blocked", "idea", "review"];
+const TYPE_NAMES = { photo: "Photo", sticky: "Sticky note", card: "Index card", doc: "Report", list: "Checklist", tag: "Evidence tag", marker: "Marker text" };
+const DEFAULTS = {
+  photo:  { w: 210, h: 236, text: "" },
+  sticky: { w: 182, h: 182, text: "New note" },
+  card:   { w: 250, h: 160, title: "Untitled", text: "" },
+  doc:    { w: 236, h: 286, title: "Report", text: "" },
+  list:   { w: 236, h: 210, title: "Checklist" },
+  tag:    { w: 176, h: 42, text: "Evidence 01" },
+  marker: { w: 260, h: 60, text: "Heading" }
+};
+
+/* ── storage: localStorage with a memory fallback so it never hard-fails ── */
+const store = (() => {
+  let ok = true, mem = {};
+  try { localStorage.setItem("__t", "1"); localStorage.removeItem("__t"); } catch (e) { ok = false; }
+  return {
+    persistent: ok,
+    get(k) { try { return ok ? localStorage.getItem(k) : mem[k] ?? null; } catch (e) { return mem[k] ?? null; } },
+    set(k, v) {
+      if (!ok) { mem[k] = v; return true; }
+      try { localStorage.setItem(k, v); return true; }
+      catch (e) { mem[k] = v; return false; }
+    }
+  };
+})();
+const KEY = "pinit.v1";
+
+/* ── state ── */
+let DB = { boards: [], current: null };
+let board = null;
+let sel = null;             // selected item id
+let linking = null;         // {from} while running string
+let history = [], future = [];
+let view = { x: 0, y: 0, s: 1 };
+const els = new Map();      // item id -> DOM node
+
+function toast(msg, ms = 2200) {
+  const t = $("#toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("show"), ms);
+}
+
+/* ── board helpers ── */
+function newBoard(name) {
+  const n = DB.boards.length + 1;
+  return {
+    id: uid(), name: name || "Untitled board",
+    no: "NO. " + String(n).padStart(3, "0"),
+    created: Date.now(), updated: Date.now(), theme: (board && board.theme) || "cork",
+    items: [], links: [], view: { x: 0, y: 0, s: 1 }
+  };
+}
+function mkItem(type, x, y, extra) {
+  const d = DEFAULTS[type] || DEFAULTS.card;
+  const it = {
+    id: uid(), type, x: Math.round(x), y: Math.round(y),
+    w: d.w, h: d.h, rot: +(Math.random() * 4 - 2).toFixed(2),
+    z: nextZ(), title: d.title || "", text: d.text || "",
+    color: type === "sticky" ? STICKY[0] : (type === "marker" ? "#7d1810" : ""),
+    pin: PINS[0], tape: TAPES[0], stamp: "", src: "", tasks: [], due: ""
+  };
+  if (type === "list") it.tasks = [{ t: "First step", done: false }, { t: "Second step", done: false }];
+  return Object.assign(it, extra || {});
+}
+function nextZ() { return board && board.items.length ? Math.max(...board.items.map(i => i.z || 1)) + 1 : 1; }
+const byId = id => board.items.find(i => i.id === id);
+
+/* ── persistence ── */
+let saveT = null;
+function save(now) {
+  if (!board) return;
+  board.updated = Date.now();
+  board.view = { x: view.x, y: view.y, s: view.s, w: view.w, h: view.h };
+  clearTimeout(saveT);
+  renderTimeline();
+  const write = () => {
+    const okw = store.set(KEY, JSON.stringify(DB));
+    if (!okw) toast("Storage is full — export this board, then delete some images.", 4200);
+    else if (!store.persistent) flashSaved("not saved — private mode");
+    else flashSaved("saved");
+  };
+  now ? write() : saveT = setTimeout(write, 450);
+}
+function flashSaved(txt) {
+  const t = $("#savetag"); t.textContent = txt; t.classList.add("show");
+  clearTimeout(flashSaved._t); flashSaved._t = setTimeout(() => t.classList.remove("show"), 1400);
+}
+function load() {
+  let raw = store.get(KEY);
+  if (raw) { try { DB = JSON.parse(raw); } catch (e) { DB = { boards: [], current: null }; } }
+  if (!DB.boards || !DB.boards.length) { DB = { boards: [seedBoard()], current: null }; DB.current = DB.boards[0].id; }
+  board = DB.boards.find(b => b.id === DB.current) || DB.boards[0];
+  DB.current = board.id;
+  view = Object.assign({ x: 0, y: 0, s: 1 }, board.view || {});
+}
+
+/* ── undo ── */
+function snap() {
+  history.push(JSON.stringify({ items: board.items, links: board.links }));
+  if (history.length > 60) history.shift();
+  future.length = 0; updateUndo();
+}
+function applySnap(s) {
+  const d = JSON.parse(s); board.items = d.items; board.links = d.links;
+  sel = null; renderAll(); closePanel("inspect"); save();
+}
+function undo() {
+  if (!history.length) return;
+  future.push(JSON.stringify({ items: board.items, links: board.links }));
+  applySnap(history.pop()); updateUndo();
+}
+function redo() {
+  if (!future.length) return;
+  history.push(JSON.stringify({ items: board.items, links: board.links }));
+  applySnap(future.pop()); updateUndo();
+}
+function updateUndo() {
+  $("#btn-undo").style.opacity = history.length ? 1 : .4;
+  $("#btn-redo").style.opacity = future.length ? 1 : .4;
+}
+
+/* ── first-run sample board: teaches the interaction ── */
+function seedBoard() {
+  const b = { theme: "cork", id: uid(), name: "The Greenhouse Job", no: "NO. 001", created: Date.now(), updated: Date.now(), items: [], links: [], view: { x: 0, y: 0, s: 1 } };
+  const it = (t, x, y, o) => { const i = mkItemRaw(t, x, y, o); b.items.push(i); return i; };
+  function mkItemRaw(type, x, y, extra) {
+    const d = DEFAULTS[type];
+    return Object.assign({
+      id: uid(), type, x, y, w: d.w, h: d.h, rot: +(Math.random() * 4 - 2).toFixed(2),
+      z: b.items.length + 1, title: d.title || "", text: d.text || "",
+      color: type === "sticky" ? STICKY[0] : (type === "marker" ? "#7d1810" : ""),
+      pin: PINS[0], tape: TAPES[0], stamp: "", src: "", tasks: [], due: ""
+    }, extra || {});
+  }
+  const head = it("marker", 300, 80, { text: "What are we building?", w: 420, h: 70, rot: -1.4 });
+  const brief = it("card", 180, 220, { title: "The brief", text: "Drag things around. Double-tap to write.", rot: -2.2 });
+  const string = it("sticky", 520, 210, { text: "Tap the string tool, then tap two pins to tie them together.", color: STICKY[2], rot: 2.6 });
+  const plan = it("list", 210, 440, {
+    title: "This week", rot: 1.4,
+    tasks: [{ t: "Pin the big idea", done: true }, { t: "Break it into parts", done: false }, { t: "Connect what depends on what", done: false }]
+  });
+  const risk = it("sticky", 560, 450, { text: "Anything unresolved goes on a sticky and gets a stamp.", color: STICKY[1], rot: -2.4, stamp: "urgent" });
+  const iso = d => { const x = new Date(); x.setDate(x.getDate() + d); return x.toISOString().slice(0, 10); };
+  plan.due = iso(3); risk.due = iso(0); brief.due = iso(9);
+  const tag = it("tag", 560, 660, { text: "Deadline", rot: -1, due: iso(12) });
+  b.links.push(
+    { id: uid(), a: head.id, b: brief.id, color: "red", style: "solid", label: "" },
+    { id: uid(), a: brief.id, b: string.id, color: "red", style: "solid", label: "then" },
+    { id: uid(), a: brief.id, b: plan.id, color: "navy", style: "dashed", label: "breaks down into" },
+    { id: uid(), a: string.id, b: risk.id, color: "red", style: "solid", label: "" },
+    { id: uid(), a: risk.id, b: tag.id, color: "gold", style: "dashed", label: "blocked by" }
+  );
+  return b;
+}
+</script>
+<script>
+/* ═══════════════ rendering ═══════════════ */
+const world = $("#world"), svg = $("#threads"), viewport = $("#viewport");
+const nl2br = s => esc(s).replace(/\n/g, "<br>");
+
+function itemInner(it) {
+  switch (it.type) {
+    case "photo":
+      return `<div class="frame">${it.src
+        ? `<img src="${esc(it.src)}" alt="${esc(it.text || "photo")}" draggable="false">`
+        : `<div class="drop">Tap to add<br>a picture</div>`}</div>
+        <div class="cap">${nl2br(it.text || "")}</div>`;
+    case "sticky":
+      return `<div class="tx">${body(it, "Write something")}</div>`;
+    case "card":
+      return `<div class="ttl">${esc(it.title || "Untitled")}</div><div class="tx">${body(it, "What's the detail?")}</div>`;
+    case "doc":
+      return `<div class="ttl">${esc(it.title || "Report")}</div><div class="tx">${body(it, "The full account goes here.")}</div>`;
+    case "list": {
+      const done = it.tasks.filter(t => t.done).length;
+      return `<div class="ttl"><span>${esc(it.title || "Checklist")}</span><b>${done}/${it.tasks.length}</b></div>
+        <ul>${it.tasks.map((t, i) => `<li class="${t.done ? "done" : ""}" data-task="${i}">
+          <span class="bx">${t.done ? "✕" : ""}</span><span>${esc(t.t)}</span></li>`).join("")}</ul>`;
+    }
+    case "tag": return `<div class="tx">${body(it, "Label this")}</div>`;
+    case "marker": return `<div class="tx">${body(it, "Heading")}</div>`;
+  }
+  return "";
+}
+function body(it, ph) { return it.text ? nl2br(it.text) : `<span class="ph">${esc(ph)}</span>`; }
+
+function makeEl(it) {
+  const el = document.createElement("div");
+  el.className = "item t-" + it.type;
+  el.dataset.id = it.id;
+  el.innerHTML = `<div class="pin"><i></i></div><div class="tape"></div><div class="surface">${itemInner(it)}</div><div class="grip"></div>`;
+  world.appendChild(el);
+  els.set(it.id, el);
+  place(el, it);
+  return el;
+}
+function place(el, it) {
+  el.style.left = it.x + "px"; el.style.top = it.y + "px";
+  el.style.width = it.w + "px"; el.style.height = it.h + "px";
+  el.style.transform = `rotate(${it.rot}deg)`;
+  el.style.zIndex = it.z || 1;
+  el.style.setProperty("--pinc", it.pin || PINS[0]);
+  el.style.setProperty("--tapec", it.tape || TAPES[0]);
+  el.style.setProperty("--tr", ((hashN(it.id) % 11) - 5).toFixed(1) + "deg");
+  if (it.type === "sticky" || it.type === "marker") el.style.setProperty("--sc", it.color || STICKY[0]);
+}
+function refresh(id) {
+  const it = byId(id), el = els.get(id); if (!it || !el) return;
+  el.querySelector(".surface").innerHTML = itemInner(it);
+  const old = el.querySelector(".stamp"); if (old) old.remove();
+  if (it.stamp) {
+    const s = document.createElement("div");
+    s.className = "stamp " + it.stamp; s.textContent = it.stamp.toUpperCase();
+    el.appendChild(s);
+  }
+  const od = el.querySelector(".due"); if (od) od.remove();
+  if (it.due) {
+    const d = document.createElement("div");
+    d.className = "due " + dueState(it.due); d.textContent = dueLabel(it.due);
+    el.appendChild(d);
+  }
+  place(el, it);
+  drawThreads(); renderTimeline();
+}
+function renderAll() {
+  [...world.children].forEach(c => { if (c !== svg) c.remove(); });
+  els.clear();
+  board.items.slice().sort((a, b) => (a.z || 0) - (b.z || 0)).forEach(it => { makeEl(it); refresh(it.id); });
+  drawThreads(); updateEmpty(); applyFilter();
+}
+function updateEmpty() {
+  let e = $("#empty");
+  if (board.items.length) { if (e) e.remove(); return; }
+  if (e) return;
+  e = document.createElement("div");
+  e.id = "empty";
+  e.innerHTML = `<h3>Nothing pinned yet</h3><p>Start with a sticky note or a photo from the tools, then run string between them.</p>`;
+  world.appendChild(e);
+  const r = viewport.getBoundingClientRect();
+  const c = toWorld(r.width / 2, r.height / 2);
+  e.style.left = c.x + "px"; e.style.top = c.y + "px"; e.style.position = "absolute";
+}
+
+/* pin anchor in world coords */
+function anchor(it) {
+  if (isWhite()) return { x: it.x + it.w / 2, y: it.y + it.h / 2 };
+  return it.type === "marker"
+    ? { x: it.x + it.w / 2, y: it.y + it.h / 2 }
+    : { x: it.x + it.w / 2, y: it.y - 1 };
+}
+/* where a drawn line should stop: just outside the item's edge */
+function edgePt(from, it) {
+  const c = { x: it.x + it.w / 2, y: it.y + it.h / 2 };
+  const dx = from.x - c.x, dy = from.y - c.y;
+  if (!dx && !dy) return c;
+  const hw = it.w / 2 + 10, hh = it.h / 2 + 10;
+  const t = Math.min(dx ? hw / Math.abs(dx) : 1e9, dy ? hh / Math.abs(dy) : 1e9);
+  return { x: c.x + dx * t, y: c.y + dy * t };
+}
+/* one shape for both renderers: sagging string on cork, drawn stroke on the whiteboard */
+function linkGeom(l, A, B) {
+  if (!isWhite()) { const g = threadPath(anchor(A), anchor(B)); return { d: g.d, mid: g.mid, head: "" }; }
+  const ca = anchor(A), cb = anchor(B);
+  const p1 = edgePt(cb, A), p2 = edgePt(ca, B);
+  const dx = p2.x - p1.x, dy = p2.y - p1.y, len = Math.hypot(dx, dy) || 1;
+  const px = -dy / len, py = dx / len;
+  const h = hashN(l.id || "x");
+  const bow = (((h % 7) - 3) / 3) * Math.min(30, len * .08);
+  const w1 = ((h >> 3) % 5 - 2) * 1.5, w2 = ((h >> 7) % 5 - 2) * 1.5;
+  const o1 = bow * .9 + w1, o2 = bow * 1.05 + w2;
+  const c1 = { x: p1.x + dx * .32 + px * o1, y: p1.y + dy * .32 + py * o1 };
+  const c2 = { x: p1.x + dx * .68 + px * o2, y: p1.y + dy * .68 + py * o2 };
+  const mid = { x: .125 * p1.x + .375 * c1.x + .375 * c2.x + .125 * p2.x,
+                y: .125 * p1.y + .375 * c1.y + .375 * c2.y + .125 * p2.y };
+  const ang = Math.atan2(p2.y - c2.y, p2.x - c2.x), L = 14, sp = .42;
+  const head = `M${(p2.x - L * Math.cos(ang - sp)).toFixed(1)},${(p2.y - L * Math.sin(ang - sp)).toFixed(1)} L${p2.x.toFixed(1)},${p2.y.toFixed(1)} L${(p2.x - L * Math.cos(ang + sp)).toFixed(1)},${(p2.y - L * Math.sin(ang + sp)).toFixed(1)}`;
+  return { d: `M${p1.x},${p1.y} C${c1.x},${c1.y} ${c2.x},${c2.y} ${p2.x},${p2.y}`, mid, head };
+}
+function threadPath(p1, p2) {
+  const dx = p2.x - p1.x, dy = p2.y - p1.y;
+  const d = Math.hypot(dx, dy);
+  const sag = Math.min(90, 16 + d * 0.13);
+  const mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2 + sag;
+  return { d: `M${p1.x},${p1.y} Q${mx},${my} ${p2.x},${p2.y}`, mid: { x: .25 * p1.x + .5 * mx + .25 * p2.x, y: .25 * p1.y + .5 * my + .25 * p2.y } };
+}
+function drawThreads() {
+  const r = worldBounds();
+  svg.setAttribute("width", r.w); svg.setAttribute("height", r.h);
+  svg.setAttribute("viewBox", `${r.x} ${r.y} ${r.w} ${r.h}`);
+  svg.style.left = r.x + "px"; svg.style.top = r.y + "px";
+  let out = "";
+  const white = isWhite();
+  board.links.forEach(l => {
+    const A = byId(l.a), B = byId(l.b); if (!A || !B) return;
+    const { d, head } = linkGeom(l, A, B);
+    const col = threadCol(l.color);
+    const dash = l.style === "dashed" ? ' stroke-dasharray="11 7"' : "";
+    if (white) {
+      out += `<path d="${d}" fill="none" stroke="${col}" stroke-width="1.7" stroke-linecap="round" opacity=".32" transform="translate(1,1.4)" pointer-events="none"${dash}/>`;
+      out += `<path d="${d}" fill="none" stroke="${col}" stroke-width="3.4" stroke-linecap="round" data-link="${l.id}"${dash}/>`;
+      out += `<path d="${head}" fill="none" stroke="${col}" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>`;
+    } else {
+      out += `<path d="${d}" fill="none" stroke="rgba(45,25,10,.35)" stroke-width="5" transform="translate(1.5,4)"/>`;
+      out += `<path d="${d}" fill="none" stroke="${col}" stroke-width="3.1" stroke-linecap="round" data-link="${l.id}"${dash}/>`;
+      out += `<path d="${d}" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="1" stroke-linecap="round" transform="translate(0,-.9)" pointer-events="none"${dash}/>`;
+    }
+  });
+  if (linking && linking.to) {
+    const A = byId(linking.from);
+    if (A) {
+      const a = anchor(A);
+      const d = white ? `M${a.x},${a.y} L${linking.to.x},${linking.to.y}` : threadPath(a, linking.to).d;
+      out += `<path d="${d}" fill="none" stroke="${threadCol(uiThread)}" stroke-width="2.6" stroke-dasharray="7 6" opacity=".85"/>`;
+    }
+  }
+  svg.innerHTML = out;
+  drawLabels();
+  applyTrace();
+}
+function drawLabels() {
+  $$(".tlabel").forEach(n => n.remove());
+  board.links.forEach(l => {
+    if (!l.label) return;
+    const A = byId(l.a), B = byId(l.b); if (!A || !B) return;
+    const { mid } = linkGeom(l, A, B);
+    const n = document.createElement("div");
+    n.className = "tlabel"; n.textContent = l.label; n.dataset.link = l.id;
+    n.style.left = mid.x + "px"; n.style.top = mid.y + "px";
+    n.style.setProperty("--rot", (((l.id.charCodeAt(0) % 7) - 3)) + "deg");
+    world.appendChild(n);
+  });
+}
+function worldBounds() {
+  const pad = 400;
+  if (!board.items.length) return { x: -pad, y: -pad, w: pad * 2, h: pad * 2 };
+  const xs = board.items.map(i => i.x), ys = board.items.map(i => i.y);
+  const xe = board.items.map(i => i.x + i.w), ye = board.items.map(i => i.y + i.h);
+  const x = Math.min(...xs) - pad, y = Math.min(...ys) - pad;
+  return { x, y, w: Math.max(...xe) + pad - x, h: Math.max(...ye) + pad - y };
+}
+
+/* ── view transform ── */
+function applyView() {
+  world.style.transform = `translate(${view.x}px,${view.y}px) scale(${view.s})`;
+  $("#zoomlvl").textContent = Math.round(view.s * 100) + "%";
+  const r = viewport.getBoundingClientRect();
+  view.w = Math.round(r.width); view.h = Math.round(r.height);
+}
+function toWorld(sx, sy) {
+  const r = viewport.getBoundingClientRect();
+  return { x: (sx - r.left - view.x) / view.s, y: (sy - r.top - view.y) / view.s };
+}
+function zoomAt(sx, sy, factor) {
+  const before = toWorld(sx, sy);
+  view.s = clamp(view.s * factor, 0.2, 2.6);
+  const r = viewport.getBoundingClientRect();
+  view.x = sx - r.left - before.x * view.s;
+  view.y = sy - r.top - before.y * view.s;
+  applyView(); save();
+}
+function fitBoard(animate) {
+  const r = viewport.getBoundingClientRect();
+  const narrow = matchMedia("(max-width:720px)").matches;
+  // free area, discounting the chrome that floats over the board
+  const in_ = { t: narrow ? 58 : 66, b: narrow ? 66 : 24, l: narrow ? 14 : 76, r: narrow ? 56 : 62 };
+  if (typeof tlOpen !== "undefined" && tlOpen) in_.b += 74;
+  const fw = Math.max(120, r.width - in_.l - in_.r), fh = Math.max(120, r.height - in_.t - in_.b);
+  if (!board.items.length) { view.x = r.width / 2; view.y = r.height / 2; view.s = 1; applyView(); save(); return; }
+  const b = { x: Math.min(...board.items.map(i => i.x)), y: Math.min(...board.items.map(i => i.y)) };
+  b.w = Math.max(...board.items.map(i => i.x + i.w)) - b.x;
+  b.h = Math.max(...board.items.map(i => i.y + i.h)) - b.y;
+  const pad = narrow ? 14 : 34;
+  const s = clamp(Math.min((fw - pad * 2) / b.w, (fh - pad * 2) / b.h), 0.22, 1.25);
+  if (animate) world.style.transition = "transform .4s cubic-bezier(.2,.8,.25,1)";
+  view.s = s;
+  view.x = in_.l + (fw - b.w * s) / 2 - b.x * s;
+  view.y = in_.t + (fh - b.h * s) / 2 - b.y * s;
+  applyView(); save();
+  if (animate) setTimeout(() => world.style.transition = "", 420);
+}
+function centerOn(it) {
+  const r = viewport.getBoundingClientRect();
+  world.style.transition = "transform .4s cubic-bezier(.2,.8,.25,1)";
+  view.x = r.width / 2 - (it.x + it.w / 2) * view.s;
+  view.y = r.height / 2 - (it.y + it.h / 2) * view.s;
+  applyView(); setTimeout(() => world.style.transition = "", 420); save();
+}
+
+/* ── search filter ── */
+let query = "";
+function itemText(it) {
+  return [it.title, it.text, ...(it.tasks || []).map(t => t.t), it.stamp, it.due, TYPE_NAMES[it.type]].join(" ").toLowerCase();
+}
+function applyFilter() {
+  const q = query.trim().toLowerCase();
+  board.items.forEach(it => {
+    const el = els.get(it.id); if (!el) return;
+    el.classList.remove("dim", "hit");
+    if (!q) return;
+    if (itemText(it).includes(q)) el.classList.add("hit"); else el.classList.add("dim");
+  });
+  applyTrace();
+}
+</script>
+<script>
+/* ═══════════════ interaction ═══════════════ */
+let uiThread = "red", uiStyle = "solid";
+const ptrs = new Map();
+let drag = null, pan = null, pinch = null, resize = null, pressT = null, snapped = false;
+let raf = 0;
+const redraw = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; drawThreads(); }); };
+
+const isNarrow = () => matchMedia("(max-width:720px)").matches;
+let multi = new Set();
+function markSelected() {
+  els.forEach((el, id) => el.classList.toggle("sel", id === sel || multi.has(id)));
+}
+function selectItem(id) {
+  if (sel === id && !multi.size) return;
+  clearMulti(true);
+  sel = id; markSelected();
+  if (!id) { deselect(); return; }
+  if (isNarrow()) $("#selbar").classList.add("show");
+  else openInspector();
+  applyTrace();
+}
+function deselect() {
+  sel = null; clearMulti(true); markSelected();
+  closePanel("inspect"); $("#selbar").classList.remove("show");
+  applyTrace();
+}
+function setMulti(ids) {
+  if (ids.length === 1) { selectItem(ids[0]); return; }
+  sel = null; closePanel("inspect");
+  multi = new Set(ids); markSelected();
+  const bar = $("#selbar");
+  bar.querySelector(".count").textContent = ids.length + " selected";
+  bar.classList.toggle("multi", ids.length > 1);
+  bar.classList.toggle("show", ids.length > 1);
+  applyTrace();
+}
+function clearMulti(quiet) {
+  if (!multi.size) return;
+  multi.clear();
+  const bar = $("#selbar"); bar.classList.remove("multi");
+  if (!quiet) { bar.classList.remove("show"); markSelected(); }
+}
+function removeMany(ids) {
+  snap();
+  const kill = new Set(ids);
+  board.items = board.items.filter(i => !kill.has(i.id));
+  board.links = board.links.filter(l => !kill.has(l.a) && !kill.has(l.b));
+  ids.forEach(id => { const el = els.get(id); if (el) el.remove(); els.delete(id); });
+  deselect(); drawThreads(); updateEmpty(); renderTimeline(); save();
+  toast(ids.length + " items removed");
+}
+$("#selbar").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const a = b.dataset.s;
+  if (multi.size > 1) {
+    if (a === "dup") {
+      snap(); const made = [];
+      [...multi].forEach(id => {
+        const o = byId(id); if (!o) return;
+        const c = JSON.parse(JSON.stringify(o)); c.id = uid(); c.x += 30; c.y += 30; c.z = nextZ();
+        board.items.push(c); makeEl(c); refresh(c.id); made.push(c.id);
+      });
+      setMulti(made); save();
+    }
+    if (a === "del") removeMany([...multi]);
+    return;
+  }
+  if (!sel) return;
+  const it = byId(sel); if (!it) return;
+  if (a === "edit") startEdit(sel, "text");
+  if (a === "link") { linking = { from: sel, to: null }; $("#btn-link").classList.add("on"); $$(".item").forEach(n => n.classList.toggle("linkable", n.dataset.id !== sel)); toast("Now tap what it connects to"); }
+  if (a === "style") openInspector();
+  if (a === "dup") { snap(); const c = JSON.parse(JSON.stringify(it)); c.id = uid(); c.x += 26; c.y += 26; c.z = nextZ(); board.items.push(c); makeEl(c); refresh(c.id); selectItem(c.id); save(); }
+  if (a === "del") removeItem(sel);
+});
+function bump(it) { it.z = nextZ(); els.get(it.id).style.zIndex = it.z; }
+function preSnap() { if (!snapped) { snap(); snapped = true; } }
+
+viewport.addEventListener("pointerdown", e => {
+  if (e.target.closest(".edit")) return;
+  ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  hideCtx();
+
+  if (ptrs.size === 2) { startPinch(); return; }
+
+  const itemEl = e.target.closest(".item");
+  const labelEl = e.target.closest(".tlabel");
+  const pathEl = e.target.closest("path[data-link]");
+  snapped = false;
+
+  if (labelEl || pathEl) {
+    const id = (labelEl || pathEl).dataset.link;
+    e.preventDefault(); linkMenu(id, e.clientX, e.clientY); return;
+  }
+
+  if (itemEl) {
+    const it = byId(itemEl.dataset.id); if (!it) return;
+    e.preventDefault();
+
+    if (linking) { completeLink(it.id); return; }
+
+    // checklist toggle
+    const li = e.target.closest("li[data-task]");
+    if (li && it.type === "list") {
+      snap(); const i = +li.dataset.task; it.tasks[i].done = !it.tasks[i].done;
+      refresh(it.id); save(); selectItem(it.id); return;
+    }
+    // empty photo → pick a file
+    if (it.type === "photo" && !it.src && e.target.closest(".drop")) { selectItem(it.id); pickImage(it.id); return; }
+
+    const group = multi.has(it.id) && multi.size > 1;
+    if (!group) { selectItem(it.id); bump(it); }
+    const p = toWorld(e.clientX, e.clientY);
+    if (e.target.closest(".grip")) {
+      resize = { id: it.id, sx: p.x, sy: p.y, w: it.w, h: it.h };
+    } else {
+      drag = { id: it.id, dx: p.x - it.x, dy: p.y - it.y, moved: false, ox: it.x, oy: it.y,
+        group: group ? [...multi].map(id => { const o = byId(id); return { id, x: o.x, y: o.y }; }) : null };
+      itemEl.classList.add("dragging");
+      pressT = setTimeout(() => { if (drag && !drag.moved) { itemMenu(it.id, e.clientX, e.clientY); endDrag(); } }, 520);
+    }
+    viewport.setPointerCapture(e.pointerId);
+    return;
+  }
+
+  // background
+  if (linking) { cancelLink(); return; }
+  deselect();
+  if (lassoMode || e.shiftKey) {
+    e.preventDefault();
+    marq = { x: e.clientX, y: e.clientY, cx: e.clientX, cy: e.clientY };
+    drawMarquee();
+    viewport.setPointerCapture(e.pointerId);
+    return;
+  }
+  pan = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y, moved: false };
+  viewport.classList.add("panning");
+  viewport.setPointerCapture(e.pointerId);
+});
+
+viewport.addEventListener("pointermove", e => {
+  if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+  if (pinch && ptrs.size >= 2) { movePinch(); return; }
+  if (marq) { marq.cx = e.clientX; marq.cy = e.clientY; drawMarquee(); return; }
+
+  if (linking) {
+    linking.to = toWorld(e.clientX, e.clientY);
+    const over = e.target.closest(".item");
+    $$(".item.linkable").forEach(n => n.classList.remove("linkable"));
+    if (over && over.dataset.id !== linking.from) over.classList.add("linkable");
+    redraw(); return;
+  }
+  if (drag) {
+    const p = toWorld(e.clientX, e.clientY), it = byId(drag.id); if (!it) return;
+    const nx = Math.round(p.x - drag.dx), ny = Math.round(p.y - drag.dy);
+    if (!drag.moved && Math.abs(nx - it.x) + Math.abs(ny - it.y) < 3) return;
+    if (!drag.moved) { preSnap(); clearTimeout(pressT); }
+    drag.moved = true;
+    if (drag.group) {
+      const ddx = nx - drag.ox, ddy = ny - drag.oy;
+      drag.group.forEach(g => {
+        const o = byId(g.id); if (!o) return;
+        o.x = g.x + ddx; o.y = g.y + ddy;
+        const e2 = els.get(g.id); if (e2) { e2.style.left = o.x + "px"; e2.style.top = o.y + "px"; }
+      });
+    } else {
+      it.x = nx; it.y = ny;
+      const el = els.get(it.id); el.style.left = nx + "px"; el.style.top = ny + "px";
+    }
+    redraw(); return;
+  }
+  if (resize) {
+    const p = toWorld(e.clientX, e.clientY), it = byId(resize.id); if (!it) return;
+    preSnap();
+    const min = it.type === "tag" ? 34 : 70;
+    it.w = Math.round(clamp(resize.w + (p.x - resize.sx), 90, 1400));
+    it.h = Math.round(clamp(resize.h + (p.y - resize.sy), min, 1400));
+    place(els.get(it.id), it); redraw(); return;
+  }
+  if (pan) {
+    const dx = e.clientX - pan.x, dy = e.clientY - pan.y;
+    if (Math.abs(dx) + Math.abs(dy) > 3) pan.moved = true;
+    view.x = pan.vx + dx; view.y = pan.vy + dy; applyView();
+  }
+});
+
+let justMoved = false;
+function endDrag() {
+  clearTimeout(pressT);
+  if (drag) { const el = els.get(drag.id); if (el) el.classList.remove("dragging"); if (drag.moved) { justMoved = true; save(); } }
+  if (resize) { justMoved = true; refresh(resize.id); save(); }
+  drag = null; resize = null;
+}
+let lassoMode = false, marq = null;
+function drawMarquee() {
+  const m = $("#marquee");
+  m.style.display = "block";
+  m.style.left = Math.min(marq.x, marq.cx) + "px";
+  m.style.top = Math.min(marq.y, marq.cy) + "px";
+  m.style.width = Math.abs(marq.cx - marq.x) + "px";
+  m.style.height = Math.abs(marq.cy - marq.y) + "px";
+}
+function endMarquee() {
+  $("#marquee").style.display = "none";
+  const l = Math.min(marq.x, marq.cx), r = Math.max(marq.x, marq.cx);
+  const t = Math.min(marq.y, marq.cy), b = Math.max(marq.y, marq.cy);
+  marq = null;
+  if (r - l < 8 && b - t < 8) { setLasso(false); return; }
+  const ids = [];
+  els.forEach((el, id) => {
+    const k = el.getBoundingClientRect();
+    if (k.right > l && k.left < r && k.bottom > t && k.top < b) ids.push(id);
+  });
+  setLasso(false);
+  if (!ids.length) { toast("Nothing inside the box"); return; }
+  setMulti(ids);
+}
+function setLasso(on) {
+  lassoMode = on;
+  $("#btn-lasso").classList.toggle("on", on);
+  viewport.style.cursor = on ? "crosshair" : "";
+  if (on) { cancelLink(); toast("Drag a box around what you want"); }
+}
+function up(e) {
+  ptrs.delete(e.pointerId);
+  if (marq) { endMarquee(); return; }
+  if (pinch && ptrs.size < 2) { pinch = null; save(); }
+  endDrag();
+  if (pan) { viewport.classList.remove("panning"); if (pan.moved) save(); pan = null; }
+}
+viewport.addEventListener("pointerup", up);
+viewport.addEventListener("pointercancel", up);
+viewport.addEventListener("lostpointercapture", e => { ptrs.delete(e.pointerId); });
+
+/* pinch */
+function startPinch() {
+  endDrag(); pan = null; viewport.classList.remove("panning");
+  const [a, b] = [...ptrs.values()];
+  pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2, s: view.s, vx: view.x, vy: view.y };
+}
+function movePinch() {
+  const [a, b] = [...ptrs.values()];
+  const d = Math.hypot(a.x - b.x, a.y - b.y);
+  const cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2;
+  const r = viewport.getBoundingClientRect();
+  const ns = clamp(pinch.s * (d / (pinch.d || 1)), 0.2, 2.6);
+  const wx = (pinch.cx - r.left - pinch.vx) / pinch.s, wy = (pinch.cy - r.top - pinch.vy) / pinch.s;
+  view.s = ns;
+  view.x = cx - r.left - wx * ns;
+  view.y = cy - r.top - wy * ns;
+  applyView();
+}
+viewport.addEventListener("wheel", e => {
+  e.preventDefault();
+  if (e.ctrlKey || Math.abs(e.deltaY) > 40 || e.deltaMode === 1) zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.12 : 1 / 1.12);
+  else { view.x -= e.deltaX; view.y -= e.deltaY; applyView(); save(); }
+}, { passive: false });
+
+/* ── double-click / double-tap editing ── */
+let lastTap = 0, lastTapId = null;
+viewport.addEventListener("pointerup", e => {
+  const itemEl = e.target.closest(".item");
+  if (justMoved) { justMoved = false; lastTap = 0; return; }
+  if (!itemEl) return;
+  const now = Date.now(), id = itemEl.dataset.id;
+  const isTitle = !!e.target.closest(".ttl");
+  if (now - lastTap < 400 && lastTapId === id) { lastTap = 0; startEdit(id, isTitle ? "title" : "text"); }
+  else { lastTap = now; lastTapId = id; }
+});
+viewport.addEventListener("dblclick", e => {
+  const itemEl = e.target.closest(".item"); if (!itemEl) return;
+  startEdit(itemEl.dataset.id, e.target.closest(".ttl") ? "title" : "text");
+});
+viewport.addEventListener("contextmenu", e => {
+  const itemEl = e.target.closest(".item");
+  const link = e.target.closest("path[data-link],.tlabel");
+  if (itemEl) { e.preventDefault(); itemMenu(itemEl.dataset.id, e.clientX, e.clientY); }
+  else if (link) { e.preventDefault(); linkMenu(link.dataset.link, e.clientX, e.clientY); }
+});
+
+function startEdit(id, field, selectAll) {
+  const it = byId(id), el = els.get(id); if (!it || el.querySelector(".edit")) return;
+  if (it.type === "photo" && field === "text" && !it.src) { pickImage(id); return; }
+  if (it.type === "list" && field !== "title") { openInspector(); return; }
+  if ((it.type === "sticky" || it.type === "tag" || it.type === "marker") && field === "title") field = "text";
+  snap();
+  const ta = document.createElement("textarea");
+  ta.className = "edit"; ta.value = it[field] || "";
+  const st = getComputedStyle(el.querySelector(field === "title" ? ".ttl" : ".tx, .cap") || el);
+  ta.style.font = st.font; ta.style.color = st.color; ta.style.lineHeight = st.lineHeight;
+  ta.style.padding = getComputedStyle(el.querySelector(".surface")).padding;
+  el.appendChild(ta);
+  ta.focus();
+  selectAll ? ta.select() : ta.setSelectionRange(ta.value.length, ta.value.length);
+  const done = () => {
+    it[field] = ta.value.replace(/\s+$/, "");
+    ta.remove(); refresh(id); save(); applyFilter();
+  };
+  ta.addEventListener("blur", done);
+  ta.addEventListener("keydown", ev => {
+    ev.stopPropagation();
+    if (ev.key === "Escape") { ta.value = it[field] || ""; ta.blur(); }
+    if (ev.key === "Enter" && (ev.metaKey || ev.ctrlKey || it.type === "tag")) { ev.preventDefault(); ta.blur(); }
+  });
+}
+
+/* ── string / links ── */
+function toggleLinkMode(on) {
+  linking = on ? { from: null, to: null } : null;
+  $("#btn-link").classList.toggle("on", !!linking);
+  $$(".item.linkable").forEach(n => n.classList.remove("linkable"));
+  if (linking) { deselect(); toast("Tap the first item, then the second"); $$(".item").forEach(n => n.classList.add("linkable")); }
+  else drawThreads();
+}
+function completeLink(id) {
+  if (!linking.from) {
+    linking.from = id;
+    $$(".item").forEach(n => n.classList.toggle("linkable", n.dataset.id !== id));
+    els.get(id).classList.add("sel");
+    toast("Now tap what it connects to");
+    return;
+  }
+  if (linking.from === id) { cancelLink(); return; }
+  const exists = board.links.some(l => (l.a === linking.from && l.b === id) || (l.b === linking.from && l.a === id));
+  if (exists) { toast("Those two are already tied together"); cancelLink(); return; }
+  snap();
+  board.links.push({ id: uid(), a: linking.from, b: id, color: uiThread, style: uiStyle, label: "" });
+  const f = els.get(linking.from); if (f) f.classList.remove("sel");
+  cancelLink(); save(); toast(isWhite() ? "Line drawn" : "String run");
+}
+function cancelLink() {
+  const f = linking && linking.from && els.get(linking.from); if (f) f.classList.remove("sel");
+  linking = null; $("#btn-link").classList.remove("on");
+  $$(".item.linkable").forEach(n => n.classList.remove("linkable"));
+  drawThreads();
+}
+
+/* ── context menus ── */
+const ctx = $("#ctx");
+function showCtx(html, x, y) {
+  ctx.innerHTML = html; ctx.classList.add("show");
+  const r = ctx.getBoundingClientRect();
+  ctx.style.left = clamp(x, 8, innerWidth - r.width - 8) + "px";
+  ctx.style.top = clamp(y, 8, innerHeight - r.height - 8) + "px";
+}
+function hideCtx() { ctx.classList.remove("show"); }
+addEventListener("pointerdown", e => { if (!e.target.closest("#ctx")) hideCtx(); }, true);
+
+function itemMenu(id, x, y) {
+  const it = byId(id); if (!it) return;
+  selectItem(id);
+  const ic = n => `<svg><use href="#i-${n}"/></svg>`;
+  showCtx(`
+    <button data-a="edit">${ic("card")}Edit text</button>
+    <button data-a="link">${ic("string")}${isWhite() ? "Draw a line from here" : "Run string from here"}</button>
+    <button data-a="props">${ic("pin")}Style &amp; stamp</button>
+    <hr>
+    <button data-a="dup">${ic("copy")}Duplicate</button>
+    <button data-a="front">${ic("front")}Bring to front</button>
+    <button data-a="back">${ic("back")}Send to back</button>
+    <hr>
+    <button data-a="del" class="danger">${ic("trash")}Remove from board</button>`, x, y);
+  ctx.onclick = e => {
+    const a = e.target.closest("button"); if (!a) return; hideCtx();
+    const act = a.dataset.a;
+    if (act === "edit") startEdit(id, "text");
+    if (act === "link") { linking = { from: id, to: null }; $("#btn-link").classList.add("on"); $$(".item").forEach(n => n.classList.toggle("linkable", n.dataset.id !== id)); toast("Now tap what it connects to"); }
+    if (act === "props") openInspector();
+    if (act === "dup") { snap(); const c = JSON.parse(JSON.stringify(it)); c.id = uid(); c.x += 26; c.y += 26; c.z = nextZ(); board.items.push(c); makeEl(c); refresh(c.id); selectItem(c.id); save(); }
+    if (act === "front") { snap(); bump(it); save(); }
+    if (act === "back") { snap(); const m = Math.min(...board.items.map(i => i.z || 1)); it.z = m - 1; place(els.get(id), it); save(); }
+    if (act === "del") removeItem(id);
+  };
+}
+function linkMenu(id, x, y) {
+  const l = board.links.find(k => k.id === id); if (!l) return;
+  const names = THREAD_NAMES[isWhite() ? "white" : "cork"];
+  const sw = Object.keys(THREADS).map(k =>
+    `<button data-c="${k}" style="padding:6px 10px"><span style="width:16px;height:16px;border-radius:50%;background:${threadCol(k)};display:inline-block;box-shadow:0 1px 3px #0008"></span>${names[k]}${l.color === k ? " ✓" : ""}</button>`).join("");
+  showCtx(`${sw}<hr>
+    <button data-a="style"><svg><use href="#i-string"/></svg>${l.style === "dashed" ? "Make it solid" : "Make it dashed"}</button>
+    <button data-a="label"><svg><use href="#i-tag"/></svg>${l.label ? "Change label" : "Add a label"}</button>
+    <hr><button data-a="del" class="danger"><svg><use href="#i-trash"/></svg>${isWhite() ? "Rub out this line" : "Cut the string"}</button>`, x, y);
+  ctx.onclick = e => {
+    const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.c) { snap(); l.color = b.dataset.c; uiThread = b.dataset.c; hideCtx(); drawThreads(); save(); return; }
+    hideCtx();
+    if (b.dataset.a === "style") { snap(); l.style = l.style === "dashed" ? "solid" : "dashed"; uiStyle = l.style; drawThreads(); save(); }
+    if (b.dataset.a === "label") {
+      const v = prompt("What does this connection mean?", l.label || "");
+      if (v !== null) { snap(); l.label = v.slice(0, 40); drawThreads(); save(); }
+    }
+    if (b.dataset.a === "del") { snap(); board.links = board.links.filter(k => k.id !== id); drawThreads(); save(); toast(isWhite() ? "Line rubbed out" : "String cut"); }
+  };
+}
+function removeItem(id) {
+  snap();
+  board.items = board.items.filter(i => i.id !== id);
+  board.links = board.links.filter(l => l.a !== id && l.b !== id);
+  const el = els.get(id); if (el) el.remove(); els.delete(id);
+  if (sel === id) deselect();
+  drawThreads(); updateEmpty(); renderTimeline(); save();
+}
+</script>
+<script>
+/* ═══════════════ save the board as a picture ═══════════════ */
+function wrapText(c, text, maxW) {
+  const out = [];
+  String(text || "").split("\n").forEach(par => {
+    if (!par.trim()) { out.push(""); return; }
+    let line = "";
+    par.split(/\s+/).forEach(w => {
+      const t = line ? line + " " + w : w;
+      if (c.measureText(t).width > maxW && line) { out.push(line); line = w; } else line = t;
+    });
+    out.push(line);
+  });
+  return out;
+}
+function lines(c, text, maxW, x, y, lh, maxH) {
+  const ls = wrapText(c, text, maxW);
+  let yy = y;
+  for (const l of ls) { if (maxH && yy - y > maxH - lh) break; c.fillText(l, x, yy); yy += lh; }
+  return yy;
+}
+function rrect(c, x, y, w, h, r) {
+  c.beginPath();
+  c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath();
+}
+function rand(seed) { let s = seed; return () => (s = s * 16807 % 2147483647) / 2147483647; }
+
+async function exportPNG() {
+  if (!board.items.length) { toast("Pin something to the board first"); return; }
+  toast("Drawing the board…", 4000);
+  try { await document.fonts.ready; } catch (e) { }
+
+  const pad = 90;
+  const x0 = Math.min(...board.items.map(i => i.x)) - pad;
+  const y0 = Math.min(...board.items.map(i => i.y)) - pad - 20;
+  const W = Math.max(...board.items.map(i => i.x + i.w)) + pad - x0;
+  const H = Math.max(...board.items.map(i => i.y + i.h)) + pad - y0;
+  const sc = clamp(2600 / Math.max(W, H), 0.7, 2);
+
+  const W_ = isWhite();
+  const HAND = W_ ? '"Kalam", cursive' : '"Caveat", cursive';
+  const HANDB = W_ ? '"Permanent Marker", cursive' : '"Caveat", cursive';
+  const TYPED = W_ ? '"Kalam", cursive' : '"Special Elite", monospace';
+
+  const cv = document.createElement("canvas");
+  cv.width = Math.round(W * sc); cv.height = Math.round(H * sc);
+  const c = cv.getContext("2d");
+  c.scale(sc, sc); c.translate(-x0, -y0);
+
+  /* the surface */
+  const rnd = rand(97);
+  if (W_) {
+    const g = c.createLinearGradient(x0, y0, x0 + W * .3, y0 + H);
+    g.addColorStop(0, "#ffffff"); g.addColorStop(.55, "#f5f7f7"); g.addColorStop(1, "#e8ecec");
+    c.fillStyle = g; c.fillRect(x0, y0, W, H);
+    for (let i = 0; i < W / 60; i++) {            // ghosts of things wiped off
+      c.globalAlpha = .008 + rnd() * .016; c.strokeStyle = "#939da6";
+      c.lineWidth = 8 + rnd() * 22; c.lineCap = "round";
+      const yy = y0 + rnd() * H, x1 = x0 + rnd() * W * .5;
+      c.beginPath(); c.moveTo(x1, yy); c.lineTo(x1 + W * (.12 + rnd() * .4), yy + (rnd() - .5) * 16); c.stroke();
+    }
+    c.globalAlpha = 1;
+    const sh = c.createLinearGradient(x0, y0, x0 + W * .75, y0 + H);
+    sh.addColorStop(0, "rgba(255,255,255,.55)"); sh.addColorStop(.3, "rgba(255,255,255,0)");
+    sh.addColorStop(.62, "rgba(214,224,228,.3)"); sh.addColorStop(.8, "rgba(255,255,255,0)");
+    c.fillStyle = sh; c.fillRect(x0, y0, W, H);
+  } else {
+    const g = c.createLinearGradient(x0, y0, x0, y0 + H);
+    g.addColorStop(0, "#c99a5c"); g.addColorStop(.55, "#ab7b41"); g.addColorStop(1, "#8a5e30");
+    c.fillStyle = g; c.fillRect(x0, y0, W, H);
+    for (let i = 0; i < (W * H) / 260; i++) {
+      const a = rnd();
+      c.fillStyle = a > .55 ? `rgba(90,56,22,${.05 + a * .16})` : `rgba(233,199,150,${.04 + a * .13})`;
+      const r = .7 + rnd() * 2.4;
+      c.beginPath(); c.arc(x0 + rnd() * W, y0 + rnd() * H, r, 0, 7); c.fill();
+    }
+    const vg = c.createRadialGradient(x0 + W / 2, y0 + H / 2, Math.min(W, H) * .25, x0 + W / 2, y0 + H / 2, Math.max(W, H) * .75);
+    vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(38,20,6,.4)");
+    c.fillStyle = vg; c.fillRect(x0, y0, W, H);
+  }
+
+  /* string, or marker lines */
+  board.links.forEach(l => {
+    const A = byId(l.a), B = byId(l.b); if (!A || !B) return;
+    const geo = linkGeom(l, A, B), col = threadCol(l.color);
+    const body = new Path2D(geo.d);
+    c.lineCap = "round"; c.lineJoin = "round";
+    c.setLineDash(l.style === "dashed" ? [11, 7] : []);
+    if (W_) {
+      c.save(); c.translate(1, 1.4);
+      c.strokeStyle = col; c.globalAlpha = .3; c.lineWidth = 1.7; c.stroke(new Path2D(geo.d)); c.restore();
+      c.globalAlpha = 1; c.strokeStyle = col; c.lineWidth = 3.4; c.stroke(body);
+      c.setLineDash([]); c.stroke(new Path2D(geo.head));
+    } else {
+      c.save(); c.translate(1.5, 4);
+      c.strokeStyle = "rgba(45,25,10,.35)"; c.lineWidth = 5; c.stroke(new Path2D(geo.d)); c.restore();
+      c.strokeStyle = col; c.lineWidth = 3.1; c.stroke(body);
+    }
+    c.setLineDash([]);
+    if (l.label) {
+      c.save(); c.translate(geo.mid.x, geo.mid.y);
+      c.textAlign = "center"; c.textBaseline = "middle";
+      if (W_) {
+        c.font = 'bold 15px ' + HAND;
+        c.strokeStyle = "#f6f7f7"; c.lineWidth = 7; c.lineJoin = "round";
+        c.strokeText(l.label, 0, 0);
+        c.fillStyle = "#33363d"; c.fillText(l.label, 0, 0);
+      } else {
+        c.rotate(-.035);
+        c.font = '11px "Special Elite", monospace';
+        const tw = c.measureText(l.label).width + 16;
+        c.fillStyle = "rgba(0,0,0,.3)"; c.fillRect(-tw / 2 + 1, -6, tw, 18);
+        c.fillStyle = "#f3ead5"; c.fillRect(-tw / 2, -9, tw, 18);
+        c.fillStyle = "#231f1a"; c.fillText(l.label, 0, .5);
+      }
+      c.restore(); c.textAlign = "left"; c.textBaseline = "top";
+    }
+  });
+
+  /* preload photos */
+  const imgs = {};
+  await Promise.all(board.items.filter(i => i.type === "photo" && i.src).map(i => new Promise(res => {
+    const im = new Image(); im.onload = () => { imgs[i.id] = im; res(); }; im.onerror = res; im.src = i.src;
+  })));
+
+  /* items */
+  const order = board.items.slice().sort((a, b) => (a.z || 0) - (b.z || 0));
+  for (const it of order) {
+    c.save();
+    c.translate(it.x + it.w / 2, it.y + 8);
+    c.rotate((it.rot || 0) * Math.PI / 180);
+    c.translate(-it.w / 2, -8);
+    c.textBaseline = "top";
+
+    if (it.type !== "marker") {
+      c.shadowColor = "rgba(40,22,8,.45)"; c.shadowBlur = 14; c.shadowOffsetY = 10;
+    }
+    const paper = (fill, r) => { c.fillStyle = fill; r ? rrect(c, 0, 0, it.w, it.h, r) : c.beginPath(), r || c.rect(0, 0, it.w, it.h); c.fill(); c.shadowColor = "transparent"; c.shadowBlur = 0; c.shadowOffsetY = 0; };
+
+    if (it.type === "photo") {
+      paper(W_ ? "#fdfdfc" : "#f7f1e3");
+      const fh = it.h - 46;
+      c.fillStyle = "#2a2520"; c.fillRect(9, 9, it.w - 18, fh - 9);
+      const im = imgs[it.id];
+      if (im) {
+        const bw = it.w - 18, bh = fh - 9;
+        const r = Math.max(bw / im.width, bh / im.height);
+        const dw = im.width * r, dh = im.height * r;
+        c.save(); c.beginPath(); c.rect(9, 9, bw, bh); c.clip();
+        c.drawImage(im, 9 + (bw - dw) / 2, 9 + (bh - dh) / 2, dw, dh); c.restore();
+      }
+      c.fillStyle = W_ ? "#2b2d33" : "#2b2a45"; c.font = (W_ ? '15px ' : '19px ') + HAND; c.textAlign = "center";
+      c.fillText((it.text || "").split("\n")[0].slice(0, 34), it.w / 2, fh + 12);
+      c.textAlign = "left";
+    }
+    else if (it.type === "sticky") {
+      paper(it.color || STICKY[0]);
+      const sh = c.createLinearGradient(0, it.h - 26, 0, it.h);
+      sh.addColorStop(0, "rgba(0,0,0,0)"); sh.addColorStop(1, "rgba(0,0,0,.09)");
+      c.fillStyle = sh; c.fillRect(0, it.h - 26, it.w, 26);
+      c.fillStyle = "#33302a"; c.font = (W_ ? '17px ' : '21px ') + HAND;
+      lines(c, it.text, it.w - 26, 13, 14, W_ ? 25 : 26, it.h - 24);
+    }
+    else if (it.type === "card") {
+      paper(W_ ? "#fefefe" : "#f8f2e2");
+      c.strokeStyle = W_ ? "rgba(96,124,160,.2)" : "rgba(90,120,160,.28)"; c.lineWidth = 1;
+      for (let y = 25; y < it.h; y += 26) { c.beginPath(); c.moveTo(0, y + .5); c.lineTo(it.w, y + .5); c.stroke(); }
+      c.strokeStyle = "rgba(190,70,60,.4)"; c.beginPath(); c.moveTo(22.5, 0); c.lineTo(22.5, it.h); c.stroke();
+      c.fillStyle = "#1e1a15"; c.font = W_ ? 'bold 16px ' + HAND : '14px ' + TYPED;
+      c.fillText((it.title || "").slice(0, 30), 12, 10);
+      c.strokeStyle = "rgba(0,0,0,.18)"; c.beginPath(); c.moveTo(12, 30.5); c.lineTo(it.w - 12, 30.5); c.stroke();
+      c.fillStyle = "#2a2f45"; c.font = (W_ ? '17px ' : '19px ') + HAND;
+      lines(c, it.text, it.w - 26, 12, 36, W_ ? 25 : 26, it.h - 44);
+    }
+    else if (it.type === "doc") {
+      paper(W_ ? "#fbfbf9" : "#f2ecda");
+      c.fillStyle = "#cfc3a6"; c.beginPath(); c.moveTo(it.w - 24, 0); c.lineTo(it.w, 24); c.lineTo(it.w - 24, 24); c.closePath(); c.fill();
+      c.fillStyle = "#1e1a15"; c.font = '13px "Special Elite", monospace';
+      c.fillText((it.title || "").slice(0, 26), 15, 14);
+      c.fillRect(15, 32, it.w - 30, 2);
+      c.fillStyle = "#33302a"; c.font = '12px "Special Elite", monospace';
+      lines(c, it.text, it.w - 30, 15, 42, 18, it.h - 56);
+    }
+    else if (it.type === "list") {
+      paper(W_ ? "#fefefe" : "#f9f4e6");
+      const done = it.tasks.filter(t => t.done).length;
+      c.fillStyle = "#1e1a15"; c.font = W_ ? 'bold 15px ' + HAND : '13px ' + TYPED;
+      c.fillText((it.title || "").slice(0, 24), 12, 11);
+      c.fillStyle = "#8a2018"; c.textAlign = "right";
+      c.fillText(done + "/" + it.tasks.length, it.w - 12, 11); c.textAlign = "left";
+      let y = 32;
+      it.tasks.forEach(t => {
+        if (y > it.h - 18) return;
+        c.strokeStyle = "#5a5346"; c.lineWidth = 1.5; c.strokeRect(12.5, y + 3.5, 14, 14);
+        c.font = (W_ ? '17px ' : '18px ') + HAND; c.fillStyle = t.done ? "#8d8676" : "#2a2f45";
+        if (t.done) { c.fillStyle = "#b02a1f"; c.fillText("✕", 15, y + 1); c.fillStyle = "#8d8676"; }
+        const ls = wrapText(c, t.t, it.w - 44);
+        c.fillText(ls[0] + (ls.length > 1 ? "…" : ""), 34, y + 1);
+        if (t.done) {
+          const tw = c.measureText(ls[0] + (ls.length > 1 ? "…" : "")).width;
+          c.strokeStyle = "rgba(176,42,31,.8)"; c.lineWidth = 2;
+          c.beginPath(); c.moveTo(34, y + 12); c.lineTo(34 + tw, y + 12); c.stroke();
+        }
+        y += 25;
+      });
+    }
+    else if (it.type === "tag") {
+      paper(W_ ? "#efe9d8" : "#e8d9ab", 4);
+      c.fillStyle = "#2a2018"; c.beginPath(); c.arc(11, it.h / 2, 4, 0, 7); c.fill();
+      c.strokeStyle = "#c9a227"; c.lineWidth = 1.5; c.beginPath(); c.arc(11, it.h / 2, 4, 0, 7); c.stroke();
+      c.fillStyle = "#231f1a"; c.font = W_ ? 'bold 15px ' + HAND : '13px ' + TYPED; c.textBaseline = "middle";
+      c.fillText((it.text || "").slice(0, 28), 22, it.h / 2); c.textBaseline = "top";
+    }
+    else if (it.type === "marker") {
+      c.fillStyle = it.color || "#7d1810"; c.font = W_ ? '34px ' + HANDB : 'bold 40px ' + HAND;
+      lines(c, it.text, it.w, 0, W_ ? 4 : 0, W_ ? 44 : 42, it.h + 40);
+    }
+
+    if (it.stamp) {
+      const col = { done: "#3a6b4c", urgent: "#b3271e", blocked: "#8a5a12", idea: "#23486b", review: "#5c3a7a" }[it.stamp];
+      c.save();
+      c.translate(it.w - (W_ ? 20 : 12), it.type === "photo" ? 30 : it.h - (W_ ? 20 : 12));
+      c.rotate(-.19);
+      c.font = W_ ? '14px ' + HANDB : '15px "Special Elite", monospace';
+      const t = it.stamp.toUpperCase(), tw = c.measureText(t).width, bw = tw + 24;
+      c.globalAlpha = W_ ? .9 : .82; c.strokeStyle = col; c.fillStyle = col; c.lineWidth = W_ ? 2.5 : 1.4;
+      if (W_) {
+        c.save(); c.translate(-bw / 2, 0); c.rotate(.05);
+        c.beginPath(); c.ellipse(0, 0, bw / 2 + 4, 16, 0, 0, 7); c.stroke(); c.restore();
+      } else {
+        c.strokeRect(-bw, -13, bw, 26);
+        c.strokeRect(-bw + 3, -10, bw - 6, 20);
+      }
+      c.textAlign = "center"; c.textBaseline = "middle";
+      c.fillText(t, -bw / 2, .5);
+      c.restore(); c.textAlign = "left"; c.textBaseline = "top"; c.globalAlpha = 1;
+    }
+    if (it.due) {
+      const st = dueState(it.due), t = dueLabel(it.due);
+      if (W_) {
+        c.font = 'bold 14px ' + HAND;
+        const col = { over: "#cf2f26", today: "#cf2f26", soon: "#d08a12", later: "#1d4f9e" }[st];
+        const tw = c.measureText(t).width;
+        c.fillStyle = col; c.fillText(t, 13, it.h - 4);
+        c.strokeStyle = col; c.lineWidth = 2.5;
+        c.beginPath(); c.moveTo(13, it.h + 13); c.lineTo(13 + tw, it.h + 12); c.stroke();
+      } else {
+        c.font = '11px "Special Elite", monospace';
+        const tw = c.measureText(t).width + 14;
+        c.fillStyle = { over: "#b3271e", today: "#b3271e", soon: "#8a5a12", later: "#4b4235" }[st];
+        c.fillRect(10, it.h - 8, tw, 17);
+        c.fillStyle = "#fdf6e6"; c.fillText(t, 17, it.h - 4);
+      }
+    }
+    if (W_) {
+      if (it.type !== "marker" && it.type !== "sticky") {
+        const tw = it.type === "tag" ? 52 : 76, th = it.type === "tag" ? 22 : 27;
+        c.save(); c.translate(it.w / 2, -13 + th / 2);
+        c.rotate(((hashN(it.id) % 11) - 5) * Math.PI / 180);
+        const hw = tw / 2, hh = th / 2;
+        c.beginPath();                              // torn ends, like a hand-pulled strip
+        c.moveTo(-hw + 1, -hh); c.lineTo(hw - 1, -hh);
+        c.lineTo(hw - 3, -hh * .3); c.lineTo(hw, hh * .1); c.lineTo(hw - 2, hh * .5); c.lineTo(hw - 1, hh);
+        c.lineTo(-hw + 1, hh);
+        c.lineTo(-hw + 3, hh * .45); c.lineTo(-hw, -hh * .05); c.lineTo(-hw + 2, -hh * .55);
+        c.closePath();
+        c.fillStyle = it.tape || TAPES[0]; c.fill();
+        c.save(); c.clip();
+        c.strokeStyle = "rgba(80,90,100,.07)"; c.lineWidth = 1;
+        for (let i = -hw + 3; i < hw; i += 4) { c.beginPath(); c.moveTo(i, -hh); c.lineTo(i, hh); c.stroke(); }
+        c.strokeStyle = "rgba(255,255,255,.4)"; c.lineWidth = 2;
+        c.beginPath(); c.moveTo(-hw, -hh + 1.5); c.lineTo(hw, -hh + 1.5); c.stroke();
+        c.restore();
+        c.restore();
+      }
+    } else if (it.type !== "marker") {
+      c.fillStyle = it.pin || PINS[0];
+      c.beginPath(); c.arc(it.w / 2, -1, 7, 0, 7); c.fill();
+      c.fillStyle = "rgba(255,255,255,.45)";
+      c.beginPath(); c.arc(it.w / 2 - 2, -3.5, 2.1, 0, 7); c.fill();
+    }
+    c.restore();
+  }
+
+  /* case plate */
+  c.font = (W_ ? '22px ' + HANDB : '22px "Special Elite", monospace');
+  const nm = board.name, tw = Math.max(190, c.measureText(nm).width + 46);
+  c.save(); c.translate(x0 + 34, y0 + 26); c.rotate(-.008);
+  c.textAlign = "left"; c.textBaseline = "top";
+  c.shadowColor = "rgba(0,0,0,.4)"; c.shadowBlur = 16; c.shadowOffsetY = 8;
+  c.fillStyle = "#f2eada"; c.fillRect(0, 0, tw, 64); c.shadowColor = "transparent";
+  c.fillStyle = "#8a2018"; c.font = '11px "Special Elite", monospace';
+  c.fillText(board.no || "CASE FILE", 20, 13);
+  c.fillStyle = "#231f1a"; c.font = W_ ? '22px ' + HANDB : '22px "Special Elite", monospace';
+  c.fillText(nm, 20, W_ ? 28 : 30);
+  c.restore();
+
+  cv.toBlob(b => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(b);
+    a.download = board.name.replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "-").toLowerCase() + ".png";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    toast("Picture saved");
+  }, "image/png");
+}
+
+/* ═══════════════ due dates ═══════════════ */
+function today0() { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }
+function parseDue(s) { const [y, m, d] = String(s).split("-").map(Number); return new Date(y, m - 1, d); }
+function dueState(s) {
+  const d = parseDue(s), t = today0();
+  const days = Math.round((d - t) / 86400000);
+  if (days < 0) return "over";
+  if (days === 0) return "today";
+  if (days <= 7) return "soon";
+  return "later";
+}
+function dueLabel(s) {
+  const d = parseDue(s), t = today0();
+  const days = Math.round((d - t) / 86400000);
+  if (days === 0) return "Today";
+  if (days === 1) return "Tomorrow";
+  if (days === -1) return "Yesterday";
+  if (days < 0) return Math.abs(days) + "d late";
+  return d.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+}
+
+/* ═══════════════ timeline strip ═══════════════ */
+let tlOpen = false;
+function toggleTimeline(on) {
+  tlOpen = on === undefined ? !tlOpen : on;
+  $("#timeline").classList.toggle("show", tlOpen);
+  $("#btn-time").classList.toggle("on", tlOpen);
+  if (tlOpen) renderTimeline();
+}
+function renderTimeline() {
+  if (!tlOpen) return;
+  const tl = $("#timeline");
+  const dated = board.items.filter(i => i.due).sort((a, b) => a.due < b.due ? -1 : 1);
+  if (!dated.length) {
+    tl.innerHTML = `<div class="tl-empty">No dates yet. Select an item and set one under “Due”.</div>`;
+    return;
+  }
+  const first = parseDue(dated[0].due), last = parseDue(dated[dated.length - 1].due);
+  const span = Math.max(1, (last - first) / 86400000);
+  const t = today0();
+  const pos = d => dated.length === 1 ? 50 : 9 + ((parseDue(d) - first) / 86400000 / span) * 82;
+
+  let marks = "";
+  // group items sharing a date so labels don't stack
+  const groups = {};
+  dated.forEach(i => (groups[i.due] = groups[i.due] || []).push(i));
+  Object.keys(groups).sort().forEach(d => {
+    const g = groups[d], s = dueState(d);
+    const title = g.map(i => (i.title || i.text || TYPE_NAMES[i.type]).slice(0, 28)).join(" · ");
+    marks += `<button class="tl-mark ${s}" style="left:${pos(d)}%" data-due="${d}" title="${esc(title)}">
+      <span class="tl-dot"></span>
+      <span class="tl-lab">${esc(parseDue(d).toLocaleDateString(undefined, { day: "numeric", month: "short" }))}${g.length > 1 ? ` ×${g.length}` : ""}</span>
+    </button>`;
+  });
+  let nowline = "";
+  if (t >= first && t <= last && dated.length > 1) {
+    const p = 9 + ((t - first) / 86400000 / span) * 82;
+    nowline = `<div class="tl-now" style="left:${p}%"><span>today</span></div>`;
+  }
+  tl.innerHTML = `<div class="tl-rule"></div>${nowline}${marks}`;
+  tl.onclick = e => {
+    const b = e.target.closest("[data-due]"); if (!b) return;
+    const hit = board.items.filter(i => i.due === b.dataset.due);
+    if (!hit.length) return;
+    selectItem(hit[0].id); centerOn(hit[0]);
+    hit.forEach(i => { const el = els.get(i.id); if (el) { el.classList.add("hit"); setTimeout(() => el.classList.remove("hit"), 1000); } });
+  };
+}
+
+/* ═══════════════ trace connections ═══════════════ */
+function neighbours(id) {
+  const n = new Set();
+  board.links.forEach(l => { if (l.a === id) n.add(l.b); if (l.b === id) n.add(l.a); });
+  return n;
+}
+function applyTrace() {
+  els.forEach(el => el.classList.remove("faint", "near"));
+  $$("#threads path[data-link]").forEach(p => p.style.opacity = "");
+  if (!sel || query.trim() || multi.size > 1 || !board.links.length) return;
+  const one = neighbours(sel);
+  const two = new Set();
+  one.forEach(id => neighbours(id).forEach(x => { if (x !== sel && !one.has(x)) two.add(x); }));
+  board.items.forEach(it => {
+    const el = els.get(it.id); if (!el || it.id === sel) return;
+    if (one.has(it.id)) return;
+    el.classList.add(two.has(it.id) ? "near" : "faint");
+  });
+  $$("#threads path[data-link]").forEach(p => {
+    const l = board.links.find(k => k.id === p.dataset.link); if (!l) return;
+    const direct = l.a === sel || l.b === sel;
+    const second = one.has(l.a) || one.has(l.b);
+    p.style.opacity = direct ? 1 : (second ? .5 : .16);
+  });
+}
+</script>
+<script>
+/* ═══════════════ panels ═══════════════ */
+const scrim = $("#scrim");
+function openPanel(id) {
+  $("#" + id).classList.add("show");
+  if (id === "cases") renderCases();
+  syncScrim();
+}
+function closePanel(id) { $("#" + id).classList.remove("show"); syncScrim(); }
+function syncScrim() {
+  document.body.classList.toggle("inspecting",
+    $("#inspect").classList.contains("show") && !matchMedia("(max-width:720px)").matches);
+  const need = $("#cases").classList.contains("show") ||
+    ($("#inspect").classList.contains("show") && matchMedia("(max-width:720px)").matches);
+  scrim.classList.toggle("show", need);
+}
+scrim.addEventListener("click", () => { closePanel("cases"); closePanel("inspect"); deselect(); });
+$$("[data-close]").forEach(b => b.addEventListener("click", () => { closePanel(b.dataset.close); if (b.dataset.close === "inspect") deselect(); }));
+
+/* ═══════════════ inspector ═══════════════ */
+function openInspector() {
+  const it = byId(sel); if (!it) return;
+  $("#inspect-title").textContent = TYPE_NAMES[it.type];
+  const body = $("#inspect-body");
+  let h = "";
+
+  if (it.type === "photo") {
+    h += `<button class="btn wide" data-a="pic" style="margin-bottom:12px"><svg><use href="#i-photo"/></svg>${it.src ? "Replace picture" : "Add a picture"}</button>`;
+    h += field("Caption", `<input type="text" data-f="text" value="${esc(it.text)}" placeholder="Who or what is this?">`);
+  }
+  if (it.type === "card" || it.type === "doc" || it.type === "list")
+    h += field("Heading", `<input type="text" data-f="title" value="${esc(it.title)}">`);
+  if (it.type === "card" || it.type === "doc" || it.type === "sticky" || it.type === "marker")
+    h += field("Text", `<textarea data-f="text">${esc(it.text)}</textarea>`);
+  if (it.type === "tag")
+    h += field("Label", `<input type="text" data-f="text" value="${esc(it.text)}">`);
+  if (it.type === "list")
+    h += field("Steps — one per line", `<textarea data-f="tasks" style="min-height:120px">${esc(it.tasks.map(t => t.t).join("\n"))}</textarea>`);
+
+  if (it.type === "sticky" || it.type === "marker") {
+    const pal = it.type === "sticky" ? STICKY : ["#7d1810", "#1d3f66", "#2f5c3c", "#5c3a7a", "#1e1a15", "#8a5a12"];
+    h += field(it.type === "sticky" ? "Paper" : "Ink", `<div class="swatches">${pal.map(c =>
+      `<button class="sw ${it.color === c ? "sel" : ""}" data-col="${c}" style="background:${c}"></button>`).join("")}</div>`);
+  }
+  h += field("Due", `<input type="date" data-f="due" value="${esc(it.due || "")}">`);
+  if (isWhite())
+    h += field("Tape", `<div class="swatches">${TAPES.map(c =>
+      `<button class="sw ${(it.tape || TAPES[0]) === c ? "sel" : ""}" data-tape="${c}" style="background-color:#fff; background-image:linear-gradient(${c},${c})"></button>`).join("")}</div>`);
+  else
+    h += field("Pin", `<div class="swatches">${PINS.map(c =>
+      `<button class="sw ${(it.pin || PINS[0]) === c ? "sel" : ""}" data-pin="${c}" style="background:radial-gradient(circle at 34% 30%,#fff9 0 14%,transparent 42%),${c}"></button>`).join("")}</div>`);
+  h += field("Stamp", `<div class="seg">${STAMPS.map(s =>
+    `<button data-stamp="${s}" class="${(it.stamp || "") === s ? "on" : ""}">${s ? s[0].toUpperCase() + s.slice(1) : "None"}</button>`).join("")}</div>`);
+  h += field(`Angle <b style="float:right;font-weight:400;color:#d8c9ab">${(+it.rot).toFixed(1)}°</b>`,
+    `<input type="range" min="-14" max="14" step="0.5" value="${it.rot}" data-f="rot" style="width:100%">`);
+
+  body.innerHTML = h;
+  $("#inspect-foot").innerHTML = `
+    <button class="btn" data-a="dup"><svg><use href="#i-copy"/></svg>Duplicate</button>
+    <button class="btn" data-a="front"><svg><use href="#i-front"/></svg>To front</button>
+    <button class="btn danger" data-a="del"><svg><use href="#i-trash"/></svg>Remove</button>`;
+  openPanel("inspect");
+  if (matchMedia("(max-width:720px)").matches) ensureAbove(it);
+
+  body.oninput = e => {
+    const t = e.target, f = t.dataset.f; if (!f) return;
+    if (f === "rot") { it.rot = +t.value; place(els.get(it.id), it); t.closest(".field").querySelector("b").textContent = it.rot.toFixed(1) + "°"; drawThreads(); save(); return; }
+    if (f === "tasks") {
+      const lines = t.value.split("\n").filter(l => l.trim() !== "");
+      const was = new Map(it.tasks.map(x => [x.t, x.done]));
+      it.tasks = lines.map(l => ({ t: l.trim(), done: was.get(l.trim()) || false }));
+    } else it[f] = t.value;
+    refresh(it.id); save(); applyFilter();
+  };
+  body.onclick = e => {
+    const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.col) { snap(); it.color = b.dataset.col; place(els.get(it.id), it); refresh(it.id); openInspector(); save(); }
+    if (b.dataset.pin) { snap(); it.pin = b.dataset.pin; place(els.get(it.id), it); openInspector(); save(); }
+    if (b.dataset.tape) { snap(); it.tape = b.dataset.tape; place(els.get(it.id), it); openInspector(); save(); }
+    if (b.dataset.stamp !== undefined) { snap(); it.stamp = b.dataset.stamp; refresh(it.id); openInspector(); save(); }
+    if (b.dataset.a === "pic") pickImage(it.id);
+  };
+  $("#inspect-foot").onclick = e => {
+    const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.a === "dup") { snap(); const c = JSON.parse(JSON.stringify(it)); c.id = uid(); c.x += 28; c.y += 28; c.z = nextZ(); board.items.push(c); makeEl(c); refresh(c.id); selectItem(c.id); save(); }
+    if (b.dataset.a === "front") { snap(); bump(it); save(); toast("Brought to front"); }
+    if (b.dataset.a === "del") removeItem(it.id);
+  };
+}
+function field(label, inner) { return `<label class="field"><span>${label}</span>${inner}</label>`; }
+/* keep the item you're styling above the bottom sheet */
+function ensureAbove(it) {
+  const r = viewport.getBoundingClientRect();
+  const limit = r.height * 0.3;
+  const bottom = (it.y + it.h) * view.s + view.y;
+  if (bottom <= limit) return;
+  world.style.transition = "transform .32s cubic-bezier(.2,.8,.25,1)";
+  view.y -= (bottom - limit);
+  applyView(); setTimeout(() => world.style.transition = "", 340); save();
+}
+
+/* ═══════════════ boards ═══════════════ */
+function renderCases() {
+  const list = $("#caselist");
+  list.innerHTML = DB.boards.map(b => {
+    const when = new Date(b.updated).toLocaleDateString(undefined, { day: "numeric", month: "short" });
+    return `<button class="caseitem ${b.id === board.id ? "active" : ""}" data-b="${b.id}">
+      <span class="pinico"><svg width="16" height="16"><use href="#i-pin"/></svg></span>
+      <span class="meta"><span class="t">${esc(b.name)}</span>
+      <span class="s">${b.items.length} pinned · ${b.links.length} strings · ${when}</span></span>
+      <span class="go"><svg width="16" height="16"><use href="#i-chev"/></svg></span></button>`;
+  }).join("");
+  list.onclick = e => {
+    const b = e.target.closest("[data-b]"); if (!b) return;
+    switchBoard(b.dataset.b); closePanel("cases");
+  };
+  list.oncontextmenu = e => {
+    const b = e.target.closest("[data-b]"); if (!b) return;
+    e.preventDefault(); boardMenu(b.dataset.b, e.clientX, e.clientY);
+  };
+  let lp;
+  list.onpointerdown = e => {
+    const b = e.target.closest("[data-b]"); if (!b) return;
+    lp = setTimeout(() => boardMenu(b.dataset.b, e.clientX, e.clientY), 520);
+  };
+  list.onpointerup = list.onpointercancel = list.onpointermove = () => clearTimeout(lp);
+}
+function boardMenu(id, x, y) {
+  const b = DB.boards.find(k => k.id === id); if (!b) return;
+  showCtx(`<button data-a="rename"><svg><use href="#i-card"/></svg>Rename</button>
+    <button data-a="dup"><svg><use href="#i-copy"/></svg>Duplicate</button>
+    <button data-a="exp"><svg><use href="#i-down"/></svg>Export this board</button>
+    <hr><button data-a="del" class="danger"><svg><use href="#i-trash"/></svg>Delete board</button>`, x, y);
+  ctx.onclick = e => {
+    const t = e.target.closest("button"); if (!t) return; hideCtx();
+    if (t.dataset.a === "rename") { const v = prompt("Name this board", b.name); if (v) { b.name = v.slice(0, 60); save(true); renderCases(); plate(); } }
+    if (t.dataset.a === "dup") {
+      const c = JSON.parse(JSON.stringify(b)); c.id = uid(); c.name = b.name + " (copy)";
+      c.no = "NO. " + String(DB.boards.length + 1).padStart(3, "0"); c.updated = Date.now();
+      DB.boards.push(c); save(true); renderCases(); toast("Board copied");
+    }
+    if (t.dataset.a === "exp") download(b);
+    if (t.dataset.a === "del") {
+      if (DB.boards.length === 1) { toast("That's your only board — make another first."); return; }
+      if (!confirm(`Delete "${b.name}"? This can't be undone.`)) return;
+      DB.boards = DB.boards.filter(k => k.id !== id);
+      if (board.id === id) switchBoard(DB.boards[0].id);
+      save(true); renderCases();
+    }
+  };
+}
+function switchBoard(id) {
+  const b = DB.boards.find(k => k.id === id); if (!b) return;
+  save(true);
+  board = b; DB.current = id; history = []; future = []; updateUndo();
+  view = Object.assign({ x: 0, y: 0, s: 1 }, b.view || {});
+  sel = null; clearMulti(); cancelLink(); setLasso(false); closePanel("inspect");
+  applyTheme(); renderAll(); applyView(); plate(); renderTimeline(); save(true);
+}
+function plate() { $("#casename").textContent = board.name; $("#caseno").textContent = board.no || "CASE FILE"; }
+function applyTheme() {
+  const t = (board && board.theme) || "cork";
+  document.body.dataset.theme = t;
+  $$("#themeseg button").forEach(b => b.classList.toggle("on", b.dataset.theme === t));
+}
+$("#themeseg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (((board.theme) || "cork") === b.dataset.theme) return;
+  board.theme = b.dataset.theme;
+  applyTheme(); renderAll(); save(true);
+  toast(isWhite() ? "Whiteboard — things go up with tape" : "Corkboard — things go up with pins");
+});
+
+/* ═══════════════ images ═══════════════ */
+let picking = null;
+function pickImage(id) { picking = id; $("#filepick").value = ""; $("#filepick").click(); }
+$("#filepick").addEventListener("change", e => {
+  const f = e.target.files[0]; if (f) readImage(f, picking);
+});
+function readImage(file, id, at) {
+  if (!file.type.startsWith("image/")) { toast("That file isn't a picture"); return; }
+  const fr = new FileReader();
+  fr.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const max = 1200, sc = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement("canvas");
+      c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      const data = c.toDataURL("image/jpeg", 0.82);
+      snap();
+      let it = id ? byId(id) : null;
+      if (!it) {
+        const p = at || centerPoint();
+        it = mkItem("photo", p.x - 105, p.y - 118);
+        board.items.push(it); makeEl(it);
+      }
+      it.src = data;
+      it.h = Math.round(clamp(it.w * (img.height / img.width), 90, 620)) + 46;
+      refresh(it.id); selectItem(it.id); save();
+    };
+    img.onerror = () => toast("Couldn't read that picture");
+    img.src = fr.result;
+  };
+  fr.readAsDataURL(file);
+}
+addEventListener("paste", e => {
+  const it = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith("image/"));
+  if (it) { readImage(it.getAsFile(), null); return; }
+  const txt = e.clipboardData?.getData("text");
+  if (txt && txt.trim() && !document.activeElement.closest("input,textarea")) {
+    const p = centerPoint();
+    const n = mkItem("sticky", p.x - 91, p.y - 91, { text: txt.trim().slice(0, 400) });
+    snap(); board.items.push(n); makeEl(n); refresh(n.id); selectItem(n.id); updateEmpty(); save();
+  }
+});
+["dragover", "drop"].forEach(t => viewport.addEventListener(t, e => {
+  e.preventDefault();
+  if (t === "drop" && e.dataTransfer.files[0]) readImage(e.dataTransfer.files[0], null, toWorld(e.clientX, e.clientY));
+}));
+
+/* ═══════════════ adding ═══════════════ */
+function centerPoint() {
+  const r = viewport.getBoundingClientRect();
+  return toWorld(r.left + r.width / 2, r.top + r.height * 0.45);
+}
+function addItem(type) {
+  const p = centerPoint();
+  const d = DEFAULTS[type];
+  const jitter = (Math.random() * 40 - 20);
+  const it = mkItem(type, p.x - d.w / 2 + jitter, p.y - d.h / 2 + jitter);
+  if (type === "tag") it.text = "Evidence " + String(board.items.filter(i => i.type === "tag").length + 1).padStart(2, "0");
+  snap(); board.items.push(it); makeEl(it); refresh(it.id); selectItem(it.id);
+  updateEmpty(); save();
+  if (type === "photo") pickImage(it.id);
+  else if (type === "sticky" || type === "marker" || type === "tag") setTimeout(() => startEdit(it.id, "text", true), 60);
+}
+$$("[data-add]").forEach(b => b.addEventListener("click", () => { if (linking) cancelLink(); addItem(b.dataset.add); }));
+
+/* ═══════════════ export / import ═══════════════ */
+function download(b) {
+  const blob = new Blob([JSON.stringify({ pinit: 1, board: b }, null, 1)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = b.name.replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "-").toLowerCase() + ".pinit.json";
+  a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast("Board exported");
+}
+$("#btn-export").addEventListener("click", () => download(board));
+$("#btn-import").addEventListener("click", () => { $("#jsonpick").value = ""; $("#jsonpick").click(); });
+$("#jsonpick").addEventListener("change", e => {
+  const f = e.target.files[0]; if (!f) return;
+  const fr = new FileReader();
+  fr.onload = () => {
+    try {
+      const d = JSON.parse(fr.result);
+      const incoming = d.board ? [d.board] : (d.boards || []);
+      if (!incoming.length) throw 0;
+      incoming.forEach(b => {
+        b.id = uid(); b.name = b.name || "Imported board";
+        b.no = "NO. " + String(DB.boards.length + 1).padStart(3, "0");
+        b.items = b.items || []; b.links = b.links || []; b.updated = Date.now();
+        DB.boards.push(b);
+      });
+      save(true); renderCases(); toast(incoming.length + " board" + (incoming.length > 1 ? "s" : "") + " imported");
+    } catch (err) { toast("That file isn't a Pin It board"); }
+  };
+  fr.readAsText(f);
+});
+
+/* ═══════════════ chrome wiring ═══════════════ */
+$("#btn-cases").addEventListener("click", () => openPanel("cases"));
+$("#btn-newcase").addEventListener("click", () => {
+  const b = newBoard(prompt("Name this board", "New board") || "Untitled board");
+  DB.boards.push(b); save(true); switchBoard(b.id); closePanel("cases");
+});
+$("#caseplate").addEventListener("click", () => {
+  const v = prompt("Name this board", board.name);
+  if (v) { board.name = v.slice(0, 60); plate(); save(true); }
+});
+$("#btn-link").addEventListener("click", () => { setLasso(false); toggleLinkMode(!linking); });
+$("#btn-lasso").addEventListener("click", () => setLasso(!lassoMode));
+$("#btn-time").addEventListener("click", () => { toggleTimeline(); document.body.classList.toggle("tl", tlOpen); });
+$("#btn-png").addEventListener("click", () => { closePanel("cases"); setTimeout(exportPNG, 260); });
+$("#btn-undo").addEventListener("click", undo);
+$("#btn-redo").addEventListener("click", redo);
+$("#btn-zin").addEventListener("click", () => { const r = viewport.getBoundingClientRect(); zoomAt(r.left + r.width / 2, r.top + r.height / 2, 1.2); });
+$("#btn-zout").addEventListener("click", () => { const r = viewport.getBoundingClientRect(); zoomAt(r.left + r.width / 2, r.top + r.height / 2, 1 / 1.2); });
+$("#btn-fit").addEventListener("click", () => fitBoard(true));
+$("#btn-search").addEventListener("click", () => {
+  const w = $("#searchwrap"); w.classList.toggle("open");
+  if (w.classList.contains("open")) $("#search").focus();
+  else { $("#search").value = ""; query = ""; applyFilter(); }
+});
+$("#search").addEventListener("input", e => { query = e.target.value; applyFilter(); });
+$("#search").addEventListener("keydown", e => {
+  e.stopPropagation();
+  if (e.key === "Escape") { e.target.value = ""; query = ""; applyFilter(); $("#searchwrap").classList.remove("open"); }
+  if (e.key === "Enter") { const hit = board.items.find(i => itemText(i).includes(query.toLowerCase())); if (hit) centerOn(hit); }
+});
+
+addEventListener("keydown", e => {
+  if (e.target.closest("input,textarea")) return;
+  const meta = e.metaKey || e.ctrlKey;
+  if (meta && e.key.toLowerCase() === "z") { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+  if (meta && e.key.toLowerCase() === "y") { e.preventDefault(); redo(); return; }
+  if (e.key === "Escape") { cancelLink(); setLasso(false); deselect(); hideCtx(); closePanel("cases"); return; }
+  if (e.key === "Delete" || e.key === "Backspace") {
+    if (multi.size > 1) { e.preventDefault(); removeMany([...multi]); return; }
+    if (sel) { e.preventDefault(); removeItem(sel); return; }
+  }
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "a") { e.preventDefault(); setMulti(board.items.map(i => i.id)); return; }
+  if (e.key.toLowerCase() === "t") { toggleTimeline(); document.body.classList.toggle("tl", tlOpen); return; }
+  if (e.key.toLowerCase() === "l") { toggleLinkMode(!linking); return; }
+  if (e.key.toLowerCase() === "f") { fitBoard(true); return; }
+  if (e.key === "/") { e.preventDefault(); $("#btn-search").click(); return; }
+  if (sel && e.key.startsWith("Arrow")) {
+    e.preventDefault(); preSnap();
+    const it = byId(sel), d = e.shiftKey ? 20 : 3;
+    if (e.key === "ArrowUp") it.y -= d; if (e.key === "ArrowDown") it.y += d;
+    if (e.key === "ArrowLeft") it.x -= d; if (e.key === "ArrowRight") it.x += d;
+    place(els.get(sel), it); redraw(); save();
+  }
+});
+addEventListener("keyup", e => { if (e.key.startsWith("Arrow")) snapped = false; });
+function anyVisible() {
+  const r = viewport.getBoundingClientRect();
+  return board.items.some(it => {
+    const x = it.x * view.s + view.x, y = it.y * view.s + view.y;
+    return x < r.width && y < r.height && x + it.w * view.s > 0 && y + it.h * view.s > 0;
+  });
+}
+let rsT;
+addEventListener("resize", () => {
+  clearTimeout(rsT);
+  rsT = setTimeout(() => {
+    syncScrim();
+    if (document.querySelector(".edit")) return;   // don't reflow under a soft keyboard
+    if (!board.items.length) { const e = $("#empty"); if (e) { e.remove(); updateEmpty(); } return; }
+    if (!anyVisible()) fitBoard(true);
+  }, 220);
+});
+addEventListener("orientationchange", () => setTimeout(() => { if (board.items.length && !anyVisible()) fitBoard(true); }, 350));
+addEventListener("beforeunload", () => save(true));
+document.addEventListener("visibilitychange", () => { if (document.hidden) save(true); });
+
+/* ═══════════════ go ═══════════════ */
+load();
+applyTheme();
+plate();
+renderAll();
+applyView();
+if (board.items.length) {
+  const v = board.view || {}, r = viewport.getBoundingClientRect();
+  const resized = !v.w || !v.h || Math.abs(v.w - r.width) > r.width * 0.18 || Math.abs(v.h - r.height) > r.height * 0.18;
+  if (resized || (!v.x && !v.y) || !anyVisible()) fitBoard(false);
+}
+updateUndo();
+if (!store.persistent) toast("This browser won't save boards — export before you close the tab.", 5000);
+</script>
+</body>
+</html>
