@@ -11,6 +11,7 @@ Works on desktop and mobile. Boards are saved in the browser and can be exported
 | `index.html` | The whole app |
 | `manifest.json` | Name, colours and icons for installing it |
 | `icon-32/180/192/512.png`, `icon-maskable-512.png` | Home screen, tab and install icons |
+| `CHANGELOG.md` | What changed in each version |
 | `README.md` | This |
 
 Upload all of them together — the app runs from `index.html` alone, but without the icon files and manifest it installs with a blank icon.
@@ -88,6 +89,16 @@ Four sizes — S, M, L, XL — scaling every bit of writing on an item together:
 
 Both are undoable, and picture exports render at whatever size you set.
 
+## Tags
+
+Tags group things across the board without moving them. A tagged item gets a strip of colour down its left edge — tape on cork, a marker stripe on the whiteboard — carrying the tag's initial, so you can tell at a glance that the red-edged notes are engine work and the green ones are gameplay. An item can carry more than one tag; the strip splits into bands rather than picking a winner.
+
+A legend sits under the title bar showing every tag with a live count, so nobody has to remember what red meant. Tap a chip to filter: everything without that tag fades back, along with the strings leading to it. Tap more chips to widen the filter, `Esc` to clear it.
+
+Tags are applied from an item's panel, or — much faster — by selecting a cluster with the lasso and using the tag button on the action bar, which toggles the whole group at once. Long-press a legend chip to rename it, recolour it, select everything carrying it, or delete it. Twelve tags per board, eight distinct colours.
+
+Tags live on the board, so each project keeps its own set, and they travel through export, import and picture export.
+
 ## Selecting several at once
 
 Tap the dashed-box tool (bottom of the tool rail) and drag a box around what you want — on desktop, holding `Shift` while dragging does the same without switching tools. `Ctrl`/`Cmd` + `A` selects everything.
@@ -143,6 +154,7 @@ Transparent PNGs are flattened onto white rather than going black, and the board
 | `L` | String mode |
 | `T` | Show or hide the dates strip |
 | `P` | Pen, on a whiteboard |
+| `Esc` | Clear a tag filter (then selection, then modes) |
 | Corner handle | Resize an item (text keeps its size — use Text size for that) |
 | `Shift` + drag | Select several with a box |
 | `Ctrl`/`Cmd` + `A` | Select everything |
@@ -177,6 +189,14 @@ None of this is a substitute for a backup you control. The export is one self-co
 In `localStorage`, under the key `pinit.v1` — one browser, one device, no account. Use **Export** in the boards drawer to save a `.json` copy or move a board elsewhere, and **Import** to bring one back. Private/incognito windows won't persist anything; the app says so on load if that's the case.
 
 To sync across devices you'd need a small backend — a Cloudflare Worker with KV would do it, swapping the `store` wrapper near the top of the script for `fetch` calls.
+
+## Releasing an update
+
+The version lives in exactly one place: `VERSION` and `BUILD`, near the top of the script in `index.html` (there's a comment block at the very top of the file pointing at it). Bump those, add a matching entry to the top of `CHANGELOG.md`, and you're done.
+
+The number shows in the boards drawer, and tapping it lists what changed. It's also saved alongside the data and stamped into every exported board as `"app"`, so a file that turns up later can be traced to the build that wrote it. When someone opens a build newer than the one they last used, they get a quiet "Updated to…" note.
+
+Use major for a change that breaks old saved boards, minor for new features, patch for fixes.
 
 ## Editing the file
 

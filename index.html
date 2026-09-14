@@ -1,4 +1,12 @@
 <!DOCTYPE html>
+<!--
+  Pin It — a corkboard for planning projects
+  Version 1.0.0 · 14 September 2026
+
+  TO RELEASE AN UPDATE: bump VERSION and BUILD in the script below
+  (search for "const VERSION"), then add a matching entry at the top
+  of CHANGELOG.md. Nothing else needs touching.
+-->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -277,6 +285,7 @@ input[type=range]::-moz-range-thumb{width:18px; height:18px; border:0; border-ra
   border:1px solid var(--ui-line); box-shadow:0 12px 28px var(--ui-drop)}
 #selbar.show{display:flex; opacity:1; transform:translate(-50%,0)}
 #selbar.multi [data-s="edit"],#selbar.multi [data-s="link"],#selbar.multi [data-s="style"]{display:none}
+#selbar [data-s="tags"]{color:var(--ui-fg)}
 #selbar .count{display:none; align-items:center; padding:0 12px 0 8px; font-family:var(--type); font-size:12.5px; color:var(--ui-fg)}
 #selbar.multi .count{display:flex}
 body.tl #selbar{bottom:calc(92px + var(--safe-b))}
@@ -448,6 +457,41 @@ body[data-theme="white"] .item.linkable .surface{box-shadow:0 0 0 2px rgba(var(-
 .t-marker .pin{display:none}
 .item.t-marker{filter:none}
 
+/* tag accents — a strip of colour down the edge, split when an item carries two */
+.tagstrip{position:absolute; left:0; top:0; bottom:0; width:11px; z-index:4; display:flex;
+  flex-direction:column; overflow:hidden; pointer-events:none;
+  box-shadow:1px 0 0 rgba(0,0,0,.14), inset -1px 0 2px rgba(0,0,0,.18)}
+.tagstrip i{flex:1; position:relative; min-height:0}
+.tagstrip i::after{content:""; position:absolute; inset:0 0 0 auto; width:3px;
+  background:linear-gradient(90deg,rgba(255,255,255,.25),transparent)}
+.tagstrip b{position:absolute; top:3px; left:0; right:1px; text-align:center; font:700 8px/1 var(--ui);
+  color:#fff; opacity:.95; text-shadow:0 1px 1px rgba(0,0,0,.4)}
+.t-marker .tagstrip{left:-17px; width:9px; box-shadow:none}
+.t-tag .tagstrip{width:8px}
+body[data-theme="white"] .tagstrip{box-shadow:none; border-radius:2px 0 0 2px}
+
+/* legend */
+#legend[hidden]{display:none}
+#legend{position:absolute; z-index:19; top:calc(62px + var(--safe-t)); left:14px; right:120px;
+  display:flex; gap:6px; align-items:center; overflow-x:auto; padding:1px; scrollbar-width:none}
+#legend::-webkit-scrollbar{display:none}
+.tagchip{display:inline-flex; align-items:center; gap:6px; flex:none; height:30px; padding:0 11px;
+  border-radius:15px; font-size:12px; white-space:nowrap; color:var(--ui-fg);
+  background:linear-gradient(180deg,var(--ui-1),var(--ui-2)); border:1px solid var(--ui-line);
+  box-shadow:0 2px 6px var(--ui-drop); transition:.14s}
+.tagchip i{width:10px; height:10px; border-radius:50%; background:var(--tc); flex:none;
+  box-shadow:0 0 0 1px rgba(0,0,0,.25)}
+.tagchip b{font-weight:400; opacity:.55; font-size:11px}
+.tagchip:hover{filter:brightness(1.12)}
+.tagchip.on{background:var(--tc); border-color:rgba(0,0,0,.25); color:#fff; box-shadow:0 2px 10px var(--ui-drop)}
+.tagchip.on i{background:rgba(255,255,255,.9)}
+.tagchip.on b{opacity:.8; color:#fff}
+.tagchip.addbtn{opacity:.75; padding:0 12px}
+@media (max-width:720px){
+  #legend{top:calc(48px + var(--safe-t)); left:8px; right:8px}
+  .tagchip{height:28px; font-size:11.5px; padding:0 10px}
+}
+
 /* stamp overlay */
 .stamp{position:absolute; right:-6px; bottom:6px; font-family:var(--type); font-size:15px; letter-spacing:.12em;
   padding:3px 9px; border:3px double currentColor; border-radius:3px; transform:rotate(-11deg); opacity:.82;
@@ -547,6 +591,11 @@ body[data-theme="white"] .tips li.ink{display:flex}
   #penbar .swatch{width:24px; height:24px}
   #penbar .nib{width:28px; height:28px}
 }
+
+/* version stamp */
+#version{width:100%; margin-top:2px; padding:7px 2px 2px; text-align:left; font-family:var(--type);
+  font-size:11px; letter-spacing:.04em; color:var(--pan-sub); opacity:.75; transition:.14s}
+#version:hover{opacity:1; color:var(--pan-fg)}
 
 /* safety notices */
 #notice[hidden]{display:none}
@@ -680,6 +729,7 @@ body[data-theme="white"] #btn-pen{display:grid}
   <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 11V4h7l10 10-7 7z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></symbol>
   <symbol id="i-marker" viewBox="0 0 24 24"><path d="M4 6.5V5h16v1.5M12 5v14M8.5 19h7" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-string" viewBox="0 0 24 24"><circle cx="5" cy="6" r="2.2" fill="currentColor"/><circle cx="19" cy="18" r="2.2" fill="currentColor"/><path d="M5.5 8c0 7 4 3 6 6s3.5 3.5 7 3.5" stroke="currentColor" stroke-width="1.7" fill="none"/></symbol>
+  <symbol id="i-tags" viewBox="0 0 24 24"><path d="M3 5.5h7.5L20 15l-6 6-9.5-9.5V5.5z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/><circle cx="7.6" cy="9.1" r="1.5" fill="currentColor"/></symbol>
   <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20l1.6-4.2L16 5.4a2 2 0 0 1 2.8 0l1.4 1.4a2 2 0 0 1 0 2.8L9.8 20 4 20z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/><path d="M14.5 7l3.5 3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
   <symbol id="i-eraser" viewBox="0 0 24 24"><path d="M8.5 20L3.8 15.3a1.6 1.6 0 0 1 0-2.3l8.6-8.6a1.6 1.6 0 0 1 2.3 0l4.9 4.9a1.6 1.6 0 0 1 0 2.3L13.2 20z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/><path d="M8.6 20H20M9 8.6l5.8 5.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
   <symbol id="i-lasso" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2" stroke="currentColor" stroke-width="1.7" fill="none" stroke-dasharray="3.5 3"/><circle cx="20.5" cy="19.5" r="2.2" fill="currentColor"/></symbol>
@@ -753,6 +803,8 @@ body[data-theme="white"] #btn-pen{display:grid}
 
   <div id="timeline"></div>
 
+  <div id="legend" hidden></div>
+
   <div id="penbar">
     <span class="pb-set" id="pb-colors"></span>
     <span class="pb-div"></span>
@@ -766,6 +818,7 @@ body[data-theme="white"] #btn-pen{display:grid}
     <span class="count"></span>
     <button data-s="edit" aria-label="Edit text"><svg><use href="#i-card"/></svg></button>
     <button data-s="link" aria-label="Run string from here"><svg><use href="#i-string"/></svg></button>
+    <button data-s="tags" aria-label="Tags"><svg><use href="#i-tags"/></svg></button>
     <button data-s="style" aria-label="Style and stamp"><svg><use href="#i-pin"/></svg></button>
     <button data-s="dup" aria-label="Duplicate"><svg><use href="#i-copy"/></svg></button>
     <button data-s="del" class="danger" aria-label="Remove"><svg><use href="#i-trash"/></svg></button>
@@ -808,6 +861,7 @@ body[data-theme="white"] #btn-pen{display:grid}
     <button class="btn wide" id="btn-shrink"><svg><use href="#i-down"/></svg>Shrink the pictures on this board</button>
     <button class="btn wide" id="btn-tour"><svg><use href="#i-chev"/></svg>How this works</button>
     <div class="hint" style="width:100%">Boards are stored in this browser. Export to keep a copy or move to another device.</div>
+    <button id="version" title="What changed in this version"></button>
   </footer>
 </aside>
 
@@ -880,6 +934,20 @@ body[data-theme="white"] #btn-pen{display:grid}
 <script>
 "use strict";
 /* ═══════════════ Pin It — evidence board ═══════════════ */
+/* ─────────────────────────────────────────────────────────────
+   VERSION — bump this and BUILD on every release, and add the
+   matching entry to CHANGELOG.md. Shown in the boards drawer,
+   saved with the data, and stamped into exported boards.
+   ───────────────────────────────────────────────────────────── */
+const VERSION = "1.0.0";
+const BUILD = "14 September 2026";
+const WHATSNEW = [
+  "Tags: colour accents down the edge of an item, with a legend and tap-to-filter",
+  "Freehand marker pen on the whiteboard theme",
+  "Two board styles — corkboard and whiteboard — with matching interface",
+  "Pictures shrink themselves to fit, and boards can be protected from browser clearing"
+];
+
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3);
@@ -899,6 +967,8 @@ const threadCol = k => isWhite() ? (MARKER[k] || MARKER.cream) : (THREADS[k] || 
 function hashN(s) { let h = 2166136261; for (let i = 0; i < String(s).length; i++) { h ^= String(s).charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
 const STAMPS = ["", "done", "urgent", "blocked", "idea", "review"];
 const SIZES = [["S", .85], ["M", 1], ["L", 1.2], ["XL", 1.45]];
+const TAGC = ["#c0392b", "#2e7d32", "#1f6feb", "#e0861a", "#7b4fa8", "#0f9b9b", "#c2185b", "#5d6773"];
+const MAXTAGS = 12;
 const TYPE_NAMES = { photo: "Photo", sticky: "Sticky note", card: "Index card", doc: "Report", list: "Checklist", tag: "Evidence tag", marker: "Marker text" };
 const DEFAULTS = {
   photo:  { w: 210, h: 236, text: "" },
@@ -949,7 +1019,7 @@ function newBoard(name) {
     no: "NO. " + String(n).padStart(3, "0"),
     created: Date.now(), updated: Date.now(), theme: (board && board.theme) || "cork",
     fs: (board && board.fs) || 1,
-    items: [], links: [], ink: [], view: { x: 0, y: 0, s: 1 }
+    items: [], links: [], ink: [], tags: [], view: { x: 0, y: 0, s: 1 }
   };
 }
 function mkItem(type, x, y, extra) {
@@ -959,7 +1029,7 @@ function mkItem(type, x, y, extra) {
     w: d.w, h: d.h, rot: +(Math.random() * 4 - 2).toFixed(2),
     z: nextZ(), title: d.title || "", text: d.text || "",
     color: type === "sticky" ? STICKY[0] : (type === "marker" ? "#7d1810" : ""),
-    pin: PINS[0], tape: TAPES[0], stamp: "", src: "", tasks: [], due: "",
+    pin: PINS[0], tape: TAPES[0], stamp: "", src: "", tasks: [], due: "", tags: [],
     fs: (board && board.fs) || 1
   };
   if (type === "list") it.tasks = [{ t: "First step", done: false }, { t: "Second step", done: false }];
@@ -972,11 +1042,16 @@ function normalise(b) {
   if (!Array.isArray(b.items)) b.items = [];
   if (!Array.isArray(b.links)) b.links = [];
   if (!Array.isArray(b.ink)) b.ink = [];
+  if (!Array.isArray(b.tags)) b.tags = [];
+  b.tags = b.tags.filter(t => t && t.id).slice(0, MAXTAGS);
+  b.tags.forEach((t, i) => { if (!t.color) t.color = TAGC[i % TAGC.length]; if (!t.name) t.name = "Tag " + (i + 1); });
   if (!b.theme) b.theme = "cork";
   if (!(+b.fs > 0)) b.fs = 1;
   if (!b.name) b.name = "Untitled board";
   b.items.forEach(i => {
     if (!Array.isArray(i.tasks)) i.tasks = [];
+    const known = new Set(b.tags.map(t => t.id));
+    i.tags = (Array.isArray(i.tags) ? i.tags : []).filter(t => known.has(t));
     if (!(+i.fs > 0)) i.fs = b.fs;
     if (!i.tape) i.tape = TAPES[0];
     if (!i.pin) i.pin = PINS[0];
@@ -1056,7 +1131,7 @@ function updateUndo() {
 
 /* ── first-run sample board: teaches the interaction ── */
 function seedBoard() {
-  const b = { theme: "cork", id: uid(), name: "The Greenhouse Job", no: "NO. 001", created: Date.now(), updated: Date.now(), items: [], links: [], ink: [], view: { x: 0, y: 0, s: 1 } };
+  const b = { theme: "cork", id: uid(), name: "The Greenhouse Job", no: "NO. 001", created: Date.now(), updated: Date.now(), items: [], links: [], ink: [], tags: [], view: { x: 0, y: 0, s: 1 } };
   const it = (t, x, y, o) => { const i = mkItemRaw(t, x, y, o); b.items.push(i); return i; };
   function mkItemRaw(type, x, y, extra) {
     const d = DEFAULTS[type];
@@ -1064,7 +1139,7 @@ function seedBoard() {
       id: uid(), type, x, y, w: d.w, h: d.h, rot: +(Math.random() * 4 - 2).toFixed(2),
       z: b.items.length + 1, title: d.title || "", text: d.text || "",
       color: type === "sticky" ? STICKY[0] : (type === "marker" ? "#7d1810" : ""),
-      pin: PINS[0], tape: TAPES[0], stamp: "", src: "", tasks: [], due: "", fs: 1
+      pin: PINS[0], tape: TAPES[0], stamp: "", src: "", tasks: [], due: "", tags: [], fs: 1
     }, extra || {});
   }
   const head = it("marker", 300, 80, { text: "What are we building?", w: 420, h: 70, rot: -1.4 });
@@ -1150,6 +1225,14 @@ function refresh(id) {
     s.className = "stamp " + it.stamp; s.textContent = it.stamp.toUpperCase();
     el.appendChild(s);
   }
+  const ots = el.querySelector(".tagstrip"); if (ots) ots.remove();
+  const tg = (it.tags || []).map(id => (board.tags || []).find(t => t.id === id)).filter(Boolean);
+  if (tg.length) {
+    const d = document.createElement("div");
+    d.className = "tagstrip";
+    d.innerHTML = tg.map(t => `<i style="background:${t.color}"><b>${esc((t.name[0] || "").toUpperCase())}</b></i>`).join("");
+    el.appendChild(d);
+  }
   const od = el.querySelector(".due"); if (od) od.remove();
   if (it.due && validDue(it.due)) {
     const d = document.createElement("div");
@@ -1163,7 +1246,7 @@ function renderAll() {
   [...world.children].forEach(c => { if (c !== svg && c.id !== "ink") c.remove(); });
   els.clear();
   board.items.slice().sort((a, b) => (a.z || 0) - (b.z || 0)).forEach(it => { makeEl(it); refresh(it.id); });
-  drawInk(); drawThreads(); updateEmpty(); applyFilter();
+  drawInk(); drawThreads(); updateEmpty(); renderLegend(); applyFilter();
 }
 function updateEmpty() {
   let e = $("#empty");
@@ -1363,18 +1446,23 @@ function centerOn(it) {
 
 /* ── search filter ── */
 let query = "";
+let activeTags = new Set();
 function itemText(it) {
   return [it.title, it.text, ...(it.tasks || []).map(t => t.t), it.stamp, it.due, TYPE_NAMES[it.type]].join(" ").toLowerCase();
 }
 function applyFilter() {
   const q = query.trim().toLowerCase();
+  const filtering = activeTags.size > 0;
   board.items.forEach(it => {
     const el = els.get(it.id); if (!el) return;
     el.classList.remove("dim", "hit");
-    if (!q) return;
-    if (itemText(it).includes(q)) el.classList.add("hit"); else el.classList.add("dim");
+    const okText = !q || itemText(it).includes(q);
+    const okTag = !filtering || (it.tags || []).some(t => activeTags.has(t));
+    if (!okText || !okTag) { el.classList.add("dim"); return; }
+    if (q) el.classList.add("hit");
   });
   applyTrace();
+  renderLegend();
 }
 </script>
 <script>
@@ -1433,6 +1521,11 @@ function removeMany(ids) {
 $("#selbar").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
   const a = b.dataset.s;
+  if (a === "tags") {
+    const r = b.getBoundingClientRect();
+    tagPicker(multi.size > 1 ? [...multi] : [sel], r.left, r.top - 8);
+    return;
+  }
   if (multi.size > 1) {
     if (a === "dup") {
       snap(); const made = [];
@@ -2094,6 +2187,21 @@ async function exportPNG() {
       lines(c, it.text, it.w, 0, W_ ? 4 : 0, Math.round((W_ ? 44 : 42) * fs), it.h + 40);
     }
 
+    const tgs = (it.tags || []).map(id => (board.tags || []).find(t => t.id === id)).filter(Boolean);
+    if (tgs.length) {
+      const sw = it.type === "tag" ? 8 : (it.type === "marker" ? 9 : 11);
+      const left = it.type === "marker" ? -17 : 0;
+      const band = it.h / tgs.length;
+      tgs.forEach((t, i) => {
+        c.fillStyle = t.color;
+        c.fillRect(left, i * band, sw, band);
+        c.fillStyle = "rgba(255,255,255,.95)";
+        c.font = '700 8px ' + (W_ ? '"Kalam", cursive' : 'ui-sans-serif, sans-serif');
+        c.textAlign = "center"; c.textBaseline = "top";
+        c.fillText((t.name[0] || "").toUpperCase(), left + sw / 2, i * band + 3);
+        c.textAlign = "left";
+      });
+    }
     if (it.stamp) {
       const col = { done: "#3a6b4c", urgent: "#b3271e", blocked: "#8a5a12", idea: "#23486b", review: "#5c3a7a" }[it.stamp];
       c.save();
@@ -2254,7 +2362,7 @@ function backupLine() {
 /* on a phone, a share sheet beats a file dropped into Downloads */
 async function shareBoard(b) {
   try {
-    const json = JSON.stringify({ pinit: 1, board: b }, null, 1);
+    const json = JSON.stringify({ pinit: 1, app: VERSION, board: b }, null, 1);
     const name = (b.name.replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "-").toLowerCase() || "board") + ".pinit.json";
     const file = new File([json], name, { type: "application/json" });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -2510,7 +2618,7 @@ function neighbours(id) {
 function applyTrace() {
   els.forEach(el => el.classList.remove("faint", "near"));
   $$("#threads path[data-link]").forEach(p => p.style.opacity = "");
-  if (!sel || query.trim() || multi.size > 1 || !board.links.length) return;
+  if (!sel || query.trim() || activeTags.size || multi.size > 1 || !board.links.length) { dimStrings(); return; }
   const one = neighbours(sel);
   const two = new Set();
   one.forEach(id => neighbours(id).forEach(x => { if (x !== sel && !one.has(x)) two.add(x); }));
@@ -2525,6 +2633,128 @@ function applyTrace() {
     const second = one.has(l.a) || one.has(l.b);
     p.style.opacity = direct ? 1 : (second ? .5 : .16);
   });
+  dimStrings();
+}
+/* a string between two hidden things should get out of the way too */
+function dimStrings() {
+  if (!query.trim() && !activeTags.size) return;
+  $$("#threads path[data-link]").forEach(p => {
+    const l = board.links.find(k => k.id === p.dataset.link); if (!l) return;
+    const A = els.get(l.a), B = els.get(l.b);
+    if ((A && A.classList.contains("dim")) || (B && B.classList.contains("dim"))) p.style.opacity = .12;
+  });
+}
+
+/* ═══════════════ tags ═══════════════ */
+function tagById(id) { return (board.tags || []).find(t => t.id === id); }
+function tagCount(id) { return board.items.filter(i => (i.tags || []).includes(id)).length; }
+function newTag(name) {
+  if (!board.tags) board.tags = [];
+  if (board.tags.length >= MAXTAGS) { toast("That's the limit of " + MAXTAGS + " tags on a board"); return null; }
+  const used = board.tags.map(t => t.color);
+  const color = TAGC.find(c => !used.includes(c)) || TAGC[board.tags.length % TAGC.length];
+  const t = { id: uid(), name: String(name).trim().slice(0, 18) || "Tag", color };
+  board.tags.push(t);
+  return t;
+}
+function toggleTagOn(ids, tagId) {
+  const items = ids.map(byId).filter(Boolean);
+  if (!items.length) return;
+  const all = items.every(i => (i.tags || []).includes(tagId));
+  snap();
+  items.forEach(i => {
+    i.tags = i.tags || [];
+    if (all) i.tags = i.tags.filter(t => t !== tagId);
+    else if (!i.tags.includes(tagId)) i.tags.push(tagId);
+    refresh(i.id);
+  });
+  save(); renderLegend(); applyFilter();
+}
+function renderLegend() {
+  const bar = $("#legend"); if (!bar) return;
+  const tags = board.tags || [];
+  if (!tags.length) { bar.hidden = true; bar.innerHTML = ""; return; }
+  bar.hidden = false;
+  bar.innerHTML = tags.map(t =>
+    `<button class="tagchip ${activeTags.has(t.id) ? "on" : ""}" data-tag="${t.id}" style="--tc:${t.color}">
+       <i></i>${esc(t.name)}<b>${tagCount(t.id)}</b></button>`).join("") +
+    `<button class="tagchip addbtn" data-newtag>+ Tag</button>`;
+}
+$("#legend").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.newtag !== undefined) {
+    const v = prompt("Name this tag", "");
+    if (!v) return;
+    snap(); const t = newTag(v); if (!t) return;
+    save(true); renderLegend();
+    if (sel || multi.size) toggleTagOn(multi.size ? [...multi] : [sel], t.id);
+    else toast("Select something and tap the tag button to apply it");
+    return;
+  }
+  const id = b.dataset.tag; if (!id) return;
+  activeTags.has(id) ? activeTags.delete(id) : activeTags.add(id);
+  applyFilter();
+});
+$("#legend").addEventListener("contextmenu", e => {
+  const b = e.target.closest("[data-tag]"); if (!b) return;
+  e.preventDefault(); tagAdminMenu(b.dataset.tag, e.clientX, e.clientY);
+});
+let legendPress;
+$("#legend").addEventListener("pointerdown", e => {
+  const b = e.target.closest("[data-tag]"); if (!b) return;
+  legendPress = setTimeout(() => tagAdminMenu(b.dataset.tag, e.clientX, e.clientY), 520);
+});
+["pointerup", "pointercancel", "pointermove"].forEach(ev =>
+  $("#legend").addEventListener(ev, () => clearTimeout(legendPress)));
+
+function tagAdminMenu(id, x, y) {
+  const t = tagById(id); if (!t) return;
+  const sw = TAGC.map(c => `<button data-col="${c}" style="padding:6px 10px">
+    <span style="width:15px;height:15px;border-radius:50%;background:${c};display:inline-block"></span>${t.color === c ? "In use ✓" : ""}</button>`).join("");
+  showCtx(`${sw}<hr>
+    <button data-a="rename"><svg><use href="#i-card"/></svg>Rename</button>
+    <button data-a="select"><svg><use href="#i-lasso"/></svg>Select everything tagged</button>
+    <hr><button data-a="del" class="danger"><svg><use href="#i-trash"/></svg>Delete tag</button>`, x, y);
+  ctx.onclick = e => {
+    const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.col) { snap(); t.color = b.dataset.col; hideCtx(); renderAll(); save(); return; }
+    hideCtx();
+    if (b.dataset.a === "rename") { const v = prompt("Rename tag", t.name); if (v) { snap(); t.name = v.trim().slice(0, 18); renderAll(); save(); } }
+    if (b.dataset.a === "select") {
+      const ids = board.items.filter(i => (i.tags || []).includes(id)).map(i => i.id);
+      if (ids.length) setMulti(ids); else toast("Nothing carries that tag yet");
+    }
+    if (b.dataset.a === "del") {
+      if (!confirm(`Delete the tag "${t.name}"? Items keep their place, they just lose the colour.`)) return;
+      snap();
+      board.tags = board.tags.filter(k => k.id !== id);
+      board.items.forEach(i => { if ((i.tags || []).includes(id)) { i.tags = i.tags.filter(x => x !== id); } });
+      activeTags.delete(id);
+      renderAll(); save();
+    }
+  };
+}
+/* the chooser used by the selection bar, works for one item or forty */
+function tagPicker(ids, x, y) {
+  const list = (board.tags || []).map(t => {
+    const items = ids.map(byId).filter(Boolean);
+    const all = items.length && items.every(i => (i.tags || []).includes(t.id));
+    const some = items.some(i => (i.tags || []).includes(t.id));
+    return `<button data-t="${t.id}"><span style="width:14px;height:14px;border-radius:3px;background:${t.color};display:inline-block"></span>${esc(t.name)}${all ? " ✓" : some ? " –" : ""}</button>`;
+  }).join("");
+  showCtx((list || `<button disabled style="opacity:.6">No tags yet</button>`) +
+    `<hr><button data-a="new"><svg><use href="#i-plus"/></svg>New tag…</button>`, x, y);
+  ctx.onclick = e => {
+    const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.t) { toggleTagOn(ids, b.dataset.t); tagPicker(ids, x, y); return; }
+    if (b.dataset.a === "new") {
+      hideCtx();
+      const v = prompt("Name this tag", "");
+      if (!v) return;
+      snap(); const t = newTag(v); if (!t) return;
+      toggleTagOn(ids, t.id); save(true); renderLegend();
+    }
+  };
 }
 </script>
 <script>
@@ -2580,6 +2810,9 @@ function openInspector() {
       `<button class="sw ${(it.pin || PINS[0]) === c ? "sel" : ""}" data-pin="${c}" style="background:radial-gradient(circle at 34% 30%,#fff9 0 14%,transparent 42%),${c}"></button>`).join("")}</div>`);
   h += field("Stamp", `<div class="seg">${STAMPS.map(s =>
     `<button data-stamp="${s}" class="${(it.stamp || "") === s ? "on" : ""}">${s ? s[0].toUpperCase() + s.slice(1) : "None"}</button>`).join("")}</div>`);
+  h += field("Tags", `<div class="swatches" style="gap:6px">${(board.tags || []).map(t =>
+      `<button class="tagchip ${(it.tags || []).includes(t.id) ? "on" : ""}" data-tog="${t.id}" style="--tc:${t.color}"><i></i>${esc(t.name)}</button>`).join("")}
+      <button class="tagchip addbtn" data-a="newtag">+ New</button></div>`);
   if (it.type !== "photo" && it.type !== "marker")
     h += `<button class="btn wide" data-a="fith" style="margin-bottom:12px"><svg><use href="#i-fit"/></svg>Fit height to the text</button>`;
   h += field("Text size", `<div class="seg">${SIZES.map(([lbl, v]) =>
@@ -2614,6 +2847,13 @@ function openInspector() {
     if (b.dataset.stamp !== undefined) { snap(); it.stamp = b.dataset.stamp; refresh(it.id); openInspector(); save(); }
     if (b.dataset.a === "pic") pickImage(it.id);
     if (b.dataset.a === "fith") fitHeight(it);
+    if (b.dataset.tog) { toggleTagOn([it.id], b.dataset.tog); openInspector(); }
+    if (b.dataset.a === "newtag") {
+      const v = prompt("Name this tag", "");
+      if (!v) return;
+      snap(); const t = newTag(v); if (!t) return;
+      toggleTagOn([it.id], t.id); save(true); renderLegend(); openInspector();
+    }
   };
   $("#inspect-foot").onclick = e => {
     const b = e.target.closest("button"); if (!b) return;
@@ -2704,7 +2944,8 @@ function switchBoard(id) {
   board = normalise(b); DB.current = id; history = []; future = []; updateUndo();
   view = Object.assign({ x: 0, y: 0, s: 1 }, b.view || {});
   sel = null; clearMulti(); cancelLink(); setLasso(false); setPen(null); closePanel("inspect");
-  applyTheme(); renderAll(); applyView(); plate(); renderTimeline(); save(true);
+  activeTags.clear();
+  applyTheme(); renderAll(); applyView(); plate(); renderTimeline(); renderLegend(); save(true);
 }
 function plate() { $("#casename").textContent = board.name; $("#caseno").textContent = board.no || "CASE FILE"; }
 function applyTheme() {
@@ -2823,7 +3064,7 @@ $$("[data-add]").forEach(b => b.addEventListener("click", () => { setPen(null); 
 /* ═══════════════ export / import ═══════════════ */
 async function download(b) {
   if (await shareBoard(b)) return;                 // phones: straight to Files, Mail, wherever
-  const blob = new Blob([JSON.stringify({ pinit: 1, board: b }, null, 1)], { type: "application/json" });
+  const blob = new Blob([JSON.stringify({ pinit: 1, app: VERSION, board: b }, null, 1)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = (b.name.replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "-").toLowerCase() || "board") + ".pinit.json";
@@ -2834,6 +3075,15 @@ async function download(b) {
 $("#btn-export").addEventListener("click", () => download(board));
 $("#btn-shrink").addEventListener("click", () => { closePanel("cases"); shrinkAll(); });
 $("#btn-protect").addEventListener("click", () => askPersist(true));
+$("#version").addEventListener("click", () => {
+  closePanel("cases");
+  showNotice({
+    title: "Pin It " + VERSION,
+    body: "Released " + BUILD + ". What landed in this version:",
+    steps: WHATSNEW,
+    action: "Close"
+  });
+});
 $("#btn-tour").addEventListener("click", () => { closePanel("cases"); setTimeout(() => startTour("again"), 240); });
 $("#btn-import").addEventListener("click", () => { $("#jsonpick").value = ""; $("#jsonpick").click(); });
 $("#jsonpick").addEventListener("change", e => {
@@ -2890,11 +3140,14 @@ $("#search").addEventListener("keydown", e => {
 
 addEventListener("keydown", e => {
   if (!$("#tourwrap").hidden) { if (e.key === "Escape") endTour("skip"); return; }
-  if (e.target.closest("input,textarea")) return;
+  if (e.target && e.target.closest && e.target.closest("input,textarea")) return;
   const meta = e.metaKey || e.ctrlKey;
   if (meta && e.key.toLowerCase() === "z") { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
   if (meta && e.key.toLowerCase() === "y") { e.preventDefault(); redo(); return; }
-  if (e.key === "Escape") { setPen(null); cancelLink(); setLasso(false); deselect(); hideCtx(); closePanel("cases"); return; }
+  if (e.key === "Escape") {
+    if (activeTags.size) { activeTags.clear(); applyFilter(); return; }
+    setPen(null); cancelLink(); setLasso(false); deselect(); hideCtx(); closePanel("cases"); return;
+  }
   if (e.key.toLowerCase() === "p" && isWhite()) { setPen(penMode ? null : "draw"); return; }
   if (e.key === "Delete" || e.key === "Backspace") {
     if (multi.size > 1) { e.preventDefault(); removeMany([...multi]); return; }
@@ -2942,7 +3195,11 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) save(
 
 /* ═══════════════ go ═══════════════ */
 load();
+$("#version").textContent = "Pin It " + VERSION + " · " + BUILD;
+const wasVersion = DB.version;
+DB.version = VERSION;
 applyTheme();
+renderLegend();
 plate();
 renderAll();
 applyView();
@@ -2952,6 +3209,8 @@ if (board.items.length) {
   if (resized || (!v.x && !v.y) || !anyVisible()) fitBoard(false);
 }
 updateUndo();
+if (wasVersion && wasVersion !== VERSION) setTimeout(() => toast("Updated to Pin It " + VERSION, 3600), 1200);
+save(true);
 quietPersistOnce();
 setTimeout(safetyCheck, 2600);
 if (FRESH) startTour("first");
