@@ -18,6 +18,16 @@
   --thread-red:#b3271e; --thread-navy:#23486b; --thread-cream:#efe6d2; --thread-gold:#c2932a; --thread-green:#3a6b4c;
   --brass:#c9a227; --brass-lo:#8a6c14;
   --sheet:#1f1810; --sheet-2:#2a2018;
+  --ui-1:#3a2a1d; --ui-2:#241a12; --ui-fg:#e9dcc2; --ui-line:rgba(255,224,170,.18);
+  --ui-hi:rgba(255,230,180,.12); --ui-drop:rgba(0,0,0,.35);
+  --ui-on1:#6d3229; --ui-on2:#4a1f18; --ui-onfg:#ffd9cc; --ui-online:rgba(255,180,150,.42);
+  --pan-fg:#eee1c8; --pan-head:#f3e6cb; --pan-sub:#b8a888; --pan-hint:#a99a7e;
+  --pan-line:rgba(255,220,160,.16); --pan-soft:rgba(255,240,210,.06);
+  --pan-soft2:rgba(255,240,210,.13); --pan-act:rgba(179,39,30,.26); --pan-actline:rgba(255,150,130,.4);
+  --in-bg:#120d08; --in-fg:#f0e4ca;
+  --tip-bg:#f2ead6; --tip-fg:#231f1a;
+  --btn1:#8f2f24; --btn2:#6a2018; --btnfg:#ffe6dc;
+  --scrim:rgba(12,8,4,.55); --sel:255,214,120;
   --ok:#5d8f5a;
   --ui: ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
   --type: "Special Elite", "Courier New", monospace;
@@ -66,6 +76,19 @@ body[data-theme="white"] #viewport{
   background-blend-mode:soft-light, screen, normal;
 }
 body[data-theme="white"] #grain{opacity:.05}
+body[data-theme="white"]{
+  --sheet:#eef1f2; --sheet-2:#fbfcfc;
+  --ui-1:#fdfefe; --ui-2:#dfe5e8; --ui-fg:#2f363c; --ui-line:rgba(58,72,84,.24);
+  --ui-hi:rgba(255,255,255,.9); --ui-drop:rgba(70,84,96,.25);
+  --ui-on1:#d94a3d; --ui-on2:#bb3628; --ui-onfg:#fff3f0; --ui-online:rgba(150,40,30,.45);
+  --pan-fg:#272c31; --pan-head:#1d2227; --pan-sub:#5f686f; --pan-hint:#6d767d;
+  --pan-line:rgba(58,72,84,.18); --pan-soft:rgba(40,60,80,.05);
+  --pan-soft2:rgba(40,60,80,.11); --pan-act:rgba(217,74,61,.16); --pan-actline:rgba(190,60,48,.45);
+  --in-bg:#ffffff; --in-fg:#22272c;
+  --tip-bg:#2f363c; --tip-fg:#f4f6f7;
+  --btn1:#d94a3d; --btn2:#bb3628; --btnfg:#fff3f0;
+  --scrim:rgba(70,84,96,.42); --sel:41,110,209;
+}
 body[data-theme="white"] #zoomlvl{color:#4a5158; text-shadow:0 1px 0 rgba(255,255,255,.8)}
 body[data-theme="white"] #savetag{color:#4a5158; text-shadow:0 1px 0 rgba(255,255,255,.8)}
 body[data-theme="white"] #marquee{border-color:rgba(40,90,170,.85); background:rgba(60,120,210,.1)}
@@ -106,14 +129,14 @@ body[data-theme="white"] #marquee{border-color:rgba(40,90,170,.85); background:r
 .bar-group{display:flex; gap:6px; align-items:center; pointer-events:auto}
 .chip{
   display:inline-flex; align-items:center; gap:7px; height:38px; padding:0 12px;
-  background:linear-gradient(180deg,#3a2a1d,#241a12); color:#e9dcc2;
-  border:1px solid rgba(255,224,170,.18); border-radius:var(--r);
-  box-shadow:0 3px 0 rgba(0,0,0,.35), 0 8px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,230,180,.12);
+  background:linear-gradient(180deg,var(--ui-1),var(--ui-2)); color:var(--ui-fg);
+  border:1px solid var(--ui-line); border-radius:var(--r);
+  box-shadow:0 3px 0 var(--ui-drop), 0 8px 18px var(--ui-drop), inset 0 1px 0 var(--ui-hi);
   font-size:13px; letter-spacing:.02em; white-space:nowrap; transition:transform .08s, filter .15s;
 }
 .chip:hover{filter:brightness(1.16)}
-.chip:active{transform:translateY(2px); box-shadow:0 1px 0 rgba(0,0,0,.35), 0 4px 10px rgba(0,0,0,.3)}
-.chip.on{background:linear-gradient(180deg,#6d3229,#4a1f18); border-color:rgba(255,180,150,.4); color:#ffd9cc}
+.chip:active{transform:translateY(2px); box-shadow:0 1px 0 var(--ui-drop), 0 4px 10px var(--ui-drop)}
+.chip.on{background:linear-gradient(180deg,var(--ui-on1),var(--ui-on2)); border-color:var(--ui-online); color:var(--ui-onfg)}
 .chip svg{width:16px; height:16px; flex:none}
 .chip.icon{width:38px; padding:0; justify-content:center}
 
@@ -135,7 +158,7 @@ body[data-theme="white"] #marquee{border-color:rgba(40,90,170,.85); background:r
 #caseplate .nm{display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 #spacer{flex:1}
 
-#savetag{font-family:var(--type); font-size:11px; color:#f0e2c6; opacity:0; transition:opacity .4s;
+#savetag{font-family:var(--type); font-size:11px; color:var(--ui-fg); opacity:0; transition:opacity .4s;
   padding:0 4px; align-self:center}
 #savetag.show{opacity:.75}
 
@@ -150,16 +173,16 @@ body[data-theme="white"] #marquee{border-color:rgba(40,90,170,.85); background:r
 #tools{position:absolute; z-index:20; left:14px; bottom:calc(14px + var(--safe-b));
   display:flex; flex-direction:column; gap:8px}
 .tool{width:46px; height:46px; display:grid; place-items:center; position:relative;
-  background:linear-gradient(180deg,#3a2a1d,#231a12); color:#ecdcbc;
-  border:1px solid rgba(255,224,170,.18); border-radius:var(--r);
-  box-shadow:0 3px 0 rgba(0,0,0,.4), 0 10px 20px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,230,180,.1);
+  background:linear-gradient(180deg,var(--ui-1),var(--ui-2)); color:var(--ui-fg);
+  border:1px solid var(--ui-line); border-radius:var(--r);
+  box-shadow:0 3px 0 var(--ui-drop), 0 10px 20px var(--ui-drop), inset 0 1px 0 var(--ui-hi);
   transition:transform .08s, filter .15s}
 .tool:hover{filter:brightness(1.18)}
 .tool:active{transform:translateY(2px)}
-.tool.on{background:linear-gradient(180deg,#6d3229,#4a1f18); color:#ffd8cb; border-color:rgba(255,180,150,.45)}
+.tool.on{background:linear-gradient(180deg,var(--ui-on1),var(--ui-on2)); color:var(--ui-onfg); border-color:var(--ui-online)}
 .tool svg{width:22px; height:22px}
 .tool .tip{position:absolute; left:56px; top:50%; transform:translateY(-50%) scale(.9);
-  font-family:var(--type); font-size:12px; background:#f2ead6; color:#231f1a; padding:4px 9px;
+  font-family:var(--type); font-size:12px; background:var(--tip-bg); color:var(--tip-fg); padding:4px 9px;
   border-radius:2px; white-space:nowrap; opacity:0; pointer-events:none; transition:.14s;
   box-shadow:0 4px 12px rgba(0,0,0,.4)}
 .tool:hover .tip{opacity:1; transform:translateY(-50%) scale(1)}
@@ -170,70 +193,69 @@ body[data-theme="white"] #marquee{border-color:rgba(40,90,170,.85); background:r
 body.inspecting #zoomrail{transform:translateX(calc(-1 * min(300px,84vw)))}
 body.tl #zoomrail{bottom:calc(90px + var(--safe-b))}
 #zoomrail .chip.icon{width:40px; height:40px}
-#zoomlvl{font-family:var(--type); font-size:11px; color:#eadfc6; opacity:.8}
+#zoomlvl{font-family:var(--type); font-size:11px; color:var(--ui-fg); opacity:.85}
 
 /* ───────────── drawers / sheets ───────────── */
-.scrim{position:fixed; inset:0; background:rgba(12,8,4,.55); z-index:30; opacity:0; pointer-events:none;
+.scrim{position:fixed; inset:0; background:var(--scrim); z-index:30; opacity:0; pointer-events:none;
   transition:opacity .22s; backdrop-filter:blur(2px)}
 .scrim.show{opacity:1; pointer-events:auto}
 .panel{
   position:fixed; z-index:31; background:linear-gradient(180deg,var(--sheet-2),var(--sheet));
-  color:#eee1c8; box-shadow:0 0 60px rgba(0,0,0,.6);
+  color:var(--pan-fg); box-shadow:0 0 60px var(--ui-drop);
   display:flex; flex-direction:column; transition:transform .26s cubic-bezier(.2,.8,.25,1);
 }
 #cases{top:0; bottom:0; left:0; width:min(330px,86vw); transform:translateX(-104%);
-  border-right:1px solid rgba(255,220,160,.16); padding-top:var(--safe-t)}
+  border-right:1px solid var(--pan-line); padding-top:var(--safe-t)}
 #cases.show{transform:none}
 #inspect{top:0; bottom:0; right:0; width:min(300px,84vw); transform:translateX(104%);
-  border-left:1px solid rgba(255,220,160,.16); padding-top:var(--safe-t)}
+  border-left:1px solid var(--pan-line); padding-top:var(--safe-t)}
 #inspect.show{transform:none}
-.panel h2{font-family:var(--type); font-size:16px; margin:0; letter-spacing:.02em; color:#f3e6cb}
+.panel h2{font-family:var(--type); font-size:16px; margin:0; letter-spacing:.02em; color:var(--pan-head)}
 .panel header{display:flex; align-items:center; justify-content:space-between; gap:10px;
-  padding:16px 16px 12px; border-bottom:1px solid rgba(255,220,160,.14)}
+  padding:16px 16px 12px; border-bottom:1px solid var(--pan-line)}
 .panel .body{overflow:auto; padding:12px; flex:1; -webkit-overflow-scrolling:touch}
-.panel footer{padding:12px; border-top:1px solid rgba(255,220,160,.14); display:flex; gap:8px; flex-wrap:wrap;
+.panel footer{padding:12px; border-top:1px solid var(--pan-line); display:flex; gap:8px; flex-wrap:wrap;
   padding-bottom:calc(12px + var(--safe-b))}
-.xbtn{width:32px; height:32px; display:grid; place-items:center; border-radius:var(--r); color:#d8c9ab}
-.xbtn:hover{background:rgba(255,255,255,.08)}
+.xbtn{width:32px; height:32px; display:grid; place-items:center; border-radius:var(--r); color:var(--pan-sub)}
+.xbtn:hover{background:var(--pan-soft2)}
 
 .caseitem{display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:10px 11px;
-  border-radius:var(--r); background:rgba(255,240,210,.05); border:1px solid rgba(255,220,160,.1);
+  border-radius:var(--r); background:var(--pan-soft); border:1px solid var(--pan-line);
   margin-bottom:7px; transition:.14s}
-.caseitem:hover{background:rgba(255,240,210,.11)}
-.caseitem.active{background:rgba(179,39,30,.24); border-color:rgba(255,150,130,.4)}
+.caseitem:hover{background:var(--pan-soft2)}
+.caseitem.active{background:var(--pan-act); border-color:var(--pan-actline)}
 .caseitem .pinico{color:var(--thread-red); flex:none; opacity:.85}
 .caseitem .meta{flex:1; min-width:0}
 .caseitem .t{font-family:var(--type); font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-.caseitem .s{font-size:11px; color:#b6a88c; margin-top:2px}
+.caseitem .s{font-size:11px; color:var(--pan-sub); margin-top:2px}
 .caseitem .go{opacity:.5}
 
 .field{display:block; margin-bottom:12px}
-.field span{display:block; font-size:11px; letter-spacing:.06em; color:#b8a888; margin-bottom:5px}
+.field span{display:block; font-size:11px; letter-spacing:.06em; color:var(--pan-sub); margin-bottom:5px}
 .field input[type=text], .field input[type=date], .field textarea, .field select{
-  width:100%; background:#120d08; color:#f0e4ca; border:1px solid rgba(255,220,160,.2);
+  width:100%; background:var(--in-bg); color:var(--in-fg); border:1px solid var(--pan-line);
   border-radius:var(--r); padding:8px 10px; font-size:13px}
 .field textarea{min-height:70px; resize:vertical}
 .btn{display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:9px 12px; font-size:12.5px;
-  border-radius:var(--r); background:rgba(255,240,210,.08); border:1px solid rgba(255,220,160,.18); color:#eee1c8;
+  border-radius:var(--r); background:var(--pan-soft2); border:1px solid var(--pan-line); color:var(--pan-fg);
   transition:.14s}
-.btn:hover{background:rgba(255,240,210,.16)}
-.btn.primary{background:linear-gradient(180deg,#8f2f24,#6a2018); border-color:rgba(255,160,140,.35); color:#ffe6dc}
+.btn:hover{filter:brightness(1.08); background:var(--pan-soft2)}
+.btn.primary{background:linear-gradient(180deg,var(--btn1),var(--btn2)); border-color:var(--ui-online); color:var(--btnfg)}
 .btn.primary:hover{filter:brightness(1.15)}
 .btn.danger:hover{background:rgba(179,39,30,.3); border-color:rgba(255,120,100,.5)}
 .btn.wide{width:100%}
 .btn svg{width:15px; height:15px}
 .row{display:flex; gap:7px; flex-wrap:wrap}
-.hint{font-size:11.5px; color:#a99a7e; line-height:1.5}
+.hint{font-size:11.5px; color:var(--pan-hint); line-height:1.5}
 .swatches{display:flex; gap:7px; flex-wrap:wrap}
 .sw{width:30px; height:30px; border-radius:50%; border:2px solid transparent; box-shadow:0 2px 6px rgba(0,0,0,.4)}
 .sw.sel{border-color:#fff; transform:scale(1.06)}
-.seg{display:flex; border:1px solid rgba(255,220,160,.18); border-radius:var(--r); overflow:hidden}
-.seg button{flex:1; padding:8px 4px; font-size:11.5px; color:#cdbb9b; background:rgba(255,240,210,.04)}
-.seg button.on{background:rgba(179,39,30,.35); color:#ffe2d8}
+.seg{display:flex; border:1px solid var(--pan-line); border-radius:var(--r); overflow:hidden}
+.seg button{flex:1; padding:8px 4px; font-size:11.5px; color:var(--pan-sub); background:var(--pan-soft)}
+.seg button.on{background:linear-gradient(180deg,var(--ui-on1),var(--ui-on2)); color:var(--ui-onfg)}
 input[type=range]{-webkit-appearance:none; appearance:none; height:22px; background:none; width:100%}
-input[type=range]::-webkit-slider-runnable-track{height:4px; border-radius:3px;
-  background:linear-gradient(90deg,rgba(255,220,160,.2),rgba(255,220,160,.35))}
-input[type=range]::-moz-range-track{height:4px; border-radius:3px; background:rgba(255,220,160,.28)}
+input[type=range]::-webkit-slider-runnable-track{height:4px; border-radius:3px; background:var(--pan-soft2)}
+input[type=range]::-moz-range-track{height:4px; border-radius:3px; background:var(--pan-soft2)}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:18px; height:18px; margin-top:-7px;
   border-radius:50%; background:radial-gradient(circle at 34% 30%,#fff9 0 14%,transparent 42%),var(--thread-red);
   box-shadow:0 2px 5px rgba(0,0,0,.5)}
@@ -243,17 +265,17 @@ input[type=range]::-moz-range-thumb{width:18px; height:18px; border:0; border-ra
 /* selection bar (mobile) */
 #selbar{position:absolute; z-index:22; left:50%; transform:translate(-50%,14px); bottom:calc(70px + var(--safe-b));
   display:none; gap:5px; padding:5px; border-radius:6px; opacity:0; transition:opacity .18s, transform .18s;
-  background:linear-gradient(180deg,rgba(58,42,29,.97),rgba(30,22,15,.97));
-  border:1px solid rgba(255,220,160,.2); box-shadow:0 12px 28px rgba(0,0,0,.5)}
+  background:linear-gradient(180deg,var(--ui-1),var(--ui-2));
+  border:1px solid var(--ui-line); box-shadow:0 12px 28px var(--ui-drop)}
 #selbar.show{display:flex; opacity:1; transform:translate(-50%,0)}
 #selbar.multi [data-s="edit"],#selbar.multi [data-s="link"],#selbar.multi [data-s="style"]{display:none}
-#selbar .count{display:none; align-items:center; padding:0 12px 0 8px; font-family:var(--type); font-size:12.5px; color:#f0e2c6}
+#selbar .count{display:none; align-items:center; padding:0 12px 0 8px; font-family:var(--type); font-size:12.5px; color:var(--ui-fg)}
 #selbar.multi .count{display:flex}
 body.tl #selbar{bottom:calc(92px + var(--safe-b))}
-#selbar button{width:46px; height:44px; display:grid; place-items:center; border-radius:4px; color:#ecdcbc}
+#selbar button{width:46px; height:44px; display:grid; place-items:center; border-radius:4px; color:var(--ui-fg)}
 #selbar button svg{width:20px; height:20px}
-#selbar button:active{background:rgba(255,240,210,.15)}
-#selbar button.danger{color:#f0a498}
+#selbar button:active{background:var(--pan-soft2)}
+#selbar button.danger{color:var(--ui-on1)}
 </style>
 <style>
 /* ───────────── pinned items ───────────── */
@@ -266,11 +288,11 @@ body.tl #selbar{bottom:calc(92px + var(--safe-b))}
 .item.faint{opacity:.3}
 .item.near{opacity:.72}
 @keyframes flash{0%,100%{filter:drop-shadow(0 12px 14px rgba(40,22,8,.45))}
-  40%{filter:drop-shadow(0 0 0 rgba(0,0,0,0)) drop-shadow(0 0 14px rgba(255,214,120,.95))}}
+  40%{filter:drop-shadow(0 0 0 rgba(0,0,0,0)) drop-shadow(0 0 14px rgba(var(--sel),.95))}}
 .item .surface{position:relative; width:100%; height:100%; cursor:grab; overflow:hidden;
   -webkit-user-select:none; user-select:none; -webkit-touch-callout:none}
 .item .edit{-webkit-user-select:text; user-select:text}
-.item.sel .surface{box-shadow:0 0 0 2px rgba(255,214,120,.9), 0 0 0 6px rgba(255,214,120,.22)}
+.item.sel .surface{box-shadow:0 0 0 2px rgba(var(--sel),.9), 0 0 0 6px rgba(var(--sel),.22)}
 
 /* ── whiteboard: tape instead of pins, marker instead of string ── */
 .tape{display:none}
@@ -298,12 +320,12 @@ body[data-theme="white"] .t-marker .tx{
 }
 body[data-theme="white"] .t-card .ttl,
 body[data-theme="white"] .t-list .ttl,
-body[data-theme="white"] .t-tag .tx{font-family:var(--hand); font-weight:700; font-size:16px; letter-spacing:0}
-body[data-theme="white"] .t-list .ttl b{font-family:var(--hand); font-size:13px}
+body[data-theme="white"] .t-tag .tx{font-family:var(--hand); font-weight:700; font-size:calc(var(--fs,1)*16px); letter-spacing:0}
+body[data-theme="white"] .t-list .ttl b{font-family:var(--hand); font-size:calc(var(--fs,1)*13px)}
 body[data-theme="white"] .t-sticky .tx,
 body[data-theme="white"] .t-card .tx,
-body[data-theme="white"] .t-list li{font-family:var(--hand); font-size:17px; line-height:1.45}
-body[data-theme="white"] .t-photo .cap{font-family:var(--hand); font-size:15px}
+body[data-theme="white"] .t-list li{font-family:var(--hand); font-size:calc(var(--fs,1)*17px); line-height:1.45}
+body[data-theme="white"] .t-photo .cap{font-family:var(--hand); font-size:calc(var(--fs,1)*15px)}
 
 /* marker-circled stamp */
 body[data-theme="white"] .stamp{
@@ -346,6 +368,7 @@ body[data-theme="white"] #empty p{font-family:var(--hand)}
   background:radial-gradient(circle at 33% 28%, #fff8 0 12%, transparent 40%), radial-gradient(circle at 50% 45%, var(--pinc,#c0342a), #000a 140%);
   box-shadow:0 3px 4px rgba(0,0,0,.5), inset 0 -2px 3px rgba(0,0,0,.45)}
 .item.linkable .pin i{animation:pulse 1.1s infinite}
+body[data-theme="white"] .item.linkable .surface{box-shadow:0 0 0 2px rgba(var(--sel),.55)}
 @keyframes pulse{50%{box-shadow:0 0 0 7px rgba(255,214,120,.35), 0 3px 4px rgba(0,0,0,.5)}}
 
 /* photo — polaroid */
@@ -357,7 +380,7 @@ body[data-theme="white"] #empty p{font-family:var(--hand)}
   background:linear-gradient(120deg,rgba(255,255,255,.22),transparent 32%), inset 0 0 20px rgba(0,0,0,.4);
   box-shadow:inset 0 0 26px rgba(0,0,0,.45)}
 .t-photo .cap{height:46px; display:flex; align-items:center; justify-content:center; text-align:center;
-  font-family:var(--hand); font-size:19px; line-height:1.05; color:#2b2a45; padding:0 6px; overflow:hidden}
+  font-family:var(--hand); font-size:calc(var(--fs,1)*19px); line-height:1.05; color:#2b2a45; padding:0 6px; overflow:hidden}
 .t-photo .drop{position:absolute; inset:9px 9px 46px; display:grid; place-items:center; text-align:center;
   color:#7a6f5c; font-size:11.5px; background:repeating-linear-gradient(45deg,#e7dfcd 0 8px,#ddd4c0 8px 16px)}
 
@@ -366,7 +389,7 @@ body[data-theme="white"] #empty p{font-family:var(--hand)}
   box-shadow:inset 0 -22px 30px rgba(0,0,0,.07), inset 0 1px 0 rgba(255,255,255,.5)}
 .t-sticky .surface::after{content:""; position:absolute; left:0; right:0; bottom:0; height:26px;
   background:linear-gradient(180deg,transparent,rgba(0,0,0,.09))}
-.t-sticky .tx{font-family:var(--hand); font-size:21px; line-height:1.22; color:#33302a; height:100%;
+.t-sticky .tx{font-family:var(--hand); font-size:calc(var(--fs,1)*21px); line-height:1.22; color:#33302a; height:100%;
   overflow:hidden; word-break:break-word}
 
 /* index card */
@@ -375,30 +398,30 @@ body[data-theme="white"] #empty p{font-family:var(--hand)}
     linear-gradient(180deg,#fbf6e9,#f0e7d2);
   padding:10px 12px 12px; box-shadow:inset 0 0 0 1px rgba(0,0,0,.13)}
 .t-card .surface::before{content:""; position:absolute; left:22px; top:0; bottom:0; width:1px; background:rgba(190,70,60,.4)}
-.t-card .ttl{font-family:var(--type); font-size:14px; letter-spacing:.01em; margin-bottom:4px; color:#1e1a15;
+.t-card .ttl{font-family:var(--type); font-size:calc(var(--fs,1)*14px); letter-spacing:.01em; margin-bottom:4px; color:#1e1a15;
   border-bottom:1px solid rgba(0,0,0,.18); padding-bottom:3px}
-.t-card .tx{font-family:var(--hand); font-size:19px; line-height:26px; color:#2a2f45; overflow:hidden}
+.t-card .tx{font-family:var(--hand); font-size:calc(var(--fs,1)*19px); line-height:calc(var(--fs,1)*26px); color:#2a2f45; overflow:hidden}
 
 /* document / report */
 .t-doc .surface{background:linear-gradient(180deg,#f6f1e2,#e9e0c9); padding:14px 15px;
   box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
 .t-doc .surface::after{content:""; position:absolute; right:0; top:0; border-width:0 24px 24px 0; border-style:solid;
   border-color:#cfc3a6 transparent transparent #cfc3a6; box-shadow:-2px 2px 3px rgba(0,0,0,.15)}
-.t-doc .ttl{font-family:var(--type); font-size:13px; letter-spacing:.06em; color:#1e1a15;
+.t-doc .ttl{font-family:var(--type); font-size:calc(var(--fs,1)*13px); letter-spacing:.06em; color:#1e1a15;
   border-bottom:2px solid #1e1a15; padding-bottom:5px; margin-bottom:8px}
-.t-doc .tx{font-family:var(--type); font-size:12px; line-height:1.55; color:#33302a; overflow:hidden}
+.t-doc .tx{font-family:var(--type); font-size:calc(var(--fs,1)*12px); line-height:1.55; color:#33302a; overflow:hidden}
 
 /* checklist */
 .t-list .surface{background:linear-gradient(180deg,#fffdf4,#f2ecd9); padding:11px 12px;
   box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
-.t-list .ttl{font-family:var(--type); font-size:13px; margin-bottom:7px; color:#1e1a15;
+.t-list .ttl{font-family:var(--type); font-size:calc(var(--fs,1)*13px); margin-bottom:7px; color:#1e1a15;
   display:flex; justify-content:space-between; gap:8px; align-items:baseline}
-.t-list .ttl b{font-weight:400; font-size:11px; color:#8a2018}
+.t-list .ttl b{font-weight:400; font-size:calc(var(--fs,1)*11px); color:#8a2018}
 .t-list ul{list-style:none; margin:0; padding:0; overflow:hidden}
-.t-list li{display:flex; gap:8px; align-items:flex-start; font-family:var(--hand); font-size:18px;
+.t-list li{display:flex; gap:8px; align-items:flex-start; font-family:var(--hand); font-size:calc(var(--fs,1)*18px);
   line-height:1.25; color:#2a2f45; padding:3px 0; cursor:pointer}
-.t-list li .bx{width:15px; height:15px; flex:none; margin-top:3px; border:1.5px solid #5a5346; border-radius:2px;
-  display:grid; place-items:center; color:var(--ink-red); font-size:14px; font-family:var(--hand)}
+.t-list li .bx{width:calc(var(--fs,1)*15px); height:calc(var(--fs,1)*15px); flex:none; margin-top:3px; border:1.5px solid #5a5346; border-radius:2px;
+  display:grid; place-items:center; color:var(--ink-red); font-size:calc(var(--fs,1)*14px); font-family:var(--hand)}
 .t-list li.done{color:#8d8676; text-decoration:line-through; text-decoration-color:rgba(176,42,31,.8);
   text-decoration-thickness:2px}
 
@@ -407,12 +430,12 @@ body[data-theme="white"] #empty p{font-family:var(--hand)}
   display:flex; align-items:center; border-radius:2px 8px 8px 2px; box-shadow:inset 0 0 0 1px rgba(0,0,0,.16)}
 .t-tag .surface::before{content:""; position:absolute; left:7px; top:50%; margin-top:-4px; width:8px; height:8px;
   border-radius:50%; background:#2a2018; box-shadow:inset 0 0 0 1.5px #c9a227}
-.t-tag .tx{font-family:var(--type); font-size:13px; letter-spacing:.04em; color:#231f1a; white-space:nowrap;
+.t-tag .tx{font-family:var(--type); font-size:calc(var(--fs,1)*13px); letter-spacing:.04em; color:#231f1a; white-space:nowrap;
   overflow:hidden; text-overflow:ellipsis}
 
 /* marker text straight on the cork */
 .t-marker .surface{background:none; display:flex; align-items:center; overflow:visible}
-.t-marker .tx{font-family:var(--hand); font-weight:700; font-size:40px; line-height:1.05; color:var(--sc,#7d1810);
+.t-marker .tx{font-family:var(--hand); font-weight:700; font-size:calc(var(--fs,1)*40px); line-height:1.05; color:var(--sc,#7d1810);
   text-shadow:0 1px 0 rgba(255,230,190,.28); word-break:break-word}
 .t-marker .pin{display:none}
 .item.t-marker{filter:none}
@@ -457,16 +480,16 @@ body[data-theme="white"] #empty p{font-family:var(--hand)}
 
 /* timeline */
 #timeline{position:absolute; z-index:19; left:76px; right:72px; bottom:14px; height:64px; display:none;
-  background:linear-gradient(180deg,rgba(44,33,22,.96),rgba(26,19,13,.96));
-  border:1px solid rgba(255,220,160,.18); border-radius:4px; box-shadow:0 12px 26px rgba(0,0,0,.45)}
+  background:linear-gradient(180deg,var(--ui-1),var(--ui-2));
+  border:1px solid var(--ui-line); border-radius:4px; box-shadow:0 12px 26px var(--ui-drop)}
 #timeline.show{display:block}
 body.inspecting #timeline{right:calc(min(300px,84vw) + 16px)}
 .tl-rule{position:absolute; left:4%; right:4%; top:31px; height:2px; border-radius:2px;
-  background:linear-gradient(90deg,rgba(255,220,160,.1),rgba(255,220,160,.3),rgba(255,220,160,.1))}
+  background:linear-gradient(90deg,transparent,var(--ui-line),transparent)}
 .tl-mark{position:absolute; top:24px; transform:translateX(-50%); display:flex; flex-direction:column;
-  align-items:center; gap:5px; color:#e9dcc2; padding:0}
+  align-items:center; gap:5px; color:var(--ui-fg); padding:0}
 .tl-dot{width:13px; height:13px; border-radius:50%; background:var(--thread-cream);
-  box-shadow:0 0 0 3px rgba(26,19,13,.96), 0 1px 3px rgba(0,0,0,.6); transition:transform .12s}
+  box-shadow:0 0 0 3px var(--ui-2), 0 1px 3px var(--ui-drop); transition:transform .12s}
 .tl-mark:hover .tl-dot{transform:scale(1.25)}
 .tl-mark.over .tl-dot{background:var(--thread-red)}
 .tl-mark.today .tl-dot{background:#e8a72c}
@@ -475,7 +498,7 @@ body.inspecting #timeline{right:calc(min(300px,84vw) + 16px)}
 .tl-lab{font-family:var(--type); font-size:10.5px; white-space:nowrap; opacity:.85}
 .tl-now{position:absolute; top:12px; bottom:10px; width:1px; background:rgba(255,130,100,.75)}
 .tl-now span{position:absolute; top:-3px; left:5px; font-family:var(--type); font-size:9px; color:#ffbcab}
-.tl-empty{font-family:var(--type); font-size:12px; color:#b6a88c; text-align:center; line-height:62px}
+.tl-empty{font-family:var(--type); font-size:12px; color:var(--pan-sub); text-align:center; line-height:62px}
 
 /* empty state */
 #empty{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) rotate(-1.5deg); z-index:2;
@@ -484,24 +507,114 @@ body.inspecting #timeline{right:calc(min(300px,84vw) + 16px)}
 #empty h3{font-family:var(--type); font-size:19px; margin:0 0 8px}
 #empty p{font-family:var(--hand); font-size:20px; line-height:1.3; margin:0; color:#3b3730}
 
+/* freehand ink — drawn over the top, so a circle round a note stays visible */
+#ink{position:absolute; top:0; left:0; overflow:visible; pointer-events:none; z-index:950}
+#ink path{fill:none; stroke-linecap:round; stroke-linejoin:round}
+#viewport.penning{cursor:crosshair}
+#viewport.erasing{cursor:cell}
+
+#penbar{position:absolute; z-index:22; left:50%; transform:translate(-50%,14px); bottom:calc(70px + var(--safe-b));
+  display:none; gap:6px; align-items:center; padding:6px 8px; border-radius:7px; opacity:0;
+  transition:opacity .18s, transform .18s;
+  background:linear-gradient(180deg,var(--ui-1),var(--ui-2));
+  border:1px solid var(--ui-line); box-shadow:0 12px 28px var(--ui-drop)}
+#penbar.show{display:flex; opacity:1; transform:translate(-50%,0)}
+#penbar .pb-set{display:flex; gap:5px; align-items:center}
+#penbar .pb-div{width:1px; height:24px; background:var(--ui-line)}
+#penbar button{width:38px; height:38px; display:grid; place-items:center; border-radius:5px; color:var(--ui-fg)}
+#penbar button svg{width:19px; height:19px}
+#penbar button.on{background:var(--pan-act); color:var(--ui-on1)}
+#penbar .nib{width:30px; height:30px; border-radius:50%; display:grid; place-items:center; border:2px solid transparent}
+#penbar .nib i{display:block; border-radius:50%; background:currentColor}
+#penbar .nib.on{border-color:var(--ui-fg)}
+#penbar .swatch{width:26px; height:26px; border-radius:50%; border:2px solid transparent;
+  box-shadow:0 1px 3px rgba(0,0,0,.35)}
+#penbar .swatch.on{border-color:var(--ui-fg); transform:scale(1.08)}
+body.penmode #selbar,body.penmode #zoomrail{display:none}
+.tips li.ink{display:none}
+body[data-theme="white"] .tips li.ink{display:flex}
+@media (max-width:720px){
+  #penbar{bottom:calc(64px + var(--safe-b)); gap:4px; padding:5px 6px}
+  #penbar button{width:34px; height:34px}
+  #penbar .swatch{width:24px; height:24px}
+  #penbar .nib{width:28px; height:28px}
+}
+
+/* storage meter */
+#meter{height:6px; border-radius:4px; background:var(--pan-soft2); overflow:hidden}
+#meter i{display:block; height:100%; background:var(--ok); transition:width .3s}
+#meter.full i{background:var(--thread-red)}
+
+/* getting started */
+#tourwrap[hidden]{display:none}
+#tourwrap{position:fixed; inset:0; z-index:70; display:grid; place-items:center; padding:16px;
+  background:var(--scrim); backdrop-filter:blur(3px); animation:fade .25s ease}
+@keyframes fade{from{opacity:0}}
+.tour{width:min(460px,100%); max-height:92vh; overflow:auto; border-radius:8px; padding:20px 22px 18px;
+  background:linear-gradient(180deg,var(--sheet-2),var(--sheet)); color:var(--pan-fg);
+  border:1px solid var(--pan-line); box-shadow:0 30px 70px rgba(0,0,0,.5); animation:rise .3s cubic-bezier(.2,.8,.25,1)}
+@keyframes rise{from{transform:translateY(14px) scale(.98); opacity:0}}
+.tourhead{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px}
+.tourhead .brand{font-family:var(--type); font-size:13px; letter-spacing:.16em; color:var(--pan-sub)}
+.dots{display:flex; gap:6px}
+.dots i{width:7px; height:7px; border-radius:50%; background:var(--pan-soft2); transition:.2s}
+.dots i.on{background:var(--ui-on1); transform:scale(1.25)}
+.tour section{display:none}
+.tour section.on{display:block; animation:fade .22s ease}
+.tour h2{font-family:var(--type); font-size:21px; margin:0 0 7px; color:var(--pan-head)}
+.tour .lead{font-size:13.5px; line-height:1.55; color:var(--pan-sub); margin:0 0 16px}
+.tourfoot{display:flex; gap:9px; justify-content:flex-end; margin-top:18px}
+.tourfoot .btn{padding:11px 18px; font-size:13px}
+.tiles{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.tile{padding:10px 10px 12px; border-radius:6px; border:1px solid var(--pan-line); background:var(--pan-soft);
+  text-align:left; transition:.14s}
+.tile:hover{background:var(--pan-soft2)}
+.tile.sel{border-color:var(--ui-on1); box-shadow:0 0 0 2px var(--ui-on1) inset}
+.tile b{display:block; font-family:var(--type); font-size:14px; font-weight:400; margin-top:9px; color:var(--pan-head)}
+.tile small{display:block; font-size:11px; line-height:1.4; color:var(--pan-sub); margin-top:3px}
+.tprev{display:block; position:relative; height:76px; border-radius:4px; overflow:hidden}
+.tprev.cork{background:radial-gradient(120% 90% at 30% 10%,#c99a5c,#ab7b41 55%,#8a5e30)}
+.tprev.white{background:linear-gradient(150deg,#fff,#eef1f1)}
+.tprev em{position:absolute; left:50%; top:26px; transform:translateX(-50%) rotate(-3deg); width:56px; height:38px;
+  background:#f7e06a; font-family:var(--hand); font-style:normal; font-size:14px; color:#33302a;
+  display:grid; place-items:center; box-shadow:0 3px 6px rgba(0,0,0,.3)}
+.tprev .tpin{position:absolute; left:50%; top:19px; margin-left:-5px; width:10px; height:10px; border-radius:50%;
+  background:radial-gradient(circle at 34% 30%,#fff9 0 14%,transparent 42%),#c0342a; z-index:2;
+  box-shadow:0 2px 3px rgba(0,0,0,.5)}
+.tprev .ttape{position:absolute; left:50%; top:19px; margin-left:-17px; width:34px; height:14px; z-index:2;
+  background:rgba(235,227,204,.92); transform:rotate(-4deg); box-shadow:0 1px 2px rgba(0,0,0,.22)}
+.tips{list-style:none; margin:0; padding:0; display:grid; gap:13px}
+.tips li{display:flex; gap:12px; align-items:flex-start}
+.tips svg{width:22px; height:22px; flex:none; color:var(--ui-on1); margin-top:2px}
+.tips b{display:block; font-family:var(--type); font-size:13.5px; font-weight:400; color:var(--pan-head); margin-bottom:2px}
+.tips div{font-size:12.5px; line-height:1.5; color:var(--pan-sub)}
+@media (max-width:720px){
+  .tour{padding:18px 16px 16px}
+  .tour h2{font-size:19px}
+  .tourfoot .btn{flex:1; justify-content:center}
+}
+
 /* toast */
 #toast{position:fixed; left:50%; bottom:calc(22px + var(--safe-b)); transform:translate(-50%,20px); z-index:60;
-  background:#f2ead6; color:#231f1a; font-family:var(--type); font-size:13px; padding:9px 16px; border-radius:2px;
+  background:var(--tip-bg); color:var(--tip-fg); font-family:var(--type); font-size:13px; padding:9px 16px; border-radius:2px;
   box-shadow:0 10px 26px rgba(0,0,0,.5); opacity:0; pointer-events:none; transition:.22s; max-width:80vw; text-align:center}
 #toast.show{opacity:1; transform:translate(-50%,0)}
 
 /* context menu */
-#ctx{position:fixed; z-index:50; background:linear-gradient(180deg,#2b2118,#1d1610); border:1px solid rgba(255,220,160,.2);
-  border-radius:var(--r); box-shadow:0 14px 34px rgba(0,0,0,.55); padding:5px; display:none; min-width:172px}
+#ctx{position:fixed; z-index:50; background:linear-gradient(180deg,var(--sheet-2),var(--sheet)); border:1px solid var(--pan-line);
+  border-radius:var(--r); box-shadow:0 14px 34px var(--ui-drop); padding:5px; display:none; min-width:172px}
 #ctx.show{display:block}
-#ctx button{display:flex; width:100%; gap:9px; align-items:center; padding:8px 10px; font-size:12.5px; color:#e9dcc2;
+#ctx button{display:flex; width:100%; gap:9px; align-items:center; padding:8px 10px; font-size:12.5px; color:var(--pan-fg);
   border-radius:2px; text-align:left}
-#ctx button:hover{background:rgba(255,240,210,.12)}
-#ctx button.danger:hover{background:rgba(179,39,30,.35)}
-#ctx hr{border:0; border-top:1px solid rgba(255,220,160,.14); margin:4px 2px}
+#ctx button:hover{background:var(--pan-soft2)}
+#ctx button.danger:hover{background:var(--pan-act); color:var(--ui-on1)}
+#ctx hr{border:0; border-top:1px solid var(--pan-line); margin:4px 2px}
 #ctx svg{width:15px; height:15px; opacity:.8; flex:none}
 
 /* mobile */
+#btn-pen{display:none}
+body[data-theme="white"] #btn-pen{display:grid}
+
 @media (max-width:720px){
   #topbar{top:calc(8px + var(--safe-t)); left:8px; right:8px; gap:5px}
   #caseplate{max-width:38vw; font-size:12.5px; padding:5px 10px 7px}
@@ -543,8 +656,10 @@ body.inspecting #timeline{right:calc(min(300px,84vw) + 16px)}
   <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/><path d="M14 3v4h4M9 12h6M9 15.5h6M9 8.5h3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></symbol>
   <symbol id="i-list" viewBox="0 0 24 24"><path d="M4 7l2 2 3-3M4 14l2 2 3-3" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 8h8M12 15h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
   <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 11V4h7l10 10-7 7z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></symbol>
-  <symbol id="i-marker" viewBox="0 0 24 24"><path d="M5 19l2-5L17 4l3 3-10 10z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/><path d="M4 21h7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+  <symbol id="i-marker" viewBox="0 0 24 24"><path d="M4 6.5V5h16v1.5M12 5v14M8.5 19h7" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-string" viewBox="0 0 24 24"><circle cx="5" cy="6" r="2.2" fill="currentColor"/><circle cx="19" cy="18" r="2.2" fill="currentColor"/><path d="M5.5 8c0 7 4 3 6 6s3.5 3.5 7 3.5" stroke="currentColor" stroke-width="1.7" fill="none"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20l1.6-4.2L16 5.4a2 2 0 0 1 2.8 0l1.4 1.4a2 2 0 0 1 0 2.8L9.8 20 4 20z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/><path d="M14.5 7l3.5 3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+  <symbol id="i-eraser" viewBox="0 0 24 24"><path d="M8.5 20L3.8 15.3a1.6 1.6 0 0 1 0-2.3l8.6-8.6a1.6 1.6 0 0 1 2.3 0l4.9 4.9a1.6 1.6 0 0 1 0 2.3L13.2 20z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/><path d="M8.6 20H20M9 8.6l5.8 5.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
   <symbol id="i-lasso" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2" stroke="currentColor" stroke-width="1.7" fill="none" stroke-dasharray="3.5 3"/><circle cx="20.5" cy="19.5" r="2.2" fill="currentColor"/></symbol>
   <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="8.5" cy="14.5" r="1.3" fill="currentColor"/><circle cx="13" cy="14.5" r="1.3" fill="currentColor"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
@@ -567,6 +682,7 @@ body.inspecting #timeline{right:calc(min(300px,84vw) + 16px)}
 <div id="stage">
   <div id="viewport">
     <div id="world">
+      <svg id="ink"></svg>
       <svg id="threads"></svg>
     </div>
     <div id="grain"></div>
@@ -602,6 +718,7 @@ body.inspecting #timeline{right:calc(min(300px,84vw) + 16px)}
     <button class="tool" data-add="tag"><svg><use href="#i-tag"/></svg><span class="tip">Evidence tag</span></button>
     <button class="tool" data-add="marker"><svg><use href="#i-marker"/></svg><span class="tip">Marker text</span></button>
     <button class="tool" id="btn-link"><svg><use href="#i-string"/></svg><span class="tip">Run string (L)</span></button>
+    <button class="tool" id="btn-pen"><svg><use href="#i-pen"/></svg><span class="tip">Write freehand (P)</span></button>
     <button class="tool" id="btn-lasso"><svg><use href="#i-lasso"/></svg><span class="tip">Select several</span></button>
   </div>
 
@@ -613,6 +730,15 @@ body.inspecting #timeline{right:calc(min(300px,84vw) + 16px)}
   </div>
 
   <div id="timeline"></div>
+
+  <div id="penbar">
+    <span class="pb-set" id="pb-colors"></span>
+    <span class="pb-div"></span>
+    <span class="pb-set" id="pb-sizes"></span>
+    <span class="pb-div"></span>
+    <button data-pen="erase" aria-label="Rub out"><svg><use href="#i-eraser"/></svg></button>
+    <button data-pen="done" aria-label="Done"><svg><use href="#i-x"/></svg></button>
+  </div>
 
   <div id="selbar">
     <span class="count"></span>
@@ -643,7 +769,20 @@ body.inspecting #timeline{right:calc(min(300px,84vw) + 16px)}
         <button data-theme="white">Whiteboard</button>
       </div>
     </label>
+    <label class="field" style="width:100%; margin:2px 0 6px">
+      <span>Text size — whole board</span>
+      <div class="seg" id="fsseg">
+        <button data-fs="0.85">S</button><button data-fs="1">M</button>
+        <button data-fs="1.2">L</button><button data-fs="1.45">XL</button>
+      </div>
+    </label>
     <button class="btn wide" id="btn-png"><svg><use href="#i-photo"/></svg>Save the board as a picture</button>
+    <div style="width:100%">
+      <div id="meter"><i></i></div>
+      <div class="hint" id="meterlab" style="margin-top:5px"></div>
+    </div>
+    <button class="btn wide" id="btn-shrink"><svg><use href="#i-down"/></svg>Shrink the pictures on this board</button>
+    <button class="btn wide" id="btn-tour"><svg><use href="#i-chev"/></svg>How this works</button>
     <div class="hint" style="width:100%">Boards are stored in this browser. Export to keep a copy or move to another device.</div>
   </footer>
 </aside>
@@ -656,6 +795,46 @@ body.inspecting #timeline{right:calc(min(300px,84vw) + 16px)}
   <div class="body" id="inspect-body"></div>
   <footer id="inspect-foot"></footer>
 </aside>
+
+<div id="tourwrap" hidden>
+  <div class="tour" role="dialog" aria-modal="true" aria-label="Getting started">
+    <div class="tourhead"><span class="brand">Pin&nbsp;It</span><div class="dots"><i></i><i></i><i></i></div></div>
+
+    <section data-step="1">
+      <h2>A board for thinking on</h2>
+      <p class="lead">Pin up notes, photos and lists, then run string between the ones that belong together.</p>
+      <label class="field"><span>What are you working on?</span>
+        <input id="tour-name" type="text" maxlength="60" placeholder="Kitchen renovation" autocomplete="off"></label>
+      <div class="tourfoot"><button class="btn" data-skip>Skip</button><button class="btn primary" data-next>Next</button></div>
+    </section>
+
+    <section data-step="2">
+      <h2>Pick a style</h2>
+      <p class="lead">Change it whenever you like — every board can look different.</p>
+      <div class="tiles">
+        <button class="tile" data-pick="cork">
+          <span class="tprev cork"><i class="tpin"></i><em>idea</em></span>
+          <b>Corkboard</b><small>Pins, red string, rubber stamps</small></button>
+        <button class="tile" data-pick="white">
+          <span class="tprev white"><i class="ttape"></i><em>idea</em></span>
+          <b>Whiteboard</b><small>Tape, marker lines, freehand pen</small></button>
+      </div>
+      <div class="tourfoot"><button class="btn" data-back>Back</button><button class="btn primary" data-next>Next</button></div>
+    </section>
+
+    <section data-step="3">
+      <h2>A few things to know</h2>
+      <ul class="tips">
+        <li><svg><use href="#i-sticky"/></svg><div><b>Put things up</b>Pick from the tool rail. Double-tap to write, drag to move, pull the corner to resize.</div></li>
+        <li><svg><use href="#i-string"/></svg><div><b>Join them up</b>Tap the string tool, then tap two items. Tap the string itself to label or cut it.</div></li>
+        <li><svg><use href="#i-cal"/></svg><div><b>Keep track</b>Give things a due date, stamp them Urgent or Done, tick off checklists.</div></li>
+        <li class="ink"><svg><use href="#i-pen"/></svg><div><b>Write on the board</b>The pen tool lets you scribble straight onto the whiteboard in marker — arrows, circles, a quick note in your own hand.</div></li>
+      </ul>
+      <p class="hint">Everything saves in this browser as you go. No account, no upload.</p>
+      <div class="tourfoot" id="tour-end"></div>
+    </section>
+  </div>
+</div>
 
 <div id="marquee"></div>
 <div id="ctx"></div>
@@ -683,6 +862,7 @@ const isWhite = () => !!board && board.theme === "white";
 const threadCol = k => isWhite() ? (MARKER[k] || MARKER.cream) : (THREADS[k] || THREADS.red);
 function hashN(s) { let h = 2166136261; for (let i = 0; i < String(s).length; i++) { h ^= String(s).charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
 const STAMPS = ["", "done", "urgent", "blocked", "idea", "review"];
+const SIZES = [["S", .85], ["M", 1], ["L", 1.2], ["XL", 1.45]];
 const TYPE_NAMES = { photo: "Photo", sticky: "Sticky note", card: "Index card", doc: "Report", list: "Checklist", tag: "Evidence tag", marker: "Marker text" };
 const DEFAULTS = {
   photo:  { w: 210, h: 236, text: "" },
@@ -712,6 +892,7 @@ const KEY = "pinit.v1";
 
 /* ── state ── */
 let DB = { boards: [], current: null };
+let FRESH = false;
 let board = null;
 let sel = null;             // selected item id
 let linking = null;         // {from} while running string
@@ -731,7 +912,8 @@ function newBoard(name) {
     id: uid(), name: name || "Untitled board",
     no: "NO. " + String(n).padStart(3, "0"),
     created: Date.now(), updated: Date.now(), theme: (board && board.theme) || "cork",
-    items: [], links: [], view: { x: 0, y: 0, s: 1 }
+    fs: (board && board.fs) || 1,
+    items: [], links: [], ink: [], view: { x: 0, y: 0, s: 1 }
   };
 }
 function mkItem(type, x, y, extra) {
@@ -741,10 +923,37 @@ function mkItem(type, x, y, extra) {
     w: d.w, h: d.h, rot: +(Math.random() * 4 - 2).toFixed(2),
     z: nextZ(), title: d.title || "", text: d.text || "",
     color: type === "sticky" ? STICKY[0] : (type === "marker" ? "#7d1810" : ""),
-    pin: PINS[0], tape: TAPES[0], stamp: "", src: "", tasks: [], due: ""
+    pin: PINS[0], tape: TAPES[0], stamp: "", src: "", tasks: [], due: "",
+    fs: (board && board.fs) || 1
   };
   if (type === "list") it.tasks = [{ t: "First step", done: false }, { t: "Second step", done: false }];
   return Object.assign(it, extra || {});
+}
+/* Boards can arrive from an older version, another device, or a hand-edited
+   file. Fill in anything missing before the app touches them. */
+function normalise(b) {
+  if (!b) return b;
+  if (!Array.isArray(b.items)) b.items = [];
+  if (!Array.isArray(b.links)) b.links = [];
+  if (!Array.isArray(b.ink)) b.ink = [];
+  if (!b.theme) b.theme = "cork";
+  if (!(+b.fs > 0)) b.fs = 1;
+  if (!b.name) b.name = "Untitled board";
+  b.items.forEach(i => {
+    if (!Array.isArray(i.tasks)) i.tasks = [];
+    if (!(+i.fs > 0)) i.fs = b.fs;
+    if (!i.tape) i.tape = TAPES[0];
+    if (!i.pin) i.pin = PINS[0];
+    if (typeof i.rot !== "number") i.rot = 0;
+    if (typeof i.z !== "number") i.z = 1;
+    if (!i.due || !/^\d{4}-\d{2}-\d{2}$/.test(i.due) || isNaN(new Date(i.due + "T00:00:00"))) i.due = "";
+    if (!i.stamp) i.stamp = "";
+    ["w", "h", "x", "y"].forEach(k => { if (typeof i[k] !== "number") i[k] = DEFAULTS[i.type] ? DEFAULTS[i.type][k] || 0 : 0; });
+  });
+  b.ink = b.ink.filter(s => s && Array.isArray(s.pts) && s.pts.length >= 2);
+  const ids = new Set(b.items.map(i => i.id));
+  b.links = b.links.filter(l => l && ids.has(l.a) && ids.has(l.b));   // drop strings to nothing
+  return b;
 }
 function nextZ() { return board && board.items.length ? Math.max(...board.items.map(i => i.z || 1)) + 1 : 1; }
 const byId = id => board.items.find(i => i.id === id);
@@ -759,7 +968,7 @@ function save(now) {
   renderTimeline();
   const write = () => {
     const okw = store.set(KEY, JSON.stringify(DB));
-    if (!okw) toast("Storage is full — export this board, then delete some images.", 4200);
+    if (!okw) toast("Storage is full — try “Shrink the pictures” in the boards drawer, or export and remove a few.", 5200);
     else if (!store.persistent) flashSaved("not saved — private mode");
     else flashSaved("saved");
   };
@@ -772,30 +981,35 @@ function flashSaved(txt) {
 function load() {
   let raw = store.get(KEY);
   if (raw) { try { DB = JSON.parse(raw); } catch (e) { DB = { boards: [], current: null }; } }
-  if (!DB.boards || !DB.boards.length) { DB = { boards: [seedBoard()], current: null }; DB.current = DB.boards[0].id; }
+  if (!DB.boards || !DB.boards.length) {
+    DB = { boards: [], current: null };
+    const b = newBoard("Untitled board");
+    DB.boards.push(b); DB.current = b.id; FRESH = true;
+  }
   board = DB.boards.find(b => b.id === DB.current) || DB.boards[0];
+  DB.boards.forEach(normalise);
   DB.current = board.id;
   view = Object.assign({ x: 0, y: 0, s: 1 }, board.view || {});
 }
 
 /* ── undo ── */
 function snap() {
-  history.push(JSON.stringify({ items: board.items, links: board.links }));
+  history.push(JSON.stringify({ items: board.items, links: board.links, ink: board.ink }));
   if (history.length > 60) history.shift();
   future.length = 0; updateUndo();
 }
 function applySnap(s) {
-  const d = JSON.parse(s); board.items = d.items; board.links = d.links;
+  const d = JSON.parse(s); board.items = d.items; board.links = d.links; board.ink = d.ink || [];
   sel = null; renderAll(); closePanel("inspect"); save();
 }
 function undo() {
   if (!history.length) return;
-  future.push(JSON.stringify({ items: board.items, links: board.links }));
+  future.push(JSON.stringify({ items: board.items, links: board.links, ink: board.ink }));
   applySnap(history.pop()); updateUndo();
 }
 function redo() {
   if (!future.length) return;
-  history.push(JSON.stringify({ items: board.items, links: board.links }));
+  history.push(JSON.stringify({ items: board.items, links: board.links, ink: board.ink }));
   applySnap(future.pop()); updateUndo();
 }
 function updateUndo() {
@@ -805,7 +1019,7 @@ function updateUndo() {
 
 /* ── first-run sample board: teaches the interaction ── */
 function seedBoard() {
-  const b = { theme: "cork", id: uid(), name: "The Greenhouse Job", no: "NO. 001", created: Date.now(), updated: Date.now(), items: [], links: [], view: { x: 0, y: 0, s: 1 } };
+  const b = { theme: "cork", id: uid(), name: "The Greenhouse Job", no: "NO. 001", created: Date.now(), updated: Date.now(), items: [], links: [], ink: [], view: { x: 0, y: 0, s: 1 } };
   const it = (t, x, y, o) => { const i = mkItemRaw(t, x, y, o); b.items.push(i); return i; };
   function mkItemRaw(type, x, y, extra) {
     const d = DEFAULTS[type];
@@ -813,7 +1027,7 @@ function seedBoard() {
       id: uid(), type, x, y, w: d.w, h: d.h, rot: +(Math.random() * 4 - 2).toFixed(2),
       z: b.items.length + 1, title: d.title || "", text: d.text || "",
       color: type === "sticky" ? STICKY[0] : (type === "marker" ? "#7d1810" : ""),
-      pin: PINS[0], tape: TAPES[0], stamp: "", src: "", tasks: [], due: ""
+      pin: PINS[0], tape: TAPES[0], stamp: "", src: "", tasks: [], due: "", fs: 1
     }, extra || {});
   }
   const head = it("marker", 300, 80, { text: "What are we building?", w: 420, h: 70, rot: -1.4 });
@@ -856,9 +1070,10 @@ function itemInner(it) {
     case "doc":
       return `<div class="ttl">${esc(it.title || "Report")}</div><div class="tx">${body(it, "The full account goes here.")}</div>`;
     case "list": {
-      const done = it.tasks.filter(t => t.done).length;
-      return `<div class="ttl"><span>${esc(it.title || "Checklist")}</span><b>${done}/${it.tasks.length}</b></div>
-        <ul>${it.tasks.map((t, i) => `<li class="${t.done ? "done" : ""}" data-task="${i}">
+      const tasks = it.tasks || (it.tasks = []);
+      const done = tasks.filter(t => t.done).length;
+      return `<div class="ttl"><span>${esc(it.title || "Checklist")}</span><b>${done}/${tasks.length}</b></div>
+        <ul>${tasks.map((t, i) => `<li class="${t.done ? "done" : ""}" data-task="${i}">
           <span class="bx">${t.done ? "✕" : ""}</span><span>${esc(t.t)}</span></li>`).join("")}</ul>`;
     }
     case "tag": return `<div class="tx">${body(it, "Label this")}</div>`;
@@ -885,6 +1100,7 @@ function place(el, it) {
   el.style.zIndex = it.z || 1;
   el.style.setProperty("--pinc", it.pin || PINS[0]);
   el.style.setProperty("--tapec", it.tape || TAPES[0]);
+  el.style.setProperty("--fs", it.fs || (board && board.fs) || 1);
   el.style.setProperty("--tr", ((hashN(it.id) % 11) - 5).toFixed(1) + "deg");
   if (it.type === "sticky" || it.type === "marker") el.style.setProperty("--sc", it.color || STICKY[0]);
 }
@@ -898,7 +1114,7 @@ function refresh(id) {
     el.appendChild(s);
   }
   const od = el.querySelector(".due"); if (od) od.remove();
-  if (it.due) {
+  if (it.due && validDue(it.due)) {
     const d = document.createElement("div");
     d.className = "due " + dueState(it.due); d.textContent = dueLabel(it.due);
     el.appendChild(d);
@@ -907,14 +1123,14 @@ function refresh(id) {
   drawThreads(); renderTimeline();
 }
 function renderAll() {
-  [...world.children].forEach(c => { if (c !== svg) c.remove(); });
+  [...world.children].forEach(c => { if (c !== svg && c.id !== "ink") c.remove(); });
   els.clear();
   board.items.slice().sort((a, b) => (a.z || 0) - (b.z || 0)).forEach(it => { makeEl(it); refresh(it.id); });
-  drawThreads(); updateEmpty(); applyFilter();
+  drawInk(); drawThreads(); updateEmpty(); applyFilter();
 }
 function updateEmpty() {
   let e = $("#empty");
-  if (board.items.length) { if (e) e.remove(); return; }
+  if (board.items.length || (board.ink || []).length) { if (e) e.remove(); return; }
   if (e) return;
   e = document.createElement("div");
   e.id = "empty";
@@ -1016,11 +1232,51 @@ function drawLabels() {
 }
 function worldBounds() {
   const pad = 400;
-  if (!board.items.length) return { x: -pad, y: -pad, w: pad * 2, h: pad * 2 };
-  const xs = board.items.map(i => i.x), ys = board.items.map(i => i.y);
-  const xe = board.items.map(i => i.x + i.w), ye = board.items.map(i => i.y + i.h);
-  const x = Math.min(...xs) - pad, y = Math.min(...ys) - pad;
-  return { x, y, w: Math.max(...xe) + pad - x, h: Math.max(...ye) + pad - y };
+  const e = extents();
+  if (!e) return { x: -pad, y: -pad, w: pad * 2, h: pad * 2 };
+  return { x: e.x - pad, y: e.y - pad, w: e.w + pad * 2, h: e.h + pad * 2 };
+}
+/* tight box around everything on the board, drawings included */
+function extents() {
+  let x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
+  board.items.forEach(i => {
+    x1 = Math.min(x1, i.x); y1 = Math.min(y1, i.y);
+    x2 = Math.max(x2, i.x + i.w); y2 = Math.max(y2, i.y + i.h);
+  });
+  (board.ink || []).forEach(s => {
+    for (let i = 0; i < s.pts.length; i += 2) {
+      x1 = Math.min(x1, s.pts[i]); x2 = Math.max(x2, s.pts[i]);
+      y1 = Math.min(y1, s.pts[i + 1]); y2 = Math.max(y2, s.pts[i + 1]);
+    }
+  });
+  if (x1 === Infinity) return null;
+  return { x: x1, y: y1, w: Math.max(1, x2 - x1), h: Math.max(1, y2 - y1) };
+}
+let live = null;   // the stroke currently under the finger
+/* quadratic midpoint smoothing — what turns a jittery finger into handwriting */
+function inkPath(p) {
+  const n = p.length / 2;
+  if (n < 2) return `M${p[0]},${p[1]} l0.01,0`;
+  let d = `M${p[0]},${p[1]}`;
+  for (let i = 1; i < n - 1; i++) {
+    const x0 = p[i * 2], y0 = p[i * 2 + 1];
+    const mx = (x0 + p[i * 2 + 2]) / 2, my = (y0 + p[i * 2 + 3]) / 2;
+    d += ` Q${x0},${y0} ${mx},${my}`;
+  }
+  d += ` L${p[(n - 1) * 2]},${p[(n - 1) * 2 + 1]}`;
+  return d;
+}
+function drawInk() {
+  const svg = $("#ink"), r = worldBounds();
+  svg.setAttribute("width", r.w); svg.setAttribute("height", r.h);
+  svg.setAttribute("viewBox", `${r.x} ${r.y} ${r.w} ${r.h}`);
+  svg.style.left = r.x + "px"; svg.style.top = r.y + "px";
+  let out = "";
+  (board.ink || []).forEach(s => {
+    out += `<path d="${inkPath(s.pts)}" stroke="${s.c}" stroke-width="${s.w}" opacity="${s.c === "#f2f4f5" ? 1 : .92}"/>`;
+  });
+  if (live) out += `<path d="${inkPath(live.pts)}" stroke="${live.c}" stroke-width="${live.w}" opacity=".92"/>`;
+  svg.innerHTML = out;
 }
 
 /* ── view transform ── */
@@ -1049,10 +1305,8 @@ function fitBoard(animate) {
   const in_ = { t: narrow ? 58 : 66, b: narrow ? 66 : 24, l: narrow ? 14 : 76, r: narrow ? 56 : 62 };
   if (typeof tlOpen !== "undefined" && tlOpen) in_.b += 74;
   const fw = Math.max(120, r.width - in_.l - in_.r), fh = Math.max(120, r.height - in_.t - in_.b);
-  if (!board.items.length) { view.x = r.width / 2; view.y = r.height / 2; view.s = 1; applyView(); save(); return; }
-  const b = { x: Math.min(...board.items.map(i => i.x)), y: Math.min(...board.items.map(i => i.y)) };
-  b.w = Math.max(...board.items.map(i => i.x + i.w)) - b.x;
-  b.h = Math.max(...board.items.map(i => i.y + i.h)) - b.y;
+  const b = extents();
+  if (!b) { view.x = r.width / 2; view.y = r.height / 2; view.s = 1; applyView(); save(); return; }
   const pad = narrow ? 14 : 34;
   const s = clamp(Math.min((fw - pad * 2) / b.w, (fh - pad * 2) / b.h), 0.22, 1.25);
   if (animate) world.style.transition = "transform .4s cubic-bezier(.2,.8,.25,1)";
@@ -1130,6 +1384,7 @@ function clearMulti(quiet) {
   if (!quiet) { bar.classList.remove("show"); markSelected(); }
 }
 function removeMany(ids) {
+  if (linking && ids.includes(linking.from)) cancelLink();
   snap();
   const kill = new Set(ids);
   board.items = board.items.filter(i => !kill.has(i.id));
@@ -1165,12 +1420,71 @@ $("#selbar").addEventListener("click", e => {
 function bump(it) { it.z = nextZ(); els.get(it.id).style.zIndex = it.z; }
 function preSnap() { if (!snapped) { snap(); snapped = true; } }
 
+/* ── freehand marker ── */
+let penMode = null, penColor = MARKER.cream, penSize = 5.5;
+const INKS = [MARKER.cream, MARKER.red, MARKER.navy, MARKER.green, MARKER.gold];
+const NIBS = [3, 5.5, 9];
+function buildPenBar() {
+  $("#pb-colors").innerHTML = INKS.map(c =>
+    `<button class="swatch ${c === penColor ? "on" : ""}" data-ink="${c}" style="background:${c}" aria-label="ink"></button>`).join("");
+  $("#pb-sizes").innerHTML = NIBS.map(w =>
+    `<button class="nib ${w === penSize ? "on" : ""}" data-nib="${w}" style="color:${penColor}" aria-label="nib">
+       <i style="width:${w + 3}px;height:${w + 3}px"></i></button>`).join("");
+  $('#penbar [data-pen="erase"]').classList.toggle("on", penMode === "erase");
+}
+function setPen(mode) {
+  penMode = mode;
+  document.body.classList.toggle("penmode", !!mode);
+  $("#btn-pen").classList.toggle("on", !!mode);
+  viewport.classList.toggle("penning", mode === "draw");
+  viewport.classList.toggle("erasing", mode === "erase");
+  $("#penbar").classList.toggle("show", !!mode);
+  if (mode) { cancelLink(); setLasso(false); deselect(); buildPenBar(); }
+  live = null; drawInk();
+}
+$("#penbar").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.ink) { penColor = b.dataset.ink; if (penMode !== "draw") setPen("draw"); buildPenBar(); return; }
+  if (b.dataset.nib) { penSize = +b.dataset.nib; if (penMode !== "draw") setPen("draw"); buildPenBar(); return; }
+  if (b.dataset.pen === "erase") { setPen(penMode === "erase" ? "draw" : "erase"); return; }
+  if (b.dataset.pen === "done") setPen(null);
+});
+function segDist(px, py, x1, y1, x2, y2) {
+  const dx = x2 - x1, dy = y2 - y1, l = dx * dx + dy * dy;
+  let t = l ? ((px - x1) * dx + (py - y1) * dy) / l : 0;
+  t = clamp(t, 0, 1);
+  return Math.hypot(px - (x1 + dx * t), py - (y1 + dy * t));
+}
+function eraseAt(p) {
+  const r = 13 / (view.s || 1);
+  const gone = (board.ink || []).filter(s => {
+    for (let i = 0; i < s.pts.length - 2; i += 2)
+      if (segDist(p.x, p.y, s.pts[i], s.pts[i + 1], s.pts[i + 2], s.pts[i + 3]) < r + s.w / 2) return true;
+    return s.pts.length === 2 && Math.hypot(p.x - s.pts[0], p.y - s.pts[1]) < r + s.w;
+  });
+  if (!gone.length) return;
+  if (!erasing) { snap(); erasing = true; }
+  board.ink = board.ink.filter(s => !gone.includes(s));
+  drawInk(); save();
+}
+let erasing = false;
+
 viewport.addEventListener("pointerdown", e => {
   if (e.target.closest(".edit")) return;
   ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
   hideCtx();
 
   if (ptrs.size === 2) { startPinch(); return; }
+
+  if (penMode) {
+    e.preventDefault();
+    const p = toWorld(e.clientX, e.clientY);
+    viewport.setPointerCapture(e.pointerId);
+    if (penMode === "erase") { erasing = false; eraseAt(p); return; }
+    live = { c: penColor, w: penSize, pts: [Math.round(p.x * 10) / 10, Math.round(p.y * 10) / 10] };
+    drawInk();
+    return;
+  }
 
   const itemEl = e.target.closest(".item");
   const labelEl = e.target.closest(".tlabel");
@@ -1231,6 +1545,20 @@ viewport.addEventListener("pointermove", e => {
   if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
   if (pinch && ptrs.size >= 2) { movePinch(); return; }
+  if (penMode) {
+    if (!ptrs.has(e.pointerId)) return;          // hovering, not drawing
+    const p = toWorld(e.clientX, e.clientY);
+    if (penMode === "erase") { eraseAt(p); return; }
+    if (!live) return;
+    const n = live.pts.length;
+    const dx = p.x - live.pts[n - 2], dy = p.y - live.pts[n - 1];
+    const step = 1.6 / (view.s || 1);            // thins out jitter before it is stored
+    if (dx * dx + dy * dy >= step * step) {
+      live.pts.push(Math.round(p.x * 10) / 10, Math.round(p.y * 10) / 10);
+      drawInk();
+    }
+    return;
+  }
   if (marq) { marq.cx = e.clientX; marq.cy = e.clientY; drawMarquee(); return; }
 
   if (linking) {
@@ -1313,6 +1641,19 @@ function setLasso(on) {
 }
 function up(e) {
   ptrs.delete(e.pointerId);
+  if (penMode) {
+    if (live) {
+      if (live.pts.length >= 4) {            // a tap is not a stroke — no stray blobs
+        snap();
+        if (!Array.isArray(board.ink)) board.ink = [];
+        board.ink.push({ id: uid(), c: live.c, w: live.w, pts: live.pts });
+        save();
+      }
+      live = null; drawInk();
+    }
+    erasing = false;
+    return;
+  }
   if (marq) { endMarquee(); return; }
   if (pinch && ptrs.size < 2) { pinch = null; save(); }
   endDrag();
@@ -1325,6 +1666,7 @@ viewport.addEventListener("lostpointercapture", e => { ptrs.delete(e.pointerId);
 /* pinch */
 function startPinch() {
   endDrag(); pan = null; viewport.classList.remove("panning");
+  if (live) { live = null; drawInk(); }   // two fingers means pan, not a stray mark
   const [a, b] = [...ptrs.values()];
   pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2, s: view.s, vx: view.x, vy: view.y };
 }
@@ -1403,6 +1745,9 @@ function toggleLinkMode(on) {
   else drawThreads();
 }
 function completeLink(id) {
+  if (!linking) return;
+  if (linking.from && !byId(linking.from)) { cancelLink(); return; }   // source was removed
+  if (!byId(id)) { cancelLink(); return; }
   if (!linking.from) {
     linking.from = id;
     $$(".item").forEach(n => n.classList.toggle("linkable", n.dataset.id !== id));
@@ -1484,6 +1829,7 @@ function linkMenu(id, x, y) {
   };
 }
 function removeItem(id) {
+  if (linking && linking.from === id) cancelLink();
   snap();
   board.items = board.items.filter(i => i.id !== id);
   board.links = board.links.filter(l => l.a !== id && l.b !== id);
@@ -1521,15 +1867,13 @@ function rrect(c, x, y, w, h, r) {
 function rand(seed) { let s = seed; return () => (s = s * 16807 % 2147483647) / 2147483647; }
 
 async function exportPNG() {
-  if (!board.items.length) { toast("Pin something to the board first"); return; }
+  if (!board.items.length && !(board.ink || []).length) { toast("Pin something to the board first"); return; }
   toast("Drawing the board…", 4000);
   try { await document.fonts.ready; } catch (e) { }
 
-  const pad = 90;
-  const x0 = Math.min(...board.items.map(i => i.x)) - pad;
-  const y0 = Math.min(...board.items.map(i => i.y)) - pad - 20;
-  const W = Math.max(...board.items.map(i => i.x + i.w)) + pad - x0;
-  const H = Math.max(...board.items.map(i => i.y + i.h)) + pad - y0;
+  const pad = 90, ex = extents();
+  const x0 = ex.x - pad, y0 = ex.y - pad - 20;
+  const W = ex.x + ex.w + pad - x0, H = ex.y + ex.h + pad - y0;
   const sc = clamp(2600 / Math.max(W, H), 0.7, 2);
 
   const W_ = isWhite();
@@ -1626,6 +1970,8 @@ async function exportPNG() {
     c.rotate((it.rot || 0) * Math.PI / 180);
     c.translate(-it.w / 2, -8);
     c.textBaseline = "top";
+    const fs = it.fs || board.fs || 1;
+    const FS = px => Math.round(px * fs) + "px ";
 
     if (it.type !== "marker") {
       c.shadowColor = "rgba(40,22,8,.45)"; c.shadowBlur = 14; c.shadowOffsetY = 10;
@@ -1644,7 +1990,7 @@ async function exportPNG() {
         c.save(); c.beginPath(); c.rect(9, 9, bw, bh); c.clip();
         c.drawImage(im, 9 + (bw - dw) / 2, 9 + (bh - dh) / 2, dw, dh); c.restore();
       }
-      c.fillStyle = W_ ? "#2b2d33" : "#2b2a45"; c.font = (W_ ? '15px ' : '19px ') + HAND; c.textAlign = "center";
+      c.fillStyle = W_ ? "#2b2d33" : "#2b2a45"; c.font = FS(W_ ? 15 : 19) + HAND; c.textAlign = "center";
       c.fillText((it.text || "").split("\n")[0].slice(0, 34), it.w / 2, fh + 12);
       c.textAlign = "left";
     }
@@ -1653,33 +1999,33 @@ async function exportPNG() {
       const sh = c.createLinearGradient(0, it.h - 26, 0, it.h);
       sh.addColorStop(0, "rgba(0,0,0,0)"); sh.addColorStop(1, "rgba(0,0,0,.09)");
       c.fillStyle = sh; c.fillRect(0, it.h - 26, it.w, 26);
-      c.fillStyle = "#33302a"; c.font = (W_ ? '17px ' : '21px ') + HAND;
-      lines(c, it.text, it.w - 26, 13, 14, W_ ? 25 : 26, it.h - 24);
+      c.fillStyle = "#33302a"; c.font = FS(W_ ? 17 : 21) + HAND;
+      lines(c, it.text, it.w - 26, 13, 14, Math.round((W_ ? 25 : 26) * fs), it.h - 24);
     }
     else if (it.type === "card") {
       paper(W_ ? "#fefefe" : "#f8f2e2");
       c.strokeStyle = W_ ? "rgba(96,124,160,.2)" : "rgba(90,120,160,.28)"; c.lineWidth = 1;
       for (let y = 25; y < it.h; y += 26) { c.beginPath(); c.moveTo(0, y + .5); c.lineTo(it.w, y + .5); c.stroke(); }
       c.strokeStyle = "rgba(190,70,60,.4)"; c.beginPath(); c.moveTo(22.5, 0); c.lineTo(22.5, it.h); c.stroke();
-      c.fillStyle = "#1e1a15"; c.font = W_ ? 'bold 16px ' + HAND : '14px ' + TYPED;
+      c.fillStyle = "#1e1a15"; c.font = (W_ ? "bold " + FS(16) + HAND : FS(14) + TYPED);
       c.fillText((it.title || "").slice(0, 30), 12, 10);
       c.strokeStyle = "rgba(0,0,0,.18)"; c.beginPath(); c.moveTo(12, 30.5); c.lineTo(it.w - 12, 30.5); c.stroke();
-      c.fillStyle = "#2a2f45"; c.font = (W_ ? '17px ' : '19px ') + HAND;
-      lines(c, it.text, it.w - 26, 12, 36, W_ ? 25 : 26, it.h - 44);
+      c.fillStyle = "#2a2f45"; c.font = FS(W_ ? 17 : 19) + HAND;
+      lines(c, it.text, it.w - 26, 12, 36, Math.round((W_ ? 25 : 26) * fs), it.h - 44);
     }
     else if (it.type === "doc") {
       paper(W_ ? "#fbfbf9" : "#f2ecda");
       c.fillStyle = "#cfc3a6"; c.beginPath(); c.moveTo(it.w - 24, 0); c.lineTo(it.w, 24); c.lineTo(it.w - 24, 24); c.closePath(); c.fill();
-      c.fillStyle = "#1e1a15"; c.font = '13px "Special Elite", monospace';
+      c.fillStyle = "#1e1a15"; c.font = FS(13) + TYPED;
       c.fillText((it.title || "").slice(0, 26), 15, 14);
       c.fillRect(15, 32, it.w - 30, 2);
-      c.fillStyle = "#33302a"; c.font = '12px "Special Elite", monospace';
-      lines(c, it.text, it.w - 30, 15, 42, 18, it.h - 56);
+      c.fillStyle = "#33302a"; c.font = FS(12) + TYPED;
+      lines(c, it.text, it.w - 30, 15, 42, Math.round(18 * fs), it.h - 56);
     }
     else if (it.type === "list") {
       paper(W_ ? "#fefefe" : "#f9f4e6");
       const done = it.tasks.filter(t => t.done).length;
-      c.fillStyle = "#1e1a15"; c.font = W_ ? 'bold 15px ' + HAND : '13px ' + TYPED;
+      c.fillStyle = "#1e1a15"; c.font = (W_ ? "bold " + FS(15) + HAND : FS(13) + TYPED);
       c.fillText((it.title || "").slice(0, 24), 12, 11);
       c.fillStyle = "#8a2018"; c.textAlign = "right";
       c.fillText(done + "/" + it.tasks.length, it.w - 12, 11); c.textAlign = "left";
@@ -1687,7 +2033,7 @@ async function exportPNG() {
       it.tasks.forEach(t => {
         if (y > it.h - 18) return;
         c.strokeStyle = "#5a5346"; c.lineWidth = 1.5; c.strokeRect(12.5, y + 3.5, 14, 14);
-        c.font = (W_ ? '17px ' : '18px ') + HAND; c.fillStyle = t.done ? "#8d8676" : "#2a2f45";
+        c.font = FS(W_ ? 17 : 18) + HAND; c.fillStyle = t.done ? "#8d8676" : "#2a2f45";
         if (t.done) { c.fillStyle = "#b02a1f"; c.fillText("✕", 15, y + 1); c.fillStyle = "#8d8676"; }
         const ls = wrapText(c, t.t, it.w - 44);
         c.fillText(ls[0] + (ls.length > 1 ? "…" : ""), 34, y + 1);
@@ -1696,19 +2042,19 @@ async function exportPNG() {
           c.strokeStyle = "rgba(176,42,31,.8)"; c.lineWidth = 2;
           c.beginPath(); c.moveTo(34, y + 12); c.lineTo(34 + tw, y + 12); c.stroke();
         }
-        y += 25;
+        y += Math.round(25 * fs);
       });
     }
     else if (it.type === "tag") {
       paper(W_ ? "#efe9d8" : "#e8d9ab", 4);
       c.fillStyle = "#2a2018"; c.beginPath(); c.arc(11, it.h / 2, 4, 0, 7); c.fill();
       c.strokeStyle = "#c9a227"; c.lineWidth = 1.5; c.beginPath(); c.arc(11, it.h / 2, 4, 0, 7); c.stroke();
-      c.fillStyle = "#231f1a"; c.font = W_ ? 'bold 15px ' + HAND : '13px ' + TYPED; c.textBaseline = "middle";
+      c.fillStyle = "#231f1a"; c.font = (W_ ? "bold " + FS(15) + HAND : FS(13) + TYPED); c.textBaseline = "middle";
       c.fillText((it.text || "").slice(0, 28), 22, it.h / 2); c.textBaseline = "top";
     }
     else if (it.type === "marker") {
-      c.fillStyle = it.color || "#7d1810"; c.font = W_ ? '34px ' + HANDB : 'bold 40px ' + HAND;
-      lines(c, it.text, it.w, 0, W_ ? 4 : 0, W_ ? 44 : 42, it.h + 40);
+      c.fillStyle = it.color || "#7d1810"; c.font = (W_ ? FS(34) + HANDB : "bold " + FS(40) + HAND);
+      lines(c, it.text, it.w, 0, W_ ? 4 : 0, Math.round((W_ ? 44 : 42) * fs), it.h + 40);
     }
 
     if (it.stamp) {
@@ -1777,6 +2123,12 @@ async function exportPNG() {
     c.restore();
   }
 
+  /* freehand goes on last, matching the board */
+  (board.ink || []).forEach(st => {
+    c.strokeStyle = st.c; c.lineWidth = st.w; c.lineCap = "round"; c.lineJoin = "round";
+    c.globalAlpha = .92; c.stroke(new Path2D(inkPath(st.pts))); c.globalAlpha = 1;
+  });
+
   /* case plate */
   c.font = (W_ ? '22px ' + HANDB : '22px "Special Elite", monospace');
   const nm = board.name, tw = Math.max(190, c.measureText(nm).width + 46);
@@ -1800,9 +2152,126 @@ async function exportPNG() {
   }, "image/png");
 }
 
+/* ═══════════════ getting started ═══════════════ */
+let tourStep = 1, tourMode = "first", tourPick = null;
+const tourWrap = () => $("#tourwrap");
+function showStep(n) {
+  tourStep = clamp(n, 1, 3);
+  $$("#tourwrap section").forEach(sec => sec.classList.toggle("on", +sec.dataset.step === tourStep));
+  $$("#tourwrap .dots i").forEach((d, i) => d.classList.toggle("on", i === tourStep - 1));
+  if (tourStep === 2) $$("#tourwrap .tile").forEach(t => t.classList.toggle("sel", t.dataset.pick === (tourPick || board.theme || "cork")));
+  if (tourStep === 3) $("#tour-end").innerHTML = tourMode === "first"
+    ? `<button class="btn" data-done="empty">Start empty</button><button class="btn primary" data-done="example">Start with an example</button>`
+    : `<button class="btn primary" data-done="close">Got it</button>`;
+  const inp = $("#tour-name");
+  if (tourStep === 1) setTimeout(() => { if (!isNarrow()) inp.focus(); }, 60);
+}
+function startTour(mode) {
+  tourMode = mode || "first";
+  tourPick = board.theme || "cork";
+  $("#tour-name").value = tourMode === "again" ? board.name : "";
+  tourWrap().hidden = false;
+  showStep(1);
+}
+function endTour(how) {
+  const name = ($("#tour-name").value || "").trim();
+  if (how !== "skip") {
+    if (name && name !== board.name) { board.name = name.slice(0, 60); plate(); }
+    if (tourPick && tourPick !== board.theme) { board.theme = tourPick; applyTheme(); }
+  }
+  if (how === "example" && !board.items.length) {
+    const seed = seedBoard();
+    board.items = seed.items; board.links = seed.links;
+  }
+  tourWrap().hidden = true;
+  renderAll(); fitBoard(false); save(true);
+  if (how === "example") toast("Have a poke around — nothing here is precious");
+  else if (how === "empty") toast("Start with a sticky note or a photo from the tools");
+}
+$("#tourwrap").addEventListener("click", e => {
+  const t = e.target.closest("[data-next],[data-back],[data-skip],[data-pick],[data-done]");
+  if (!t) return;
+  if (t.dataset.pick !== undefined) {
+    tourPick = t.dataset.pick;
+    $$("#tourwrap .tile").forEach(x => x.classList.toggle("sel", x === t));
+    document.body.dataset.theme = tourPick;          // preview it straight away
+    setTimeout(() => showStep(3), 220);
+    return;
+  }
+  if (t.hasAttribute("data-next")) return showStep(tourStep + 1);
+  if (t.hasAttribute("data-back")) return showStep(tourStep - 1);
+  if (t.hasAttribute("data-skip")) return endTour("skip");
+  if (t.dataset.done) endTour(t.dataset.done === "close" ? "close" : t.dataset.done);
+});
+$("#tourwrap").addEventListener("keydown", e => {
+  if (e.key === "Enter" && tourStep < 3) { e.preventDefault(); showStep(tourStep + 1); }
+});
+
+/* ═══════════════ pictures: squeeze them to fit ═══════════════ */
+const bytesOf = d => Math.round((String(d).length - (String(d).indexOf(",") + 1)) * 0.75);
+function fmtBytes(b) {
+  if (b < 1024) return b + " B";
+  if (b < 1024 * 1024) return Math.round(b / 1024) + " KB";
+  return (b / 1048576).toFixed(b < 10485760 ? 1 : 0) + " MB";
+}
+/* Shrinks until it fits the budget: dimensions first, then quality.
+   Always paints white underneath — JPEG has no alpha, and a transparent
+   PNG dropped straight in would come out with a black background. */
+function squeeze(img, budget = 240 * 1024, startDim = 1100) {
+  const cv = document.createElement("canvas"), c = cv.getContext("2d");
+  let dim = startDim, q = .82, out = "", size = 0;
+  for (let pass = 0; pass < 9; pass++) {
+    const sc = Math.min(1, dim / Math.max(img.width, img.height));
+    cv.width = Math.max(1, Math.round(img.width * sc));
+    cv.height = Math.max(1, Math.round(img.height * sc));
+    c.fillStyle = "#fff"; c.fillRect(0, 0, cv.width, cv.height);
+    c.imageSmoothingQuality = "high";
+    c.drawImage(img, 0, 0, cv.width, cv.height);
+    out = cv.toDataURL("image/jpeg", q);
+    size = bytesOf(out);
+    if (size <= budget) break;
+    if (q > .5) q -= .12; else if (dim > 420) { dim = Math.round(dim * .78); q = .78; } else break;
+  }
+  return { data: out, size, w: cv.width, h: cv.height };
+}
+function dbBytes() { try { return JSON.stringify(DB).length; } catch (e) { return 0; } }
+const QUOTA = 5 * 1024 * 1024;
+function renderMeter() {
+  const bar = $("#meter"); if (!bar) return;
+  const used = dbBytes(), pct = Math.min(100, Math.round(used / QUOTA * 100));
+  bar.querySelector("i").style.width = Math.max(2, pct) + "%";
+  bar.classList.toggle("full", pct > 80);
+  const pics = DB.boards.reduce((n, b) => n + b.items.filter(i => i.src).length, 0);
+  $("#meterlab").textContent = `${fmtBytes(used)} used of about 5 MB · ${pics} picture${pics === 1 ? "" : "s"}`;
+  $("#btn-shrink").style.display = board.items.some(i => i.src) ? "" : "none";
+}
+/* second pass over everything already on the board, tighter budget */
+async function shrinkAll() {
+  const pics = board.items.filter(i => i.src);
+  if (!pics.length) { toast("No pictures on this board"); return; }
+  toast("Shrinking " + pics.length + " picture" + (pics.length === 1 ? "" : "s") + "…", 6000);
+  snap();
+  let before = 0, after = 0;
+  for (const it of pics) {
+    before += bytesOf(it.src);
+    const got = await new Promise(res => {
+      const im = new Image();
+      im.onload = () => res(squeeze(im, 130 * 1024, 860));
+      im.onerror = () => res(null);
+      im.src = it.src;
+    });
+    if (!got) { after += bytesOf(it.src); continue; }
+    if (got.size < bytesOf(it.src)) { it.src = got.data; refresh(it.id); }
+    after += bytesOf(it.src);
+  }
+  save(true); renderMeter();
+  toast(before > after ? `Saved ${fmtBytes(before - after)} — now ${fmtBytes(after)}` : "Already as small as they go");
+}
+
 /* ═══════════════ due dates ═══════════════ */
 function today0() { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }
 function parseDue(s) { const [y, m, d] = String(s).split("-").map(Number); return new Date(y, m - 1, d); }
+const validDue = s => /^\d{4}-\d{2}-\d{2}$/.test(s || "") && !isNaN(parseDue(s));
 function dueState(s) {
   const d = parseDue(s), t = today0();
   const days = Math.round((d - t) / 86400000);
@@ -1832,7 +2301,7 @@ function toggleTimeline(on) {
 function renderTimeline() {
   if (!tlOpen) return;
   const tl = $("#timeline");
-  const dated = board.items.filter(i => i.due).sort((a, b) => a.due < b.due ? -1 : 1);
+  const dated = board.items.filter(i => validDue(i.due)).sort((a, b) => a.due < b.due ? -1 : 1);
   if (!dated.length) {
     tl.innerHTML = `<div class="tl-empty">No dates yet. Select an item and set one under “Due”.</div>`;
     return;
@@ -1948,7 +2417,11 @@ function openInspector() {
       `<button class="sw ${(it.pin || PINS[0]) === c ? "sel" : ""}" data-pin="${c}" style="background:radial-gradient(circle at 34% 30%,#fff9 0 14%,transparent 42%),${c}"></button>`).join("")}</div>`);
   h += field("Stamp", `<div class="seg">${STAMPS.map(s =>
     `<button data-stamp="${s}" class="${(it.stamp || "") === s ? "on" : ""}">${s ? s[0].toUpperCase() + s.slice(1) : "None"}</button>`).join("")}</div>`);
-  h += field(`Angle <b style="float:right;font-weight:400;color:#d8c9ab">${(+it.rot).toFixed(1)}°</b>`,
+  if (it.type !== "photo" && it.type !== "marker")
+    h += `<button class="btn wide" data-a="fith" style="margin-bottom:12px"><svg><use href="#i-fit"/></svg>Fit height to the text</button>`;
+  h += field("Text size", `<div class="seg">${SIZES.map(([lbl, v]) =>
+    `<button data-fs="${v}" class="${(+(it.fs || board.fs || 1)) === v ? "on" : ""}">${lbl}</button>`).join("")}</div>`);
+  h += field(`Angle <b style="float:right;font-weight:400;color:var(--pan-sub)">${(+it.rot).toFixed(1)}°</b>`,
     `<input type="range" min="-14" max="14" step="0.5" value="${it.rot}" data-f="rot" style="width:100%">`);
 
   body.innerHTML = h;
@@ -1974,8 +2447,10 @@ function openInspector() {
     if (b.dataset.col) { snap(); it.color = b.dataset.col; place(els.get(it.id), it); refresh(it.id); openInspector(); save(); }
     if (b.dataset.pin) { snap(); it.pin = b.dataset.pin; place(els.get(it.id), it); openInspector(); save(); }
     if (b.dataset.tape) { snap(); it.tape = b.dataset.tape; place(els.get(it.id), it); openInspector(); save(); }
+    if (b.dataset.fs) { snap(); it.fs = +b.dataset.fs; place(els.get(it.id), it); refresh(it.id); openInspector(); save(); }
     if (b.dataset.stamp !== undefined) { snap(); it.stamp = b.dataset.stamp; refresh(it.id); openInspector(); save(); }
     if (b.dataset.a === "pic") pickImage(it.id);
+    if (b.dataset.a === "fith") fitHeight(it);
   };
   $("#inspect-foot").onclick = e => {
     const b = e.target.closest("button"); if (!b) return;
@@ -1983,6 +2458,19 @@ function openInspector() {
     if (b.dataset.a === "front") { snap(); bump(it); save(); toast("Brought to front"); }
     if (b.dataset.a === "del") removeItem(it.id);
   };
+}
+/* grow or shrink an item so its text just fits */
+function fitHeight(it) {
+  const el = els.get(it.id); if (!el) return;
+  const sur = el.querySelector(".surface");
+  const prev = el.style.height;
+  el.style.height = "auto";
+  const h = sur.getBoundingClientRect().height / (view.s || 1);
+  el.style.height = prev;
+  snap();
+  it.h = Math.round(clamp(h + 2, 36, 1400));
+  place(el, it); drawThreads(); save();
+  toast("Trimmed to fit");
 }
 function field(label, inner) { return `<label class="field"><span>${label}</span>${inner}</label>`; }
 /* keep the item you're styling above the bottom sheet */
@@ -2007,6 +2495,7 @@ function renderCases() {
       <span class="s">${b.items.length} pinned · ${b.links.length} strings · ${when}</span></span>
       <span class="go"><svg width="16" height="16"><use href="#i-chev"/></svg></span></button>`;
   }).join("");
+  renderMeter();
   list.onclick = e => {
     const b = e.target.closest("[data-b]"); if (!b) return;
     switchBoard(b.dataset.b); closePanel("cases");
@@ -2049,9 +2538,9 @@ function boardMenu(id, x, y) {
 function switchBoard(id) {
   const b = DB.boards.find(k => k.id === id); if (!b) return;
   save(true);
-  board = b; DB.current = id; history = []; future = []; updateUndo();
+  board = normalise(b); DB.current = id; history = []; future = []; updateUndo();
   view = Object.assign({ x: 0, y: 0, s: 1 }, b.view || {});
-  sel = null; clearMulti(); cancelLink(); setLasso(false); closePanel("inspect");
+  sel = null; clearMulti(); cancelLink(); setLasso(false); setPen(null); closePanel("inspect");
   applyTheme(); renderAll(); applyView(); plate(); renderTimeline(); save(true);
 }
 function plate() { $("#casename").textContent = board.name; $("#caseno").textContent = board.no || "CASE FILE"; }
@@ -2059,11 +2548,24 @@ function applyTheme() {
   const t = (board && board.theme) || "cork";
   document.body.dataset.theme = t;
   $$("#themeseg button").forEach(b => b.classList.toggle("on", b.dataset.theme === t));
+  const f = (board && board.fs) || 1;
+  $$("#fsseg button").forEach(b => b.classList.toggle("on", +b.dataset.fs === f));
 }
+$("#fsseg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const v = +b.dataset.fs;
+  if (((board.fs) || 1) === v) return;
+  snap();
+  board.fs = v;
+  board.items.forEach(i => i.fs = v);
+  applyTheme(); renderAll(); save(true);
+  toast("Text set to " + b.textContent);
+});
 $("#themeseg").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
   if (((board.theme) || "cork") === b.dataset.theme) return;
   board.theme = b.dataset.theme;
+  if (!isWhite()) setPen(null);
   applyTheme(); renderAll(); save(true);
   toast(isWhite() ? "Whiteboard — things go up with tape" : "Corkboard — things go up with pins");
 });
@@ -2076,15 +2578,14 @@ $("#filepick").addEventListener("change", e => {
 });
 function readImage(file, id, at) {
   if (!file.type.startsWith("image/")) { toast("That file isn't a picture"); return; }
+  const original = file.size || 0;
   const fr = new FileReader();
   fr.onload = () => {
     const img = new Image();
     img.onload = () => {
-      const max = 1200, sc = Math.min(1, max / Math.max(img.width, img.height));
-      const c = document.createElement("canvas");
-      c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
-      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
-      const data = c.toDataURL("image/jpeg", 0.82);
+      const room = QUOTA - dbBytes();
+      const budget = clamp(Math.round(room * .25), 60 * 1024, 240 * 1024);
+      const got = squeeze(img, budget);
       snap();
       let it = id ? byId(id) : null;
       if (!it) {
@@ -2092,9 +2593,13 @@ function readImage(file, id, at) {
         it = mkItem("photo", p.x - 105, p.y - 118);
         board.items.push(it); makeEl(it);
       }
-      it.src = data;
+      it.src = got.data;
       it.h = Math.round(clamp(it.w * (img.height / img.width), 90, 620)) + 46;
-      refresh(it.id); selectItem(it.id); save();
+      refresh(it.id); selectItem(it.id); updateEmpty(); save();
+      renderMeter();
+      toast(original > got.size * 1.3
+        ? `Picture added — ${fmtBytes(original)} squeezed to ${fmtBytes(got.size)}`
+        : `Picture added — ${fmtBytes(got.size)}`);
     };
     img.onerror = () => toast("Couldn't read that picture");
     img.src = fr.result;
@@ -2106,9 +2611,25 @@ addEventListener("paste", e => {
   if (it) { readImage(it.getAsFile(), null); return; }
   const txt = e.clipboardData?.getData("text");
   if (txt && txt.trim() && !document.activeElement.closest("input,textarea")) {
+    const rows = txt.split("\n").map(t => t.trim()).filter(Boolean);
     const p = centerPoint();
-    const n = mkItem("sticky", p.x - 91, p.y - 91, { text: txt.trim().slice(0, 400) });
-    snap(); board.items.push(n); makeEl(n); refresh(n.id); selectItem(n.id); updateEmpty(); save();
+    snap();
+    if (rows.length > 1) {                        // a list becomes one note per line
+      const n = Math.min(rows.length, 40);
+      const cols = Math.min(5, Math.ceil(Math.sqrt(n))), gap = 202;
+      const x0 = p.x - (cols * gap) / 2, y0 = p.y - (Math.ceil(n / cols) * gap) / 2;
+      const made = [];
+      for (let i = 0; i < n; i++) {
+        const it = mkItem("sticky", x0 + (i % cols) * gap, y0 + Math.floor(i / cols) * gap,
+          { text: rows[i].slice(0, 300), color: STICKY[i % 3] });
+        board.items.push(it); makeEl(it); refresh(it.id); made.push(it.id);
+      }
+      setMulti(made); updateEmpty(); save();
+      toast(n + " notes pinned up" + (rows.length > n ? ` (first ${n} of ${rows.length})` : ""));
+    } else {
+      const n = mkItem("sticky", p.x - 91, p.y - 91, { text: txt.trim().slice(0, 400) });
+      board.items.push(n); makeEl(n); refresh(n.id); selectItem(n.id); updateEmpty(); save();
+    }
   }
 });
 ["dragover", "drop"].forEach(t => viewport.addEventListener(t, e => {
@@ -2132,7 +2653,7 @@ function addItem(type) {
   if (type === "photo") pickImage(it.id);
   else if (type === "sticky" || type === "marker" || type === "tag") setTimeout(() => startEdit(it.id, "text", true), 60);
 }
-$$("[data-add]").forEach(b => b.addEventListener("click", () => { if (linking) cancelLink(); addItem(b.dataset.add); }));
+$$("[data-add]").forEach(b => b.addEventListener("click", () => { setPen(null); if (linking) cancelLink(); addItem(b.dataset.add); }));
 
 /* ═══════════════ export / import ═══════════════ */
 function download(b) {
@@ -2144,6 +2665,8 @@ function download(b) {
   toast("Board exported");
 }
 $("#btn-export").addEventListener("click", () => download(board));
+$("#btn-shrink").addEventListener("click", () => { closePanel("cases"); shrinkAll(); });
+$("#btn-tour").addEventListener("click", () => { closePanel("cases"); setTimeout(() => startTour("again"), 240); });
 $("#btn-import").addEventListener("click", () => { $("#jsonpick").value = ""; $("#jsonpick").click(); });
 $("#jsonpick").addEventListener("change", e => {
   const f = e.target.files[0]; if (!f) return;
@@ -2156,8 +2679,8 @@ $("#jsonpick").addEventListener("change", e => {
       incoming.forEach(b => {
         b.id = uid(); b.name = b.name || "Imported board";
         b.no = "NO. " + String(DB.boards.length + 1).padStart(3, "0");
-        b.items = b.items || []; b.links = b.links || []; b.updated = Date.now();
-        DB.boards.push(b);
+        b.updated = Date.now();
+        DB.boards.push(normalise(b));
       });
       save(true); renderCases(); toast(incoming.length + " board" + (incoming.length > 1 ? "s" : "") + " imported");
     } catch (err) { toast("That file isn't a Pin It board"); }
@@ -2175,8 +2698,9 @@ $("#caseplate").addEventListener("click", () => {
   const v = prompt("Name this board", board.name);
   if (v) { board.name = v.slice(0, 60); plate(); save(true); }
 });
-$("#btn-link").addEventListener("click", () => { setLasso(false); toggleLinkMode(!linking); });
-$("#btn-lasso").addEventListener("click", () => setLasso(!lassoMode));
+$("#btn-link").addEventListener("click", () => { setPen(null); setLasso(false); toggleLinkMode(!linking); });
+$("#btn-lasso").addEventListener("click", () => { setPen(null); setLasso(!lassoMode); });
+$("#btn-pen").addEventListener("click", () => setPen(penMode ? null : "draw"));
 $("#btn-time").addEventListener("click", () => { toggleTimeline(); document.body.classList.toggle("tl", tlOpen); });
 $("#btn-png").addEventListener("click", () => { closePanel("cases"); setTimeout(exportPNG, 260); });
 $("#btn-undo").addEventListener("click", undo);
@@ -2197,14 +2721,21 @@ $("#search").addEventListener("keydown", e => {
 });
 
 addEventListener("keydown", e => {
+  if (!$("#tourwrap").hidden) { if (e.key === "Escape") endTour("skip"); return; }
   if (e.target.closest("input,textarea")) return;
   const meta = e.metaKey || e.ctrlKey;
   if (meta && e.key.toLowerCase() === "z") { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
   if (meta && e.key.toLowerCase() === "y") { e.preventDefault(); redo(); return; }
-  if (e.key === "Escape") { cancelLink(); setLasso(false); deselect(); hideCtx(); closePanel("cases"); return; }
+  if (e.key === "Escape") { setPen(null); cancelLink(); setLasso(false); deselect(); hideCtx(); closePanel("cases"); return; }
+  if (e.key.toLowerCase() === "p" && isWhite()) { setPen(penMode ? null : "draw"); return; }
   if (e.key === "Delete" || e.key === "Backspace") {
     if (multi.size > 1) { e.preventDefault(); removeMany([...multi]); return; }
     if (sel) { e.preventDefault(); removeItem(sel); return; }
+  }
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "d" && sel) {
+    e.preventDefault(); const it = byId(sel); if (!it) return;
+    snap(); const c = JSON.parse(JSON.stringify(it)); c.id = uid(); c.x += 28; c.y += 28; c.z = nextZ();
+    board.items.push(c); makeEl(c); refresh(c.id); selectItem(c.id); save(); return;
   }
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "a") { e.preventDefault(); setMulti(board.items.map(i => i.id)); return; }
   if (e.key.toLowerCase() === "t") { toggleTimeline(); document.body.classList.toggle("tl", tlOpen); return; }
@@ -2253,7 +2784,8 @@ if (board.items.length) {
   if (resized || (!v.x && !v.y) || !anyVisible()) fitBoard(false);
 }
 updateUndo();
-if (!store.persistent) toast("This browser won't save boards — export before you close the tab.", 5000);
+if (FRESH) startTour("first");
+else if (!store.persistent) toast("This browser won't save boards — export before you close the tab.", 5000);
 </script>
 </body>
 </html>
