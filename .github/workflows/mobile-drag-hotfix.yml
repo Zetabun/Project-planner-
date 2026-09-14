@@ -1,5 +1,6 @@
 name: Mobile drag hotfix
 
+# Triggered through a short-lived PR so GitHub runs this once with normal push semantics.
 on:
   push:
     branches: [main]
