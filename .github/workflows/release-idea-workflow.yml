@@ -1,0 +1,42 @@
+name: Pin It idea workflow release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/release-idea-workflow.yml
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Apply and verify Pin It 1.5.0
+        run: python3 .github/scripts/release_idea_workflow.py
+
+      - name: Second pass checks
+        shell: bash
+        run: |
+          git diff --check
+          grep -q 'const VERSION = "1.5.0";' index.html
+          grep -q 'id="idea-drawer"' index.html
+          grep -q 'function chooseLinkRelationship(from, to)' index.html
+          grep -q '## 1.5.0 — 14 September 2026, 22:01 UTC' CHANGELOG.md
+          echo "Second pass: diff, release metadata, Idea Inbox and relationship workflow present."
+
+      - name: Commit release to main
+        shell: bash
+        run: |
+          rm -f .github/workflows/release-idea-workflow.yml .github/scripts/release_idea_workflow.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "Release Pin It 1.5.0 idea workflow"
+          git push origin HEAD:main
