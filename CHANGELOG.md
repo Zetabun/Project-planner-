@@ -8,6 +8,12 @@ Numbers follow the usual shape: **major** for a change that breaks old saved boa
 
 ---
 
+## 1.4.2 — 14 September 2026, 21:55 UTC
+
+- Fixed newly added sticky notes, marker text and evidence tags sometimes refusing to move on the first drag in the mobile app.
+- On mobile/narrow layouts, new text items remain selected and immediately draggable instead of automatically opening the full-item inline editor over themselves.
+- Text remains one tap away through **Edit** on the mobile selection bar; desktop keeps the existing instant quick-edit behaviour.
+
 ## 1.4.1 — 14 September 2026, 20:04 UTC
 
 - Blueprint notes, index cards, reports, checklists, photos and tags now use blue drafting sheets, fine grids, white marker-style handwriting and crisp borders.
