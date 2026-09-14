@@ -1,0 +1,123 @@
+name: Mobile drag hotfix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/mobile-drag-hotfix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Apply mobile first-drag fix
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+
+          def rep(old, new, label):
+              global s
+              n = s.count(old)
+              if n != 1:
+                  raise SystemExit(f'{label}: expected 1 match, found {n}')
+              s = s.replace(old, new, 1)
+
+          rep('Version 1.4.1 · 14 September 2026, 20:04 UTC',
+              'Version 1.4.2 · 14 September 2026, 21:44 UTC', 'header')
+          rep('const VERSION = "1.4.1";', 'const VERSION = "1.4.2";', 'VERSION')
+          rep('const BUILD = "14 September 2026, 20:04 UTC";',
+              'const BUILD = "14 September 2026, 21:44 UTC";', 'BUILD')
+
+          release = '''  {
+    version: "1.4.2", date: "14 September 2026, 21:44 UTC",
+    summary: "A mobile interaction fix makes newly added notes and text immediately draggable.",
+    items: [
+      "Fixed newly added sticky notes, marker text and evidence tags sometimes refusing to move on the first drag in the mobile app.",
+      "On mobile layouts, new text items now stay selected and draggable instead of immediately placing a full-item text editor over themselves.",
+      "Text remains available from Edit on the mobile selection bar, while desktop keeps the existing instant quick-edit behaviour."
+    ]
+  },
+'''
+          rep('const RELEASES = [\n', 'const RELEASES = [\n' + release, 'RELEASES')
+
+          old = '''  if (type === "photo") pickImage(it.id);
+  else if (type === "sticky" || type === "marker" || type === "tag") setTimeout(() => startEdit(it.id, "text", true), 60);
+}'''
+          new = '''  if (type === "photo") pickImage(it.id);
+  else if (type === "sticky" || type === "marker" || type === "tag") {
+    // On mobile, immediately opening a full-item textarea can swallow the first
+    // drag gesture (especially in iOS standalone mode). Keep the new item selected
+    // and draggable; Edit in the selection bar still opens the text editor.
+    if (isNarrow()) toast("Added — drag to place, then tap Edit to write");
+    else setTimeout(() => startEdit(it.id, "text", true), 60);
+  }
+}'''
+          rep(old, new, 'addItem mobile editor')
+          p.write_text(s, encoding='utf-8')
+
+          cpath = Path('CHANGELOG.md')
+          c = cpath.read_text(encoding='utf-8')
+          marker = '---\n\n'
+          if marker not in c:
+              raise SystemExit('CHANGELOG marker missing')
+          entry = '''## 1.4.2 — 14 September 2026, 21:44 UTC
+
+- Fixed newly added sticky notes, marker text and evidence tags sometimes refusing to move on the first drag in the mobile app.
+- On mobile/narrow layouts, new text items remain selected and immediately draggable instead of automatically opening the full-item inline editor over themselves.
+- Text remains one tap away through **Edit** on the mobile selection bar; desktop keeps the existing instant quick-edit behaviour.
+
+'''
+          cpath.write_text(c.replace(marker, marker + entry, 1), encoding='utf-8')
+          PY
+
+      - name: Verify twice
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, subprocess, tempfile
+          html = Path('index.html').read_text(encoding='utf-8')
+          log = Path('CHANGELOG.md').read_text(encoding='utf-8')
+          expected = [
+            'const VERSION = "1.4.2";',
+            'const BUILD = "14 September 2026, 21:44 UTC";',
+            'version: "1.4.2"',
+            'if (isNarrow()) toast("Added — drag to place, then tap Edit to write")'
+          ]
+          for token in expected:
+              if token not in html: raise SystemExit('missing: ' + token)
+          if '## 1.4.2 — 14 September 2026, 21:44 UTC' not in log:
+              raise SystemExit('changelog mismatch')
+          scripts = re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>', html, re.S | re.I)
+          with tempfile.TemporaryDirectory() as td:
+              for i, script in enumerate(scripts):
+                  f = Path(td) / f's{i}.js'; f.write_text(script, encoding='utf-8')
+                  subprocess.run(['node', '--check', str(f)], check=True)
+          print('pass 1: metadata and JS syntax')
+          PY
+          git diff --check
+          grep -q 'const VERSION = "1.4.2";' index.html
+          grep -q '## 1.4.2 — 14 September 2026, 21:44 UTC' CHANGELOG.md
+          echo 'pass 2: diff and release consistency'
+
+      - name: Commit bug fix
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html CHANGELOG.md
+          git commit -m "Fix mobile first-drag for new notes (v1.4.2)"
+          git push origin HEAD:main
