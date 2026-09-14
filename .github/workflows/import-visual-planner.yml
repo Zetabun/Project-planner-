@@ -1,0 +1,41 @@
+name: Import Visual Planner
+
+on:
+  push:
+    paths:
+      - '.github/workflows/import-visual-planner.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rebuild Visual Planner source
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://active-gazer-cmg6p2p.shipstatic.com'
+          : > visual-planner.b64
+          for n in 1 2 3 4 5 6; do
+            curl -fsSL "$base/p${n}.txt" >> visual-planner.b64
+          done
+          base64 -d visual-planner.b64 > visual-planner.html.gz
+          gunzip -c visual-planner.html.gz > index.html
+          echo '95e90a490fe62230e2ae7d574b04ddc2aec8097f63564dbf8578ac642510d462  index.html' | sha256sum -c -
+          rm -f visual-planner.b64 visual-planner.html.gz
+      - name: Commit index.html
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m 'Add Visual Planner app'
+          git push
