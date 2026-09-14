@@ -8,6 +8,16 @@ Numbers follow the usual shape: **major** for a change that breaks old saved boa
 
 ---
 
+## 1.5.0 — 14 September 2026, 22:01 UTC
+
+- Added a collapsible **Idea Inbox** on the right of every board for quick capture before organising. Ideas persist with the board, can be dragged onto the board with touch or mouse, or placed explicitly as a **Feature** or **Note**.
+- Added **Move to Idea Inbox** to item menus and the inspector so ideas can be de-cluttered without being deleted.
+- Established a clear planning model: **Feature card = main idea**, **Sticky note = detail/behaviour/question**, **Checklist = implementation work**, **Tag = project area/system**.
+- Connecting two items now asks what the relationship means: **Expands into**, **Depends on**, **Affects**, **Blocked by**, or **Related to**.
+- Relationship choices automatically apply a useful label, colour and solid/dashed style; the relationship can be changed later from the connection menu.
+- Expanded Getting Started from three to four steps so new and existing users are taught the item roles, Idea Inbox and relationship workflow.
+- Updated the example board to demonstrate the new planning model and include a loose idea waiting in the Inbox.
+
 ## 1.4.2 — 14 September 2026, 21:55 UTC
 
 - Fixed newly added sticky notes, marker text and evidence tags sometimes refusing to move on the first drag in the mobile app.

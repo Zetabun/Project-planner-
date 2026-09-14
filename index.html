@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Pin It — a corkboard for planning projects
-  Version 1.4.2 · 14 September 2026, 21:55 UTC
+  Version 1.5.0 · 14 September 2026, 22:01 UTC
 
   TO RELEASE AN UPDATE: bump VERSION and BUILD, add the release to
   RELEASES in the script below, and add the same release at the top
@@ -430,6 +430,77 @@ body.tl #selbar{bottom:calc(92px + var(--safe-b))}
 #selbar button svg{width:20px; height:20px}
 #selbar button:active{background:var(--pan-soft2)}
 #selbar button.danger{color:var(--ui-on1)}
+
+
+/* ───────────── idea workflow / inbox ───────────── */
+#idea-tab{position:fixed; right:8px; top:48%; z-index:27; width:50px; min-height:66px; padding:7px 5px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+  border:1px solid var(--ui-line); border-radius:6px; color:var(--ui-fg);
+  background:linear-gradient(180deg,var(--ui-1),var(--ui-2)); box-shadow:0 7px 20px var(--ui-drop);
+  transition:opacity .18s,transform .18s}
+#idea-tab svg{width:20px;height:20px}
+#idea-tab span{font-size:9px; font-weight:800; letter-spacing:.09em; text-transform:uppercase}
+#idea-tab b{min-width:20px; height:20px; padding:0 5px; display:grid; place-items:center; border-radius:11px;
+  background:var(--ui-hi); border:1px solid var(--ui-line); font-size:10px; font-weight:800}
+body.ideas-open #idea-tab{opacity:0; pointer-events:none; transform:translateX(14px)}
+#idea-drawer{position:fixed; z-index:46; right:0; top:calc(var(--safe-t) + 72px); bottom:calc(var(--safe-b) + 76px);
+  width:min(360px,90vw); display:flex; flex-direction:column; color:var(--pan-fg);
+  background:linear-gradient(180deg,var(--sheet-2),var(--sheet)); border-left:1px solid var(--pan-line);
+  box-shadow:-18px 0 42px rgba(0,0,0,.28); transform:translateX(104%);
+  transition:transform .25s cubic-bezier(.2,.8,.25,1); pointer-events:none}
+#idea-drawer.show{transform:translateX(0); pointer-events:auto}
+#idea-drawer header{display:flex; align-items:center; justify-content:space-between; padding:13px 14px 10px;
+  border-bottom:1px solid var(--pan-line)}
+#idea-drawer header h2{margin:0; font-family:var(--type); font-size:17px; letter-spacing:.02em}
+.idea-intro{padding:10px 14px 0; color:var(--pan-sub); font-size:12px; line-height:1.45}
+#idea-form{display:flex; gap:7px; padding:10px 14px 12px; border-bottom:1px solid var(--pan-line)}
+#idea-input{flex:1; min-width:0; min-height:42px; max-height:90px; resize:vertical; border:1px solid var(--pan-line);
+  background:var(--in-bg); color:var(--in-fg); border-radius:4px; padding:9px 10px; font-size:13px; line-height:1.35}
+#idea-form .btn{align-self:stretch; padding-inline:12px}
+#idea-list{flex:1; overflow:auto; padding:11px 12px 18px; -webkit-overflow-scrolling:touch}
+.idea-empty{padding:22px 10px; text-align:center; color:var(--pan-hint); font-size:12px; line-height:1.5}
+.idea-card{position:relative; margin:0 0 9px; padding:11px 10px 9px; border:1px solid var(--pan-line); border-radius:5px;
+  background:var(--pan-soft); box-shadow:0 3px 9px rgba(0,0,0,.12); touch-action:none; user-select:none; -webkit-user-select:none}
+.idea-card:active{background:var(--pan-soft2)}
+.idea-text{font-family:var(--hand); font-size:18px; line-height:1.24; overflow-wrap:anywhere; white-space:pre-wrap}
+.idea-kind{margin-top:5px; color:var(--pan-hint); font:700 9px/1 var(--ui); letter-spacing:.09em; text-transform:uppercase}
+.idea-actions{display:flex; gap:6px; margin-top:9px; align-items:center}
+.idea-actions button{border:1px solid var(--pan-line); border-radius:4px; padding:6px 8px; color:var(--pan-fg);
+  background:var(--pan-soft); font-size:10.5px; font-weight:700}
+.idea-actions button:hover{background:var(--pan-soft2)}
+.idea-actions .idea-del{margin-left:auto; width:29px; padding:6px 0; font-size:15px; color:var(--pan-sub)}
+.idea-foot{padding:9px 14px 11px; border-top:1px solid var(--pan-line); color:var(--pan-hint); font-size:10.5px; line-height:1.4}
+.idea-ghost{position:fixed; z-index:90; width:min(220px,58vw); max-height:130px; overflow:hidden; pointer-events:none;
+  transform:translate(-50%,-50%) rotate(-2deg); padding:12px 13px; border-radius:4px; font-family:var(--hand); font-size:18px;
+  color:var(--ink); background:#f7e06a; box-shadow:0 18px 38px rgba(0,0,0,.35); opacity:.94}
+body[data-theme="white"] .idea-ghost{background:#fbfaf6}
+body[data-theme="blueprint"] .idea-ghost{background:#19476b; color:#edf7ff; border:1px solid #73b3cf}
+body.idea-dragging #idea-drawer{opacity:.88}
+
+/* relationship chooser */
+#ctx .ctx-rel-head{padding:7px 9px 5px; max-width:280px}
+#ctx .ctx-rel-head b{display:block; color:var(--pan-head); font-size:12px; margin-bottom:3px}
+#ctx .ctx-rel-head span{display:block; color:var(--pan-sub); font-size:10.5px; line-height:1.35}
+#ctx button.rel-choice{align-items:flex-start; min-width:250px; padding-top:8px; padding-bottom:8px}
+.rel-dot{width:11px; height:11px; margin-top:3px; border-radius:50%; flex:none; background:var(--relc); box-shadow:0 0 0 2px var(--pan-soft2)}
+.rel-copy{display:flex; flex-direction:column; gap:1px; min-width:0}
+.rel-copy b{font-size:12px; font-weight:800; color:var(--pan-fg)}
+.rel-copy small{font-size:10px; line-height:1.3; color:var(--pan-sub); white-space:normal}
+.tlabel.typed{border:1px solid var(--relc); box-shadow:0 2px 7px rgba(0,0,0,.16); font-weight:700}
+
+/* onboarding planning model */
+.tips.modeltips li{align-items:flex-start}
+.tips .mini-rel{display:flex; flex-wrap:wrap; gap:5px; margin-top:6px}
+.tips .mini-rel i{font-style:normal; border:1px solid var(--pan-line); border-radius:10px; padding:2px 7px;
+  font:700 9px/1.2 var(--ui); color:var(--pan-sub); background:var(--pan-soft)}
+
+@media(max-width:720px){
+  #idea-tab{right:6px; top:50%; width:45px; min-height:61px}
+  #idea-drawer{top:calc(var(--safe-t) + 68px); bottom:calc(var(--safe-b) + 72px); width:min(86vw,330px)}
+  .idea-text{font-size:17px}
+  #ctx button.rel-choice{min-width:min(250px,76vw)}
+}
+
 </style>
 <style>
 /* ───────────── pinned items ───────────── */
@@ -1012,12 +1083,12 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
   <div id="tools">
     <button class="tool" data-add="photo"><svg><use href="#i-photo"/></svg><span class="tip">Photo</span></button>
     <button class="tool" data-add="sticky"><svg><use href="#i-sticky"/></svg><span class="tip">Sticky note</span></button>
-    <button class="tool" data-add="card"><svg><use href="#i-card"/></svg><span class="tip">Index card</span></button>
+    <button class="tool" data-add="card"><svg><use href="#i-card"/></svg><span class="tip">Feature card</span></button>
     <button class="tool" data-add="doc"><svg><use href="#i-doc"/></svg><span class="tip">Report</span></button>
     <button class="tool" data-add="list"><svg><use href="#i-list"/></svg><span class="tip">Checklist</span></button>
     <button class="tool" data-add="tag"><svg><use href="#i-tag"/></svg><span class="tip">Evidence tag</span></button>
     <button class="tool" data-add="marker"><svg><use href="#i-marker"/></svg><span class="tip">Marker text</span></button>
-    <button class="tool" id="btn-link"><svg><use href="#i-string"/></svg><span class="tip">Run string (L)</span></button>
+    <button class="tool" id="btn-link"><svg><use href="#i-string"/></svg><span class="tip">Connect ideas (L)</span></button>
     <button class="tool" id="btn-pen"><svg><use href="#i-pen"/></svg><span class="tip">Write freehand (P)</span></button>
     <button class="tool" id="btn-lasso"><svg><use href="#i-lasso"/></svg><span class="tip">Select several</span></button>
   </div>
@@ -1112,9 +1183,26 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
   <footer id="inspect-foot"></footer>
 </aside>
 
+<button id="idea-tab" type="button" title="Idea Inbox (I)" aria-label="Open Idea Inbox" aria-controls="idea-drawer" aria-expanded="false">
+  <svg><use href="#i-sticky"/></svg><span>Ideas</span><b id="idea-count">0</b>
+</button>
+<aside id="idea-drawer" aria-label="Idea Inbox" aria-hidden="true">
+  <header>
+    <h2>Idea Inbox</h2>
+    <button class="xbtn" id="idea-close" aria-label="Close Idea Inbox"><svg width="18" height="18"><use href="#i-x"/></svg></button>
+  </header>
+  <div class="idea-intro"><b>Capture first. Organise later.</b><br>Keep loose thoughts here until they are ready for the board.</div>
+  <form id="idea-form">
+    <textarea id="idea-input" maxlength="400" rows="2" placeholder="Quick thought…"></textarea>
+    <button class="btn primary" type="submit">Add</button>
+  </form>
+  <div id="idea-list"></div>
+  <div class="idea-foot">Drag an idea onto the board, or use <b>Feature</b> for a main idea and <b>Note</b> for a detail, behaviour or question.</div>
+</aside>
+
 <div id="tourwrap" hidden>
   <div class="tour" role="dialog" aria-modal="true" aria-label="Getting started">
-    <div class="tourhead"><span class="brand">Pin&nbsp;It</span><div class="dots"><i></i><i></i><i></i></div></div>
+    <div class="tourhead"><span class="brand">Pin&nbsp;It</span><div class="dots"><i></i><i></i><i></i><i></i></div></div>
 
     <section data-step="1">
       <h2>A board for thinking on</h2>
@@ -1142,12 +1230,24 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
     </section>
 
     <section data-step="3">
-      <h2>A few things to know</h2>
+      <h2>Give each thing one job</h2>
+      <p class="lead">The board stays readable when the shape of an item tells you what it means.</p>
+      <ul class="tips modeltips">
+        <li><svg><use href="#i-card"/></svg><div><b>Feature card = the main idea</b>A system, feature or outcome worth building around. Other thoughts can branch from it.</div></li>
+        <li><svg><use href="#i-sticky"/></svg><div><b>Sticky note = a detail</b>A behaviour, refinement, question, rule or observation that explains a feature.</div></li>
+        <li><svg><use href="#i-list"/></svg><div><b>Checklist = implementation work</b>Concrete steps needed to make an idea real.</div></li>
+        <li><svg><use href="#i-tags"/></svg><div><b>Tags = areas of the project</b>Use them for Engine, Sound, Environment or whatever systems an idea touches.</div></li>
+      </ul>
+      <div class="tourfoot"><button class="btn" data-back>Back</button><button class="btn primary" data-next>Next</button></div>
+    </section>
+
+    <section data-step="4">
+      <h2>Capture first, connect second</h2>
       <ul class="tips">
-        <li><svg><use href="#i-sticky"/></svg><div><b>Put things up</b>Pick from the tool rail. Double-tap to write, drag to move, pull the corner to resize.</div></li>
-        <li><svg><use href="#i-string"/></svg><div><b>Join them up</b>Tap the string tool, then tap two items. Tap the string itself to label or cut it.</div></li>
-        <li><svg><use href="#i-cal"/></svg><div><b>Keep track</b>Give things a due date, stamp them Urgent or Done, tick off checklists.</div></li>
-        <li class="ink"><svg><use href="#i-pen"/></svg><div><b>Write on the board</b>The pen tool lets you scribble straight onto the whiteboard or blueprint board in marker — arrows, circles, a quick note in your own hand.</div></li>
+        <li><svg><use href="#i-sticky"/></svg><div><b>Use the Idea Inbox</b>Open the drawer on the right, jot down rough thoughts, then drag them onto the board when you are ready to organise them.</div></li>
+        <li><svg><use href="#i-string"/></svg><div><b>Say why two things connect</b>After choosing two items, Pin It asks what the relationship means.<span class="mini-rel"><i>Expands into</i><i>Depends on</i><i>Affects</i><i>Blocked by</i></span></div></li>
+        <li><svg><use href="#i-cal"/></svg><div><b>Then make it actionable</b>Add due dates, stamps and checklists once an idea becomes work you actually intend to do.</div></li>
+        <li class="ink"><svg><use href="#i-pen"/></svg><div><b>Keep capture loose</b>Not every thought needs a connection. If you cannot finish “this idea ___ that idea”, leave it unlinked for now.</div></li>
       </ul>
       <p class="hint">Everything saves in this browser as you go. No account, no upload.</p>
       <div class="tourfoot" id="tour-end"></div>
@@ -1195,14 +1295,26 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
    matching entry to CHANGELOG.md. Shown in the boards drawer,
    saved with the data, and stamped into exported boards.
    ───────────────────────────────────────────────────────────── */
-const VERSION = "1.4.2";
-const BUILD = "14 September 2026, 21:55 UTC";
+const VERSION = "1.5.0";
+const BUILD = "14 September 2026, 22:01 UTC";
 /*
   RELEASE HISTORY — mandatory for every future release.
   Before completing or pushing an update: bump VERSION/BUILD, add the new
   release here (newest first), and add the same release to CHANGELOG.md.
 */
 const RELEASES = [
+  {
+    version: "1.5.0", date: "14 September 2026, 22:01 UTC",
+    summary: "Ideas now have a clear workflow: capture them first, organise them by role, then connect them with meaningful relationships.",
+    items: [
+      "Added a collapsible per-board Idea Inbox on the right for quick capture, with touch/mouse drag-out placement plus Feature and Note actions.",
+      "Feature cards, detail notes, implementation checklists and area tags now form an explicit planning model taught in onboarding.",
+      "Creating a connection now asks whether it Expands into, Depends on, Affects, is Blocked by, or is simply Related to the second item.",
+      "Relationship choices automatically set useful labels, colours and solid/dashed line styles, and can be changed later from the connection menu.",
+      "Items can be moved back into the Idea Inbox when they are not ready to live on the board yet.",
+      "Expanded the Getting Started flow to teach the Idea Inbox, item roles and relationship system."
+    ]
+  },
   {
     version: "1.4.2", date: "14 September 2026, 21:55 UTC",
     summary: "A mobile interaction fix makes newly added notes and text immediately draggable.",
@@ -1328,6 +1440,15 @@ const draftInk = color => isBlueprint() ? (BLUEPRINT[Object.keys(MARKER).find(k 
 const THREAD_NAMES = { cork: { red: "Red", navy: "Navy", gold: "Gold", green: "Green", cream: "Cream" },
   white: { red: "Red", navy: "Blue", gold: "Orange", green: "Green", cream: "Black" },
   blueprint: { red: "Red", navy: "Sky", gold: "Amber", green: "Green", cream: "White" } };
+const RELATIONS = {
+  expands: { name: "Expands into", label: "expands into", color: "navy", style: "solid", help: "The second item develops or breaks out this idea." },
+  depends: { name: "Depends on", label: "depends on", color: "gold", style: "dashed", help: "This idea needs the second item to happen." },
+  affects: { name: "Affects", label: "affects", color: "green", style: "solid", help: "These ideas influence one another without owning each other." },
+  blocked: { name: "Blocked by", label: "blocked by", color: "red", style: "dashed", help: "The second item is preventing this idea from moving forward." },
+  related: { name: "Related to", label: "related to", color: null, style: null, help: "They belong together, but none of the other relationships fits." }
+};
+const relationKeyFromLabel = label => Object.keys(RELATIONS).find(k => RELATIONS[k].label === label) || null;
+
 const isWhite = () => !!board && board.theme === "white";
 const isBlueprint = () => !!board && board.theme === "blueprint";
 const isDraftTheme = () => !!board && (board.theme === "white" || board.theme === "blueprint");
@@ -1337,11 +1458,11 @@ const STAMPS = ["", "done", "urgent", "blocked", "idea", "review"];
 const SIZES = [["S", .85], ["M", 1], ["L", 1.2], ["XL", 1.45]];
 const TAGC = ["#c0392b", "#2e7d32", "#1f6feb", "#e0861a", "#7b4fa8", "#0f9b9b", "#c2185b", "#5d6773"];
 const MAXTAGS = 12;
-const TYPE_NAMES = { photo: "Photo", sticky: "Sticky note", card: "Index card", doc: "Report", list: "Checklist", tag: "Evidence tag", marker: "Marker text" };
+const TYPE_NAMES = { photo: "Photo", sticky: "Detail note", card: "Feature card", doc: "Report", list: "Implementation checklist", tag: "Area tag", marker: "Marker text" };
 const DEFAULTS = {
   photo:  { w: 210, h: 236, text: "" },
   sticky: { w: 182, h: 182, text: "New note" },
-  card:   { w: 250, h: 160, title: "Untitled", text: "" },
+  card:   { w: 250, h: 160, title: "New feature", text: "" },
   doc:    { w: 236, h: 286, title: "Report", text: "" },
   list:   { w: 236, h: 210, title: "Checklist" },
   tag:    { w: 176, h: 42, text: "Evidence 01" },
@@ -1387,7 +1508,7 @@ function newBoard(name) {
     no: "NO. " + String(n).padStart(3, "0"),
     created: Date.now(), updated: Date.now(), theme: (board && board.theme) || "cork",
     fs: (board && board.fs) || 1,
-    items: [], links: [], ink: [], tags: [], view: { x: 0, y: 0, s: 1 }
+    items: [], links: [], ink: [], tags: [], inbox: [], view: { x: 0, y: 0, s: 1 }
   };
 }
 function mkItem(type, x, y, extra) {
@@ -1411,6 +1532,7 @@ function normalise(b) {
   if (!Array.isArray(b.links)) b.links = [];
   if (!Array.isArray(b.ink)) b.ink = [];
   if (!Array.isArray(b.tags)) b.tags = [];
+  if (!Array.isArray(b.inbox)) b.inbox = [];
   b.tags = b.tags.filter(t => t && t.id).slice(0, MAXTAGS);
   b.tags.forEach((t, i) => { if (!t.color) t.color = TAGC[i % TAGC.length]; if (!t.name) t.name = "Tag " + (i + 1); });
   if (!b.theme) b.theme = "cork";
@@ -1434,6 +1556,8 @@ function normalise(b) {
   b.ink = b.ink.filter(s => s && Array.isArray(s.pts) && s.pts.length >= 2);
   const ids = new Set(b.items.map(i => i.id));
   b.links = b.links.filter(l => l && ids.has(l.a) && ids.has(l.b));   // drop strings to nothing
+  b.links.forEach(l => { if (!l.rel || !RELATIONS[l.rel]) l.rel = relationKeyFromLabel(l.label) || "related"; });
+  b.inbox = b.inbox.filter(i => i && i.id && String(i.text || "").trim()).map(i => ({ id: i.id, text: String(i.text).slice(0, 400), kind: i.kind === "card" ? "card" : "sticky", created: +i.created || Date.now() }));
   return b;
 }
 function nextZ() { return board && board.items.length ? Math.max(...board.items.map(i => i.z || 1)) + 1 : 1; }
@@ -1476,22 +1600,22 @@ function load() {
 
 /* ── undo ── */
 function snap() {
-  history.push(JSON.stringify({ items: board.items, links: board.links, ink: board.ink }));
+  history.push(JSON.stringify({ items: board.items, links: board.links, ink: board.ink, inbox: board.inbox }));
   if (history.length > 60) history.shift();
   future.length = 0; updateUndo();
 }
 function applySnap(s) {
-  const d = JSON.parse(s); board.items = d.items; board.links = d.links; board.ink = d.ink || [];
+  const d = JSON.parse(s); board.items = d.items; board.links = d.links; board.ink = d.ink || []; board.inbox = d.inbox || [];
   sel = null; renderAll(); closePanel("inspect"); save();
 }
 function undo() {
   if (!history.length) return;
-  future.push(JSON.stringify({ items: board.items, links: board.links, ink: board.ink }));
+  future.push(JSON.stringify({ items: board.items, links: board.links, ink: board.ink, inbox: board.inbox }));
   applySnap(history.pop()); updateUndo();
 }
 function redo() {
   if (!future.length) return;
-  history.push(JSON.stringify({ items: board.items, links: board.links, ink: board.ink }));
+  history.push(JSON.stringify({ items: board.items, links: board.links, ink: board.ink, inbox: board.inbox }));
   applySnap(future.pop()); updateUndo();
 }
 function updateUndo() {
@@ -1501,7 +1625,7 @@ function updateUndo() {
 
 /* ── first-run sample board: teaches the interaction ── */
 function seedBoard() {
-  const b = { theme: "cork", id: uid(), name: "The Greenhouse Job", no: "NO. 001", created: Date.now(), updated: Date.now(), items: [], links: [], ink: [], tags: [], view: { x: 0, y: 0, s: 1 } };
+  const b = { theme: "cork", id: uid(), name: "The Greenhouse Job", no: "NO. 001", created: Date.now(), updated: Date.now(), items: [], links: [], ink: [], tags: [], inbox: [], view: { x: 0, y: 0, s: 1 } };
   const it = (t, x, y, o) => { const i = mkItemRaw(t, x, y, o); b.items.push(i); return i; };
   function mkItemRaw(type, x, y, extra) {
     const d = DEFAULTS[type];
@@ -1513,23 +1637,24 @@ function seedBoard() {
     }, extra || {});
   }
   const head = it("marker", 300, 80, { text: "What are we building?", w: 420, h: 70, rot: -1.4 });
-  const brief = it("card", 180, 220, { title: "The brief", text: "Drag things around. Double-tap to write.", rot: -2.2 });
-  const string = it("sticky", 520, 210, { text: "Tap the string tool, then tap two pins to tie them together.", color: STICKY[2], rot: 2.6 });
+  const brief = it("card", 180, 220, { title: "Main feature", text: "Feature cards hold the big idea. Details can branch away from them.", rot: -2.2 });
+  const string = it("sticky", 520, 210, { text: "Connect two items, then choose why they relate: expands, depends on, affects or blocked by.", color: STICKY[2], rot: 2.6 });
   const plan = it("list", 210, 440, {
-    title: "This week", rot: 1.4,
-    tasks: [{ t: "Pin the big idea", done: true }, { t: "Break it into parts", done: false }, { t: "Connect what depends on what", done: false }]
+    title: "Implementation", rot: 1.4,
+    tasks: [{ t: "Define the feature", done: true }, { t: "Break it into details", done: false }, { t: "Turn the useful bits into work", done: false }]
   });
-  const risk = it("sticky", 560, 450, { text: "Anything unresolved goes on a sticky and gets a stamp.", color: STICKY[1], rot: -2.4, stamp: "urgent" });
+  const risk = it("sticky", 560, 450, { text: "Loose thoughts can wait in the Idea Inbox until you know where they belong.", color: STICKY[1], rot: -2.4, stamp: "idea" });
   const iso = d => { const x = new Date(); x.setDate(x.getDate() + d); return x.toISOString().slice(0, 10); };
   plan.due = iso(3); risk.due = iso(0); brief.due = iso(9);
   const tag = it("tag", 560, 660, { text: "Deadline", rot: -1, due: iso(12) });
   b.links.push(
-    { id: uid(), a: head.id, b: brief.id, color: "red", style: "solid", label: "" },
-    { id: uid(), a: brief.id, b: string.id, color: "red", style: "solid", label: "then" },
-    { id: uid(), a: brief.id, b: plan.id, color: "navy", style: "dashed", label: "breaks down into" },
-    { id: uid(), a: string.id, b: risk.id, color: "red", style: "solid", label: "" },
-    { id: uid(), a: risk.id, b: tag.id, color: "gold", style: "dashed", label: "blocked by" }
+    { id: uid(), a: head.id, b: brief.id, rel: "related", color: "red", style: "solid", label: "related to" },
+    { id: uid(), a: brief.id, b: string.id, rel: "expands", color: "navy", style: "solid", label: "expands into" },
+    { id: uid(), a: brief.id, b: plan.id, rel: "depends", color: "gold", style: "dashed", label: "depends on" },
+    { id: uid(), a: string.id, b: risk.id, rel: "affects", color: "green", style: "solid", label: "affects" },
+    { id: uid(), a: risk.id, b: tag.id, rel: "blocked", color: "red", style: "dashed", label: "blocked by" }
   );
+  b.inbox.push({ id: uid(), text: "Could this feature react differently at night?", kind: "sticky", created: Date.now() });
   return b;
 }
 </script>
@@ -1548,7 +1673,7 @@ function itemInner(it) {
     case "sticky":
       return `<div class="tx">${body(it, "Write something")}</div>`;
     case "card":
-      return `<div class="ttl">${esc(it.title || "Untitled")}</div><div class="tx">${body(it, "What's the detail?")}</div>`;
+      return `<div class="ttl">${esc(it.title || "New feature")}</div><div class="tx">${body(it, "What does this feature do?")}</div>`;
     case "doc":
       return `<div class="ttl">${esc(it.title || "Report")}</div><div class="tx">${body(it, "The full account goes here.")}</div>`;
     case "list": {
@@ -1634,6 +1759,7 @@ function renderAll() {
   els.clear();
   board.items.slice().sort((a, b) => (a.z || 0) - (b.z || 0)).forEach(it => { makeEl(it); refresh(it.id); });
   drawInk(); drawThreads(); updateEmpty(); renderLegend(); applyFilter();
+  if (typeof renderIdeaInbox === "function") renderIdeaInbox();
 }
 function updateEmpty() {
   let e = $("#empty");
@@ -1641,7 +1767,7 @@ function updateEmpty() {
   if (e) return;
   e = document.createElement("div");
   e.id = "empty";
-  e.innerHTML = `<h3>Nothing pinned yet</h3><p>Start with a sticky note or a photo from the tools, then run string between them.</p>`;
+  e.innerHTML = `<h3>Nothing pinned yet</h3><p>Start with a feature card or detail note — or capture loose thoughts in the Idea Inbox first.</p>`;
   world.appendChild(e);
   const r = viewport.getBoundingClientRect();
   const c = toWorld(r.width / 2, r.height / 2);
@@ -1732,9 +1858,12 @@ function drawLabels() {
     const A = byId(l.a), B = byId(l.b); if (!A || !B) return;
     const { mid } = linkGeom(l, A, B);
     const n = document.createElement("div");
-    n.className = "tlabel"; n.textContent = l.label; n.dataset.link = l.id;
+    const rel = l.rel || "related";
+    n.className = "tlabel" + (rel !== "related" ? " typed rel-" + rel : ""); n.textContent = l.label; n.dataset.link = l.id;
+    n.dataset.rel = rel;
     n.style.left = mid.x + "px"; n.style.top = mid.y + "px";
     n.style.setProperty("--rot", (((l.id.charCodeAt(0) % 7) - 3)) + "deg");
+    if (rel !== "related") n.style.setProperty("--relc", threadCol(l.color));
     world.appendChild(n);
   });
 }
@@ -2265,9 +2394,45 @@ function toggleLinkMode(on) {
   if (linking) { deselect(); toast("Tap the first item, then the second"); $$(".item").forEach(n => n.classList.add("linkable")); }
   else drawThreads();
 }
+function itemLinkName(it) {
+  if (!it) return "item";
+  return String(it.title || it.text || TYPE_NAMES[it.type] || "item").split("\n")[0].trim().slice(0, 38) || TYPE_NAMES[it.type] || "item";
+}
+function applyLinkRelation(l, key) {
+  const next = RELATIONS[key] || RELATIONS.related;
+  const oldDefault = relationKeyFromLabel(l.label);
+  const customLabel = !!l.label && !oldDefault;
+  l.rel = key in RELATIONS ? key : "related";
+  if (next.color) l.color = next.color;
+  if (next.style) l.style = next.style;
+  if (!customLabel) l.label = next.label;
+}
+function createRelatedLink(from, to, rel) {
+  const meta = RELATIONS[rel] || RELATIONS.related;
+  snap();
+  const l = { id: uid(), a: from, b: to, rel: rel in RELATIONS ? rel : "related", color: meta.color || uiThread,
+    style: meta.style || uiStyle, label: meta.label || "" };
+  board.links.push(l);
+  drawThreads(); save();
+  toast("Connected · " + meta.name);
+}
+function chooseLinkRelationship(from, to) {
+  const A = byId(from), B = byId(to); if (!A || !B) return;
+  const target = els.get(to), r = target ? target.getBoundingClientRect() : null;
+  const choices = Object.entries(RELATIONS).map(([key, meta]) => {
+    const col = threadCol(meta.color || uiThread);
+    return `<button class="rel-choice" data-rel="${key}"><span class="rel-dot" style="--relc:${col}"></span><span class="rel-copy"><b>${esc(meta.name)}</b><small>${esc(meta.help)}</small></span></button>`;
+  }).join("");
+  showCtx(`<div class="ctx-rel-head"><b>How do these ideas connect?</b><span>${esc(itemLinkName(A))} → ${esc(itemLinkName(B))}</span></div>${choices}`,
+    r ? r.left + r.width / 2 : innerWidth / 2, r ? r.top + Math.min(r.height, 60) : innerHeight / 2);
+  ctx.onclick = e => {
+    const b = e.target.closest("button[data-rel]"); if (!b) return;
+    hideCtx(); createRelatedLink(from, to, b.dataset.rel);
+  };
+}
 function completeLink(id) {
   if (!linking) return;
-  if (linking.from && !byId(linking.from)) { cancelLink(); return; }   // source was removed
+  if (linking.from && !byId(linking.from)) { cancelLink(); return; }
   if (!byId(id)) { cancelLink(); return; }
   if (!linking.from) {
     linking.from = id;
@@ -2277,12 +2442,11 @@ function completeLink(id) {
     return;
   }
   if (linking.from === id) { cancelLink(); return; }
-  const exists = board.links.some(l => (l.a === linking.from && l.b === id) || (l.b === linking.from && l.a === id));
-  if (exists) { toast("Those two are already tied together"); cancelLink(); return; }
-  snap();
-  board.links.push({ id: uid(), a: linking.from, b: id, color: uiThread, style: uiStyle, label: "" });
-  const f = els.get(linking.from); if (f) f.classList.remove("sel");
-  cancelLink(); save(); toast(isDraftTheme() ? "Line drawn" : "String run");
+  const from = linking.from;
+  const exists = board.links.some(l => (l.a === from && l.b === id) || (l.b === from && l.a === id));
+  if (exists) { toast("Those two are already connected"); cancelLink(); return; }
+  cancelLink();
+  chooseLinkRelationship(from, id);
 }
 function cancelLink() {
   const f = linking && linking.from && els.get(linking.from); if (f) f.classList.remove("sel");
@@ -2315,6 +2479,7 @@ function itemMenu(id, x, y) {
     <button data-a="dup">${ic("copy")}Duplicate</button>
     <button data-a="front">${ic("front")}Bring to front</button>
     <button data-a="back">${ic("back")}Send to back</button>
+    <button data-a="inbox">${ic("sticky")}Move to Idea Inbox</button>
     <hr>
     <button data-a="del" class="danger">${ic("trash")}Remove from board</button>`, x, y);
   ctx.onclick = e => {
@@ -2327,20 +2492,24 @@ function itemMenu(id, x, y) {
     if (act === "dup") { snap(); const c = JSON.parse(JSON.stringify(it)); c.id = uid(); c.x += 26; c.y += 26; c.z = nextZ(); board.items.push(c); makeEl(c); refresh(c.id); selectItem(c.id); save(); }
     if (act === "front") { snap(); bump(it); save(); }
     if (act === "back") { snap(); const m = Math.min(...board.items.map(i => i.z || 1)); it.z = m - 1; place(els.get(id), it); save(); }
+    if (act === "inbox") storeItemInInbox(id);
     if (act === "del") removeItem(id);
   };
 }
 function linkMenu(id, x, y) {
   const l = board.links.find(k => k.id === id); if (!l) return;
   const names = THREAD_NAMES[isBlueprint() ? "blueprint" : (isWhite() ? "white" : "cork")];
+  const rels = Object.entries(RELATIONS).map(([key, meta]) =>
+    `<button class="rel-choice" data-rel="${key}"><span class="rel-dot" style="--relc:${threadCol(meta.color || l.color)}"></span><span class="rel-copy"><b>${esc(meta.name)}${(l.rel || "related") === key ? " ✓" : ""}</b><small>${esc(meta.help)}</small></span></button>`).join("");
   const sw = Object.keys(THREADS).map(k =>
     `<button data-c="${k}" style="padding:6px 10px"><span style="width:16px;height:16px;border-radius:50%;background:${threadCol(k)};display:inline-block;box-shadow:0 1px 3px #0008"></span>${names[k]}${l.color === k ? " ✓" : ""}</button>`).join("");
-  showCtx(`${sw}<hr>
+  showCtx(`<div class="ctx-rel-head"><b>Relationship</b><span>Change what this connection means.</span></div>${rels}<hr>${sw}<hr>
     <button data-a="style"><svg><use href="#i-string"/></svg>${l.style === "dashed" ? "Make it solid" : "Make it dashed"}</button>
     <button data-a="label"><svg><use href="#i-tag"/></svg>${l.label ? "Change label" : "Add a label"}</button>
     <hr><button data-a="del" class="danger"><svg><use href="#i-trash"/></svg>${isDraftTheme() ? "Rub out this line" : "Cut the string"}</button>`, x, y);
   ctx.onclick = e => {
     const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.rel) { snap(); applyLinkRelation(l, b.dataset.rel); hideCtx(); drawThreads(); save(); toast("Relationship · " + RELATIONS[b.dataset.rel].name); return; }
     if (b.dataset.c) { snap(); l.color = b.dataset.c; uiThread = b.dataset.c; hideCtx(); drawThreads(); save(); return; }
     hideCtx();
     if (b.dataset.a === "style") { snap(); l.style = l.style === "dashed" ? "solid" : "dashed"; uiStyle = l.style; drawThreads(); save(); }
@@ -2977,11 +3146,11 @@ async function safetyCheck() {
 let tourStep = 1, tourMode = "first", tourPick = null;
 const tourWrap = () => $("#tourwrap");
 function showStep(n) {
-  tourStep = clamp(n, 1, 3);
+  tourStep = clamp(n, 1, 4);
   $$("#tourwrap section").forEach(sec => sec.classList.toggle("on", +sec.dataset.step === tourStep));
   $$("#tourwrap .dots i").forEach((d, i) => d.classList.toggle("on", i === tourStep - 1));
   if (tourStep === 2) $$("#tourwrap .tile").forEach(t => t.classList.toggle("sel", t.dataset.pick === (tourPick || board.theme || "cork")));
-  if (tourStep === 3) $("#tour-end").innerHTML = tourMode === "first"
+  if (tourStep === 4) $("#tour-end").innerHTML = tourMode === "first"
     ? `<button class="btn" data-done="empty">Start empty</button><button class="btn primary" data-done="example">Start with an example</button>`
     : `<button class="btn primary" data-done="close">Got it</button>`;
   const inp = $("#tour-name");
@@ -3002,12 +3171,12 @@ function endTour(how) {
   }
   if (how === "example" && !board.items.length) {
     const seed = seedBoard();
-    board.items = seed.items; board.links = seed.links;
+    board.items = seed.items; board.links = seed.links; board.inbox = seed.inbox || [];
   }
   tourWrap().hidden = true;
   renderAll(); fitBoard(false); save(true);
   if (how === "example") toast("Have a poke around — nothing here is precious");
-  else if (how === "empty") toast("Start with a sticky note or a photo from the tools");
+  else if (how === "empty") toast("Start with a feature card, a detail note, or the Idea Inbox");
 }
 $("#tourwrap").addEventListener("click", e => {
   const t = e.target.closest("[data-next],[data-back],[data-skip],[data-pick],[data-done]");
@@ -3025,7 +3194,7 @@ $("#tourwrap").addEventListener("click", e => {
   if (t.dataset.done) endTour(t.dataset.done === "close" ? "close" : t.dataset.done);
 });
 $("#tourwrap").addEventListener("keydown", e => {
-  if (e.key === "Enter" && tourStep < 3) { e.preventDefault(); showStep(tourStep + 1); }
+  if (e.key === "Enter" && tourStep < 4) { e.preventDefault(); showStep(tourStep + 1); }
 });
 
 /* ═══════════════ what's new / release history ═══════════════ */
@@ -3426,6 +3595,8 @@ function openInspector() {
     : `<svg><use href="#i-list"/></svg>Mark this done`}</button>`;
   if (it.type !== "photo" && it.type !== "marker")
     h += `<button class="btn wide" data-a="fith" style="margin-bottom:12px"><svg><use href="#i-fit"/></svg>Fit height to the text</button>`;
+  if (it.type !== "photo")
+    h += `<button class="btn wide" data-a="inbox" style="margin-bottom:12px"><svg><use href="#i-sticky"/></svg>Move to Idea Inbox</button>`;
   h += field("Text size", `<div class="seg">${SIZES.map(([lbl, v]) =>
     `<button data-fs="${v}" class="${(+(it.fs || board.fs || 1)) === v ? "on" : ""}">${lbl}</button>`).join("")}</div>`);
   h += field(`Angle <b style="float:right;font-weight:400;color:var(--pan-sub)">${(+it.rot).toFixed(1)}°</b>`,
@@ -3460,6 +3631,7 @@ function openInspector() {
     if (b.dataset.a === "pic") pickImage(it.id);
     if (b.dataset.a === "fith") fitHeight(it);
     if (b.dataset.a === "done") { setDone([it.id]); openInspector(); }
+    if (b.dataset.a === "inbox") { storeItemInInbox(it.id); return; }
     if (b.dataset.tog) { toggleTagOn([it.id], b.dataset.tog); openInspector(); }
     if (b.dataset.a === "newtag") {
       const v = prompt("Name this tag", "");
@@ -3508,7 +3680,7 @@ function renderCases() {
     return `<button class="caseitem ${b.id === board.id ? "active" : ""}" data-b="${b.id}">
       <span class="pinico"><svg width="16" height="16"><use href="#i-pin"/></svg></span>
       <span class="meta"><span class="t">${esc(b.name)}</span>
-      <span class="s">${b.items.length} pinned · ${b.links.length} strings · ${when}</span></span>
+      <span class="s">${b.items.length} pinned · ${b.links.length} connections · ${(b.inbox || []).length} inbox · ${when}</span></span>
       <span class="go"><svg width="16" height="16"><use href="#i-chev"/></svg></span></button>`;
   }).join("");
   renderMeter();
@@ -3671,6 +3843,136 @@ addEventListener("paste", e => {
   if (t === "drop" && e.dataTransfer.files[0]) readImage(e.dataTransfer.files[0], null, toWorld(e.clientX, e.clientY));
 }));
 
+
+/* ═══════════════ idea inbox ═══════════════ */
+const ideaDrawer = $("#idea-drawer"), ideaList = $("#idea-list"), ideaInput = $("#idea-input");
+function ideaDrawerOpen() { return ideaDrawer.classList.contains("show"); }
+function toggleIdeaDrawer(force) {
+  const on = force === undefined ? !ideaDrawerOpen() : !!force;
+  ideaDrawer.classList.toggle("show", on);
+  ideaDrawer.setAttribute("aria-hidden", on ? "false" : "true");
+  $("#idea-tab").setAttribute("aria-expanded", on ? "true" : "false");
+  document.body.classList.toggle("ideas-open", on);
+  if (on) { renderIdeaInbox(); setTimeout(() => { if (!isNarrow()) ideaInput.focus(); }, 80); }
+}
+function ideaFromItem(it) {
+  const boring = new Set(["Untitled", "New feature", "Report", "Checklist", "Implementation checklist"]);
+  const parts = [];
+  if (it.title && !boring.has(it.title)) parts.push(it.title.trim());
+  if (it.text && it.text.trim()) parts.push(it.text.trim());
+  if (it.type === "list" && it.tasks && it.tasks.length) parts.push(it.tasks.map(t => t.t).filter(Boolean).join("; "));
+  return (parts.join(" — ") || TYPE_NAMES[it.type] || "Idea").slice(0, 400);
+}
+function renderIdeaInbox() {
+  if (!ideaList || !board) return;
+  board.inbox = Array.isArray(board.inbox) ? board.inbox : [];
+  $("#idea-count").textContent = board.inbox.length;
+  if (!board.inbox.length) {
+    ideaList.innerHTML = `<div class="idea-empty"><b>Nothing waiting.</b><br>Use the box above whenever a thought arrives before you know where it belongs.</div>`;
+    return;
+  }
+  ideaList.innerHTML = board.inbox.map(i => `<div class="idea-card" data-idea="${i.id}">
+    <div class="idea-text">${esc(i.text)}</div>
+    <div class="idea-kind">${i.kind === "card" ? "Stored feature" : "Loose idea"} · drag to place</div>
+    <div class="idea-actions">
+      <button type="button" data-pin="card">Feature</button>
+      <button type="button" data-pin="sticky">Note</button>
+      <button type="button" class="idea-del" data-del aria-label="Delete stored idea">×</button>
+    </div>
+  </div>`).join("");
+}
+function addInboxIdea(text, kind = "sticky") {
+  const v = String(text || "").trim(); if (!v) return;
+  snap();
+  board.inbox.unshift({ id: uid(), text: v.slice(0, 400), kind: kind === "card" ? "card" : "sticky", created: Date.now() });
+  renderIdeaInbox(); save();
+}
+function pinInboxIdea(id, at, forcedKind) {
+  const idea = (board.inbox || []).find(i => i.id === id); if (!idea) return;
+  const kind = forcedKind || idea.kind || "sticky";
+  const d = DEFAULTS[kind] || DEFAULTS.sticky;
+  const p = at || centerPoint();
+  const extra = kind === "card"
+    ? { title: idea.text.length <= 60 ? idea.text : idea.text.slice(0, 57).trimEnd() + "…", text: idea.text.length > 60 ? idea.text : "" }
+    : { text: idea.text };
+  snap();
+  board.inbox = board.inbox.filter(i => i.id !== id);
+  const it = mkItem(kind, p.x - d.w / 2, p.y - d.h / 2, extra);
+  board.items.push(it); makeEl(it); refresh(it.id); selectItem(it.id);
+  renderIdeaInbox(); updateEmpty(); save();
+  if (isNarrow()) toggleIdeaDrawer(false);
+  toast(kind === "card" ? "Feature placed on the board" : "Idea placed as a detail note");
+}
+function storeItemInInbox(id) {
+  const it = byId(id); if (!it) return;
+  snap();
+  board.inbox = board.inbox || [];
+  board.inbox.unshift({ id: uid(), text: ideaFromItem(it), kind: it.type === "card" ? "card" : "sticky", created: Date.now() });
+  board.items = board.items.filter(i => i.id !== id);
+  board.links = board.links.filter(l => l.a !== id && l.b !== id);
+  const el = els.get(id); if (el) el.remove(); els.delete(id);
+  if (sel === id) deselect();
+  multi.delete(id); markSelected();
+  drawThreads(); updateEmpty(); renderTimeline(); renderIdeaInbox(); save();
+  toast("Moved to Idea Inbox");
+}
+$("#idea-tab").addEventListener("click", () => toggleIdeaDrawer());
+$("#idea-close").addEventListener("click", () => toggleIdeaDrawer(false));
+$("#idea-form").addEventListener("submit", e => {
+  e.preventDefault();
+  const v = ideaInput.value.trim(); if (!v) return;
+  addInboxIdea(v); ideaInput.value = ""; ideaInput.focus();
+});
+ideaInput.addEventListener("keydown", e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") { e.preventDefault(); $("#idea-form").requestSubmit(); }
+});
+ideaList.addEventListener("click", e => {
+  const card = e.target.closest(".idea-card"); if (!card) return;
+  const id = card.dataset.idea;
+  const pin = e.target.closest("[data-pin]");
+  if (pin) { pinInboxIdea(id, centerPoint(), pin.dataset.pin); return; }
+  if (e.target.closest("[data-del]")) {
+    snap(); board.inbox = board.inbox.filter(i => i.id !== id); renderIdeaInbox(); save();
+  }
+});
+let inboxDrag = null;
+function inboxGhost(text) {
+  const g = document.createElement("div"); g.className = "idea-ghost"; g.textContent = text; document.body.appendChild(g); return g;
+}
+ideaList.addEventListener("pointerdown", e => {
+  if (e.target.closest("button")) return;
+  const card = e.target.closest(".idea-card"); if (!card) return;
+  if (e.pointerType === "mouse" && e.button !== 0) return;
+  const idea = (board.inbox || []).find(i => i.id === card.dataset.idea); if (!idea) return;
+  inboxDrag = { id: idea.id, pointerId: e.pointerId, sx: e.clientX, sy: e.clientY, x: e.clientX, y: e.clientY, moved: false, ghost: null };
+  try { card.setPointerCapture(e.pointerId); } catch (err) {}
+  e.preventDefault();
+});
+ideaList.addEventListener("pointermove", e => {
+  if (!inboxDrag || inboxDrag.pointerId !== e.pointerId) return;
+  inboxDrag.x = e.clientX; inboxDrag.y = e.clientY;
+  if (!inboxDrag.moved && Math.hypot(e.clientX - inboxDrag.sx, e.clientY - inboxDrag.sy) > 7) {
+    inboxDrag.moved = true;
+    const idea = (board.inbox || []).find(i => i.id === inboxDrag.id);
+    inboxDrag.ghost = inboxGhost(idea ? idea.text : "Idea");
+    document.body.classList.add("idea-dragging");
+  }
+  if (inboxDrag.ghost) { inboxDrag.ghost.style.left = e.clientX + "px"; inboxDrag.ghost.style.top = e.clientY + "px"; }
+});
+function finishInboxDrag(e, cancelled) {
+  if (!inboxDrag || inboxDrag.pointerId !== e.pointerId) return;
+  const d = inboxDrag; inboxDrag = null;
+  if (d.ghost) d.ghost.remove();
+  document.body.classList.remove("idea-dragging");
+  if (cancelled || !d.moved) return;
+  const r = viewport.getBoundingClientRect();
+  const inside = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+  if (!inside) { toast("Drop the idea onto the board"); return; }
+  pinInboxIdea(d.id, toWorld(e.clientX, e.clientY));
+}
+ideaList.addEventListener("pointerup", e => finishInboxDrag(e, false));
+ideaList.addEventListener("pointercancel", e => finishInboxDrag(e, true));
+
 /* ═══════════════ adding ═══════════════ */
 function centerPoint() {
   const r = viewport.getBoundingClientRect();
@@ -3773,9 +4075,11 @@ addEventListener("keydown", e => {
   if (meta && e.key.toLowerCase() === "z") { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
   if (meta && e.key.toLowerCase() === "y") { e.preventDefault(); redo(); return; }
   if (e.key === "Escape") {
+    if (ideaDrawerOpen()) { toggleIdeaDrawer(false); return; }
     if (activeTags.size) { activeTags.clear(); applyFilter(); return; }
     setPen(null); cancelLink(); setLasso(false); deselect(); hideCtx(); closePanel("cases"); return;
   }
+  if (e.key.toLowerCase() === "i") { toggleIdeaDrawer(); return; }
   if (e.key.toLowerCase() === "p" && isDraftTheme()) { setPen(penMode ? null : "draw"); return; }
   if (e.key === "Delete" || e.key === "Backspace") {
     if (multi.size > 1) { e.preventDefault(); removeMany([...multi]); return; }
