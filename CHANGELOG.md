@@ -2,9 +2,29 @@
 
 Newest first. The version here must match `VERSION` and `BUILD` near the top of the script in `index.html` — bump both together, or the app will stamp the wrong number on exports.
 
+> **Mandatory future-agent rule:** before any update is considered complete or pushed, add its release to the top of this file **and** the `RELEASES` array in `index.html`, bump `VERSION`/`BUILD`, preserve all older history, and verify all four agree.
+
 Numbers follow the usual shape: **major** for a change that breaks old saved boards, **minor** for new features, **patch** for fixes and polish.
 
 ---
+
+## 1.3.0 — 14 September 2026
+
+- Added a visible **What's new** button to the boards drawer.
+- Added a dedicated release-history view: the newest release opens by default and older versions can be expanded underneath it.
+- Backfilled the in-app history for `1.0.0`, `1.1.0`, `1.1.1` and `1.2.0` so the app now shows its release history retroactively.
+- The version stamp now opens the full release history rather than only the current release notes.
+- Added an explicit future-release requirement to `README.md`, `CHANGELOG.md` and the `index.html` release block so future agents must update the in-app history and changelog before completing/pushing work.
+
+## 1.2.0 — 14 September 2026
+
+- **Marking things done.** One tap on the selection bar, `D`, or a button in the item panel. The paper fades and desaturates, a DONE ribbon crosses the top corner, and the strings running to it soften, so a glance at the board shows what's still live.
+- Checklists look after themselves: tick every box and the item finishes; untick one and it comes back. Marking the item done ticks every box.
+- Works on a whole lasso selection, so a week's finished work is one action.
+- Progress counts: `9/24 DONE` beside the board title, and `3/12` on each tag chip so you can see which areas are lagging.
+- A **Hide done** chip clears finished work off the board without deleting anything.
+- Finished items lose their due date — the ribbon says all that's needed.
+- Small items get a compact DONE pill instead of a corner ribbon, and the picture export renders all of it.
 
 ## 1.1.1 — 14 September 2026
 

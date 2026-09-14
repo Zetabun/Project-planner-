@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <!--
   Pin It — a corkboard for planning projects
-  Version 1.1.1 · 14 September 2026
+  Version 1.3.0 · 14 September 2026
 
-  TO RELEASE AN UPDATE: bump VERSION and BUILD in the script below
-  (search for "const VERSION"), then add a matching entry at the top
-  of CHANGELOG.md. Nothing else needs touching.
+  TO RELEASE AN UPDATE: bump VERSION and BUILD, add the release to
+  RELEASES in the script below, and add the same release at the top
+  of CHANGELOG.md. Keep all three in sync before finishing/pushing.
 -->
 <html lang="en">
 <head>
@@ -285,7 +285,8 @@ input[type=range]::-moz-range-thumb{width:18px; height:18px; border:0; border-ra
   border:1px solid var(--ui-line); box-shadow:0 12px 28px var(--ui-drop)}
 #selbar.show{display:flex; opacity:1; transform:translate(-50%,0)}
 #selbar.multi [data-s="edit"],#selbar.multi [data-s="link"],#selbar.multi [data-s="style"]{display:none}
-#selbar [data-s="tags"]{color:var(--ui-fg)}
+#selbar [data-s="tags"],#selbar [data-s="done"]{color:var(--ui-fg)}
+#selbar [data-s="done"]{color:#7fbf92}
 #selbar .count{display:none; align-items:center; padding:0 12px 0 8px; font-family:var(--type); font-size:12.5px; color:var(--ui-fg)}
 #selbar.multi .count{display:flex}
 body.tl #selbar{bottom:calc(92px + var(--safe-b))}
@@ -514,6 +515,26 @@ body[data-theme="white"] .tagstrip{box-shadow:none; border-radius:2px 0 0 2px}
 .item.tagged.t-photo .surface{padding-left:calc(var(--strip) + 9px)}
 .item.tagged.t-marker .surface{padding-left:0}
 
+/* finished work: faded paper, a corner ribbon, and no due date to worry about */
+.item.done .surface{filter:saturate(.3) contrast(.97); opacity:.66}
+.item.done .tagstrip{filter:saturate(.45); opacity:.7}
+.item.done .pin,.item.done .tape{opacity:.7}
+.item.done .due,.item.done .stamp{display:none}
+.donebanner{position:absolute; top:0; right:0; width:78px; height:78px; overflow:hidden; z-index:6;
+  pointer-events:none}
+.donebanner b{position:absolute; top:14px; right:-26px; width:108px; transform:rotate(45deg); text-align:center;
+  font:400 10.5px/1.75 var(--type); letter-spacing:.18em; color:#eff7f0;
+  background:linear-gradient(180deg,#4e8f62,#33654a); box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.donepill{position:absolute; top:-9px; right:11px; z-index:6; font:400 10.5px var(--type); letter-spacing:.1em;
+  padding:2px 8px 3px; border-radius:2px; background:#3a6b4c; color:#eff7f0; pointer-events:none;
+  box-shadow:0 3px 6px rgba(0,0,0,.4)}
+body[data-theme="white"] .donebanner b{background:var(--thread-green); font-family:var(--hand);
+  font-weight:700; letter-spacing:.04em; font-size:12px}
+body[data-theme="white"] .donepill{background:var(--thread-green); font-family:var(--hand);
+  font-weight:700; font-size:12px; letter-spacing:.02em}
+.tagchip.donechip i{border-radius:2px; background:#3a6b4c}
+body[data-theme="white"] .tagchip.donechip i{background:var(--thread-green)}
+
 /* stamp overlay */
 .stamp{position:absolute; right:-6px; bottom:6px; font-family:var(--type); font-size:15px; letter-spacing:.12em;
   padding:3px 9px; border:3px double currentColor; border-radius:3px; transform:rotate(-11deg); opacity:.82;
@@ -689,6 +710,44 @@ body[data-theme="white"] .tips li.ink{display:flex}
   .tourfoot .btn{flex:1; justify-content:center}
 }
 
+/* what's new / release history */
+#releasewrap[hidden]{display:none}
+#releasewrap{position:fixed; inset:0; z-index:72; display:grid; place-items:center; padding:16px;
+  background:var(--scrim); backdrop-filter:blur(3px); animation:fade .2s ease}
+.release{width:min(620px,100%); max-height:min(88vh,760px); display:flex; flex-direction:column; overflow:hidden;
+  border-radius:8px; background:linear-gradient(180deg,var(--sheet-2),var(--sheet)); color:var(--pan-fg);
+  border:1px solid var(--pan-line); box-shadow:0 30px 70px rgba(0,0,0,.5); animation:rise .26s cubic-bezier(.2,.8,.25,1)}
+.release-head{display:flex; align-items:flex-start; gap:14px; padding:18px 18px 14px; border-bottom:1px solid var(--pan-line)}
+.release-head-text{flex:1; min-width:0}
+.release-head .eyebrow{font-family:var(--type); font-size:10px; letter-spacing:.18em; color:var(--ui-on1); margin-bottom:5px}
+.release-head h2{font-family:var(--type); font-size:20px; margin:0; color:var(--pan-head)}
+.release-head p{font-size:12.5px; line-height:1.5; color:var(--pan-sub); margin:6px 0 0}
+.release-list{overflow:auto; padding:12px; -webkit-overflow-scrolling:touch}
+.release-item{margin:0 0 9px; border:1px solid var(--pan-line); border-radius:6px; background:var(--pan-soft); overflow:hidden}
+.release-item[open]{background:var(--pan-soft2)}
+.release-item.latest{border-color:var(--pan-actline); box-shadow:inset 3px 0 0 var(--ui-on1)}
+.release-item summary{list-style:none; display:flex; align-items:center; gap:9px; min-height:50px; padding:10px 12px; cursor:pointer}
+.release-item summary::-webkit-details-marker{display:none}
+.release-item summary::after{content:"+"; margin-left:auto; font-family:var(--type); font-size:16px; color:var(--pan-sub)}
+.release-item[open] summary::after{content:"−"}
+.release-ver{font-family:var(--type); font-size:14px; color:var(--pan-head)}
+.release-item.latest .release-ver::after{content:"LATEST"; display:inline-block; margin-left:8px; padding:2px 5px;
+  border-radius:2px; font-family:var(--ui); font-size:8px; font-weight:700; letter-spacing:.09em; vertical-align:2px;
+  color:var(--ui-onfg); background:var(--ui-on1)}
+.release-date{font-size:11px; color:var(--pan-sub)}
+.release-copy{padding:0 14px 13px; border-top:1px solid var(--pan-line)}
+.release-summary{font-size:12.5px; line-height:1.5; color:var(--pan-sub); margin:11px 0 8px}
+.release-copy ul{margin:0; padding-left:19px}
+.release-copy li{font-size:12.5px; line-height:1.5; margin:5px 0; color:var(--pan-fg)}
+.release-foot{display:flex; justify-content:flex-end; padding:11px 12px calc(11px + var(--safe-b)); border-top:1px solid var(--pan-line)}
+@media (max-width:720px){
+  #releasewrap{padding:10px}
+  .release{max-height:92vh}
+  .release-head{padding:15px 14px 12px}
+  .release-head h2{font-size:18px}
+  .release-list{padding:9px}
+}
+
 /* toast */
 #toast{position:fixed; left:50%; bottom:calc(22px + var(--safe-b)); transform:translate(-50%,20px); z-index:60;
   background:var(--tip-bg); color:var(--tip-fg); font-family:var(--type); font-size:13px; padding:9px 16px; border-radius:2px;
@@ -842,6 +901,7 @@ body[data-theme="white"] #btn-pen{display:grid}
     <span class="count"></span>
     <button data-s="edit" aria-label="Edit text"><svg><use href="#i-card"/></svg></button>
     <button data-s="link" aria-label="Run string from here"><svg><use href="#i-string"/></svg></button>
+    <button data-s="done" aria-label="Mark done"><svg><use href="#i-list"/></svg></button>
     <button data-s="tags" aria-label="Tags"><svg><use href="#i-tags"/></svg></button>
     <button data-s="style" aria-label="Style and stamp"><svg><use href="#i-pin"/></svg></button>
     <button data-s="dup" aria-label="Duplicate"><svg><use href="#i-copy"/></svg></button>
@@ -890,9 +950,10 @@ body[data-theme="white"] #btn-pen{display:grid}
     <div class="hint" id="backuplab" style="width:100%"></div>
     <button class="btn wide" id="btn-protect"><svg><use href="#i-pin"/></svg>Protect these boards from being cleared</button>
     <button class="btn wide" id="btn-shrink"><svg><use href="#i-down"/></svg>Shrink the pictures on this board</button>
+    <button class="btn wide" id="btn-releases"><svg><use href="#i-doc"/></svg>What's new</button>
     <button class="btn wide" id="btn-tour"><svg><use href="#i-chev"/></svg>How this works</button>
     <div class="hint" style="width:100%">Boards are stored in this browser. Export to keep a copy or move to another device.</div>
-    <button id="version" title="What changed in this version"></button>
+    <button id="version" title="Open release history"></button>
   </footer>
 </aside>
 
@@ -945,6 +1006,21 @@ body[data-theme="white"] #btn-pen{display:grid}
   </div>
 </div>
 
+<div id="releasewrap" hidden>
+  <div class="release" role="dialog" aria-modal="true" aria-labelledby="release-title">
+    <div class="release-head">
+      <div class="release-head-text">
+        <div class="eyebrow">PIN IT · RELEASE HISTORY</div>
+        <h2 id="release-title">What's new</h2>
+        <p>Every published update, newest first. Open any older version to see what changed.</p>
+      </div>
+      <button class="xbtn" id="release-x" aria-label="Close release history"><svg width="18" height="18"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="release-list" id="release-list"></div>
+    <div class="release-foot"><button class="btn primary" id="release-close">Close</button></div>
+  </div>
+</div>
+
 <div id="notice" hidden>
   <div class="nt-card">
     <h3 id="nt-title"></h3>
@@ -970,12 +1046,80 @@ body[data-theme="white"] #btn-pen{display:grid}
    matching entry to CHANGELOG.md. Shown in the boards drawer,
    saved with the data, and stamped into exported boards.
    ───────────────────────────────────────────────────────────── */
-const VERSION = "1.1.1";
+const VERSION = "1.3.0";
 const BUILD = "14 September 2026";
-const WHATSNEW = [
-  "Due dates now sit top right, level with the heading, instead of hanging off the bottom corner",
-  "Tag strips can show the tag name running down the edge, not just a colour",
-  "Text on index cards clears the ruled margin instead of running over it"
+/*
+  RELEASE HISTORY — mandatory for every future release.
+  Before completing or pushing an update: bump VERSION/BUILD, add the new
+  release here (newest first), and add the same release to CHANGELOG.md.
+*/
+const RELEASES = [
+  {
+    version: "1.3.0", date: "14 September 2026",
+    summary: "A proper in-app What's new section now keeps the full release history in one place.",
+    items: [
+      "Added a visible What's new button to the boards drawer.",
+      "Added a full release-history view with the latest release open by default and older releases expandable underneath.",
+      "Backfilled the in-app history for versions 1.0.0, 1.1.0, 1.1.1 and 1.2.0.",
+      "The version stamp now opens the same release history instead of showing only the current release.",
+      "Release documentation now requires future updates to keep VERSION, BUILD, the in-app RELEASES list and CHANGELOG.md in sync before work is completed or pushed."
+    ]
+  },
+  {
+    version: "1.2.0", date: "14 September 2026",
+    summary: "Finished work became a first-class state, with visual completion cues and progress counts.",
+    items: [
+      "Mark items done from the selection bar, with D, or from the item panel; completed paper fades and desaturates, a DONE marker appears, and connected strings soften.",
+      "Checklists automatically finish when every box is ticked and return to active if a box is unticked.",
+      "Marking done works across a whole lasso selection.",
+      "Added board-level and per-tag progress counts.",
+      "Added Hide done so completed work can be cleared from view without deleting it.",
+      "Finished items drop their due-date marker.",
+      "Small items use a compact DONE pill, and picture export includes the completed-state styling."
+    ]
+  },
+  {
+    version: "1.1.1", date: "14 September 2026",
+    summary: "A layout polish release for due dates, headings and checklist progress.",
+    items: [
+      "Moved due dates to the top right, level with item headings.",
+      "Headings now stop before the due date instead of running underneath it.",
+      "Moved checklist progress to the bottom right to free the top line for the date.",
+      "Picture export follows the revised layout."
+    ]
+  },
+  {
+    version: "1.1.0", date: "14 September 2026",
+    summary: "Tag strips gained readable names and item layouts learned to make room for them.",
+    items: [
+      "Added a Show names mode for tag strips, with the full tag name running vertically along the strip.",
+      "Fixed index-card text overlapping the ruled red margin.",
+      "All item types now reserve space for tag strips so labels do not sit under content."
+    ]
+  },
+  {
+    version: "1.0.0", date: "14 September 2026",
+    summary: "First published version of Pin It.",
+    items: [
+      "The board — pin photos, sticky notes, index cards, reports, checklists, evidence tags and marker headings.",
+      "The board — drag, resize, rotate and stamp items with Done, Urgent, Blocked, Idea or Review.",
+      "The board — run labelled string between items in five colours, solid or dashed.",
+      "The board — pan, pinch-zoom, undo, redo and search with highlighted matches.",
+      "The board — lasso-select several items, then move, duplicate or tag them as a group.",
+      "The board — draw freehand on whiteboards with five marker colours, three nib widths and a stroke eraser.",
+      "Organising — tags add colour accents and live-count legend filters.",
+      "Organising — due dates feed a timeline strip with a marker for today.",
+      "Organising — selecting an item can fade unrelated work and reveal its thread of connections.",
+      "Organising — text size can be set per item or for the whole board.",
+      "Looks — choose corkboard with pins and waxed string or whiteboard with tape and marker lines.",
+      "Looks — interface chrome changes with the selected board style.",
+      "Looks — save the whole board as a picture matching the current style.",
+      "Keeping it — boards save in the browser and export/import as self-contained JSON.",
+      "Keeping it — pictures shrink automatically as storage fills.",
+      "Keeping it — persistent-storage protection, iPhone install guidance and backup reminders help protect boards.",
+      "Keeping it — installs to the home screen with its own icon and opens full-screen."
+    ]
+  }
 ];
 
 const $ = s => document.querySelector(s);
@@ -1059,7 +1203,7 @@ function mkItem(type, x, y, extra) {
     w: d.w, h: d.h, rot: +(Math.random() * 4 - 2).toFixed(2),
     z: nextZ(), title: d.title || "", text: d.text || "",
     color: type === "sticky" ? STICKY[0] : (type === "marker" ? "#7d1810" : ""),
-    pin: PINS[0], tape: TAPES[0], stamp: "", src: "", tasks: [], due: "", tags: [],
+    pin: PINS[0], tape: TAPES[0], stamp: "", src: "", tasks: [], due: "", tags: [], done: false,
     fs: (board && board.fs) || 1
   };
   if (type === "list") it.tasks = [{ t: "First step", done: false }, { t: "Second step", done: false }];
@@ -1089,6 +1233,7 @@ function normalise(b) {
     if (typeof i.rot !== "number") i.rot = 0;
     if (typeof i.z !== "number") i.z = 1;
     if (!i.due || !/^\d{4}-\d{2}-\d{2}$/.test(i.due) || isNaN(new Date(i.due + "T00:00:00"))) i.due = "";
+    i.done = i.type === "list" && i.tasks.length ? i.tasks.every(t => t.done) : !!i.done;
     if (!i.stamp) i.stamp = "";
     ["w", "h", "x", "y"].forEach(k => { if (typeof i[k] !== "number") i[k] = DEFAULTS[i.type] ? DEFAULTS[i.type][k] || 0 : 0; });
   });
@@ -1170,7 +1315,7 @@ function seedBoard() {
       id: uid(), type, x, y, w: d.w, h: d.h, rot: +(Math.random() * 4 - 2).toFixed(2),
       z: b.items.length + 1, title: d.title || "", text: d.text || "",
       color: type === "sticky" ? STICKY[0] : (type === "marker" ? "#7d1810" : ""),
-      pin: PINS[0], tape: TAPES[0], stamp: "", src: "", tasks: [], due: "", tags: [], fs: 1
+      pin: PINS[0], tape: TAPES[0], stamp: "", src: "", tasks: [], due: "", tags: [], done: false, fs: 1
     }, extra || {});
   }
   const head = it("marker", 300, 80, { text: "What are we building?", w: 420, h: 70, rot: -1.4 });
@@ -1255,6 +1400,15 @@ function refresh(id) {
     const s = document.createElement("div");
     s.className = "stamp " + it.stamp; s.textContent = it.stamp.toUpperCase();
     el.appendChild(s);
+  }
+  el.classList.toggle("done", !!it.done);
+  const ob = el.querySelector(".donebanner, .donepill"); if (ob) ob.remove();
+  if (it.done) {
+    const d = document.createElement("div");
+    const small = it.type === "tag" || it.type === "marker" || it.h < 90;
+    d.className = small ? "donepill" : "donebanner";
+    d.innerHTML = small ? "DONE" : "<b>DONE</b>";
+    el.appendChild(d);
   }
   const ots = el.querySelector(".tagstrip"); if (ots) ots.remove();
   const tg = (it.tags || []).map(id => (board.tags || []).find(t => t.id === id)).filter(Boolean);
@@ -1352,13 +1506,14 @@ function drawThreads() {
     const { d, head } = linkGeom(l, A, B);
     const col = threadCol(l.color);
     const dash = l.style === "dashed" ? ' stroke-dasharray="11 7"' : "";
+    const soft = (A.done || B.done) ? ' opacity=".42"' : "";
     if (white) {
       out += `<path d="${d}" fill="none" stroke="${col}" stroke-width="1.7" stroke-linecap="round" opacity=".32" transform="translate(1,1.4)" pointer-events="none"${dash}/>`;
-      out += `<path d="${d}" fill="none" stroke="${col}" stroke-width="3.4" stroke-linecap="round" data-link="${l.id}"${dash}/>`;
-      out += `<path d="${head}" fill="none" stroke="${col}" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>`;
+      out += `<path d="${d}" fill="none" stroke="${col}" stroke-width="3.4" stroke-linecap="round" data-link="${l.id}"${dash}${soft}/>`;
+      out += `<path d="${head}" fill="none" stroke="${col}" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"${soft}/>`;
     } else {
       out += `<path d="${d}" fill="none" stroke="rgba(45,25,10,.35)" stroke-width="5" transform="translate(1.5,4)"/>`;
-      out += `<path d="${d}" fill="none" stroke="${col}" stroke-width="3.1" stroke-linecap="round" data-link="${l.id}"${dash}/>`;
+      out += `<path d="${d}" fill="none" stroke="${col}" stroke-width="3.1" stroke-linecap="round" data-link="${l.id}"${dash}${soft}/>`;
       out += `<path d="${d}" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="1" stroke-linecap="round" transform="translate(0,-.9)" pointer-events="none"${dash}/>`;
     }
   });
@@ -1493,6 +1648,7 @@ function applyFilter() {
   board.items.forEach(it => {
     const el = els.get(it.id); if (!el) return;
     el.classList.remove("dim", "hit");
+    el.style.display = (hideDone && it.done) ? "none" : "";
     const okText = !q || itemText(it).includes(q);
     const okTag = !filtering || (it.tags || []).some(t => activeTags.has(t));
     if (!okText || !okTag) { el.classList.add("dim"); return; }
@@ -1558,6 +1714,7 @@ function removeMany(ids) {
 $("#selbar").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
   const a = b.dataset.s;
+  if (a === "done") { setDone(multi.size > 1 ? [...multi] : [sel]); return; }
   if (a === "tags") {
     const r = b.getBoundingClientRect();
     tagPicker(multi.size > 1 ? [...multi] : [sel], r.left, r.top - 8);
@@ -1673,7 +1830,8 @@ viewport.addEventListener("pointerdown", e => {
     const li = e.target.closest("li[data-task]");
     if (li && it.type === "list") {
       snap(); const i = +li.dataset.task; it.tasks[i].done = !it.tasks[i].done;
-      refresh(it.id); save(); selectItem(it.id); return;
+      syncListDone(it);
+      refresh(it.id); save(); renderLegend(); plate(); selectItem(it.id); return;
     }
     // empty photo → pick a file
     if (it.type === "photo" && !it.src && e.target.closest(".drop")) { selectItem(it.id); pickImage(it.id); return; }
@@ -1955,6 +2113,7 @@ function itemMenu(id, x, y) {
   showCtx(`
     <button data-a="edit">${ic("card")}Edit text</button>
     <button data-a="link">${ic("string")}${isWhite() ? "Draw a line from here" : "Run string from here"}</button>
+    <button data-a="done">${ic("list")}${it.done ? "Put back on the board" : "Mark done"}</button>
     <button data-a="props">${ic("pin")}Style &amp; stamp</button>
     <hr>
     <button data-a="dup">${ic("copy")}Duplicate</button>
@@ -1967,6 +2126,7 @@ function itemMenu(id, x, y) {
     const act = a.dataset.a;
     if (act === "edit") startEdit(id, "text");
     if (act === "link") { linking = { from: id, to: null }; $("#btn-link").classList.add("on"); $$(".item").forEach(n => n.classList.toggle("linkable", n.dataset.id !== id)); toast("Now tap what it connects to"); }
+    if (act === "done") setDone([id]);
     if (act === "props") openInspector();
     if (act === "dup") { snap(); const c = JSON.parse(JSON.stringify(it)); c.id = uid(); c.x += 26; c.y += 26; c.z = nextZ(); board.items.push(c); makeEl(c); refresh(c.id); selectItem(c.id); save(); }
     if (act === "front") { snap(); bump(it); save(); }
@@ -2130,13 +2290,14 @@ async function exportPNG() {
   })));
 
   /* items */
-  const order = board.items.slice().sort((a, b) => (a.z || 0) - (b.z || 0));
+  const order = board.items.filter(i => !(hideDone && i.done)).sort((a, b) => (a.z || 0) - (b.z || 0));
   for (const it of order) {
     c.save();
     c.translate(it.x + it.w / 2, it.y + 8);
     c.rotate((it.rot || 0) * Math.PI / 180);
     c.translate(-it.w / 2, -8);
     c.textBaseline = "top";
+    if (it.done) { c.globalAlpha = .62; if ("filter" in c) c.filter = "saturate(.3)"; }
     const fs = it.fs || board.fs || 1;
     const FS = px => Math.round(px * fs) + "px ";
     const tgs = (it.tags || []).map(id => (board.tags || []).find(t => t.id === id)).filter(Boolean);
@@ -2258,7 +2419,7 @@ async function exportPNG() {
         c.textAlign = "left"; c.textBaseline = "top";
       });
     }
-    if (it.stamp) {
+    if (it.stamp && !it.done) {
       const col = { done: "#3a6b4c", urgent: "#b3271e", blocked: "#8a5a12", idea: "#23486b", review: "#5c3a7a" }[it.stamp];
       c.save();
       c.translate(it.w - (W_ ? 20 : 12), it.type === "photo" ? 30 : it.h - (W_ ? 20 : 12));
@@ -2277,7 +2438,29 @@ async function exportPNG() {
       c.fillText(t, -bw / 2, .5);
       c.restore(); c.textAlign = "left"; c.textBaseline = "top"; c.globalAlpha = 1;
     }
-    if (it.due) {
+    if (it.done) {                                  // ribbon across the corner
+      c.globalAlpha = 1; if ("filter" in c) c.filter = "none";
+      const R = Math.min(78, it.w * .5, it.h * .9);
+      if (R > 40) {
+        c.save();
+        c.beginPath(); c.rect(it.w - R, 0, R, R); c.clip();
+        c.translate(it.w, 0); c.rotate(Math.PI / 4);
+        c.fillStyle = W_ ? "#2c7d43" : "#3f7551";
+        c.fillRect(-90, 12, 180, 20);
+        c.fillStyle = "#eff7f0";
+        c.font = W_ ? 'bold 12px "Kalam", cursive' : '10.5px "Special Elite", monospace';
+        c.textAlign = "center"; c.textBaseline = "middle";
+        c.fillText("DONE", 0, 22.5);
+        c.restore(); c.textAlign = "left"; c.textBaseline = "top";
+      } else {
+        c.font = '10.5px "Special Elite", monospace';
+        const tw = c.measureText("DONE").width + 14;
+        c.fillStyle = W_ ? "#2c7d43" : "#3a6b4c";
+        c.fillRect(it.w - 11 - tw, -10, tw, 17);
+        c.fillStyle = "#eff7f0"; c.fillText("DONE", it.w - 4 - tw, -6);
+      }
+    }
+    if (it.due && !it.done) {
       const st = dueState(it.due), t = dueLabel(it.due);
       const boxed = it.type === "card" || it.type === "doc" || it.type === "list";
       if (W_) {
@@ -2324,6 +2507,7 @@ async function exportPNG() {
       c.fillStyle = "rgba(255,255,255,.45)";
       c.beginPath(); c.arc(it.w / 2 - 2, -3.5, 2.1, 0, 7); c.fill();
     }
+    c.globalAlpha = 1; if ("filter" in c) c.filter = "none";
     c.restore();
   }
 
@@ -2536,6 +2720,29 @@ $("#tourwrap").addEventListener("keydown", e => {
   if (e.key === "Enter" && tourStep < 3) { e.preventDefault(); showStep(tourStep + 1); }
 });
 
+/* ═══════════════ what's new / release history ═══════════════ */
+function renderReleaseHistory() {
+  const host = $("#release-list");
+  host.innerHTML = RELEASES.map((r, i) => `
+    <details class="release-item${i === 0 ? " latest" : ""}"${i === 0 ? " open" : ""}>
+      <summary><span class="release-ver">${esc(r.version)}</span><span class="release-date">${esc(r.date)}</span></summary>
+      <div class="release-copy">
+        <p class="release-summary">${esc(r.summary)}</p>
+        <ul>${r.items.map(item => `<li>${esc(item)}</li>`).join("")}</ul>
+      </div>
+    </details>`).join("");
+}
+function openReleaseHistory() {
+  closePanel("cases");
+  renderReleaseHistory();
+  $("#releasewrap").hidden = false;
+  requestAnimationFrame(() => $("#release-x").focus());
+}
+function closeReleaseHistory() { $("#releasewrap").hidden = true; }
+$("#release-x").addEventListener("click", closeReleaseHistory);
+$("#release-close").addEventListener("click", closeReleaseHistory);
+$("#releasewrap").addEventListener("click", e => { if (e.target === $("#releasewrap")) closeReleaseHistory(); });
+
 /* ═══════════════ pictures: squeeze them to fit ═══════════════ */
 const bytesOf = d => Math.round((String(d).length - (String(d).indexOf(",") + 1)) * 0.75);
 function fmtBytes(b) {
@@ -2704,9 +2911,37 @@ function dimStrings() {
   });
 }
 
+/* ═══════════════ finished work ═══════════════ */
+let hideDone = false;
+function setDone(ids, val) {
+  const items = ids.map(byId).filter(Boolean);
+  if (!items.length) return;
+  const target = val === undefined ? !items.every(i => i.done) : val;
+  snap();
+  items.forEach(it => {
+    it.done = target;
+    /* a checklist is done when its boxes are — so ticking the item ticks them all */
+    if (it.type === "list" && it.tasks.length) it.tasks.forEach(t => t.done = target);
+    refresh(it.id);
+  });
+  save(); renderLegend(); plate(); applyFilter();
+  toast(target ? (items.length > 1 ? items.length + " marked done" : "Marked done") : "Back on the board");
+}
+function syncListDone(it) {
+  if (it.type !== "list") return;
+  it.done = it.tasks.length > 0 && it.tasks.every(t => t.done);
+}
+const doneCount = () => board.items.filter(i => i.done).length;
+function toggleHideDone() {
+  hideDone = !hideDone;
+  applyFilter(); renderLegend();
+  toast(hideDone ? "Finished work hidden" : "Showing everything again");
+}
+
 /* ═══════════════ tags ═══════════════ */
 function tagById(id) { return (board.tags || []).find(t => t.id === id); }
 function tagCount(id) { return board.items.filter(i => (i.tags || []).includes(id)).length; }
+function tagDone(id) { return board.items.filter(i => (i.tags || []).includes(id) && i.done).length; }
 function newTag(name) {
   if (!board.tags) board.tags = [];
   if (board.tags.length >= MAXTAGS) { toast("That's the limit of " + MAXTAGS + " tags on a board"); return null; }
@@ -2732,11 +2967,16 @@ function toggleTagOn(ids, tagId) {
 function renderLegend() {
   const bar = $("#legend"); if (!bar) return;
   const tags = board.tags || [];
-  if (!tags.length) { bar.hidden = true; bar.innerHTML = ""; return; }
+  const done = doneCount();
+  if (!tags.length && !done) { bar.hidden = true; bar.innerHTML = ""; return; }
   bar.hidden = false;
-  bar.innerHTML = tags.map(t =>
-    `<button class="tagchip ${activeTags.has(t.id) ? "on" : ""}" data-tag="${t.id}" style="--tc:${t.color}">
-       <i></i>${esc(t.name)}<b>${tagCount(t.id)}</b></button>`).join("") +
+  bar.innerHTML = tags.map(t => {
+    const n = tagCount(t.id), d = tagDone(t.id);
+    return `<button class="tagchip ${activeTags.has(t.id) ? "on" : ""}" data-tag="${t.id}" style="--tc:${t.color}">
+       <i></i>${esc(t.name)}<b>${d ? d + "/" + n : n}</b></button>`;
+  }).join("") +
+    (done ? `<button class="tagchip donechip ${hideDone ? "on" : ""}" data-donefilter style="--tc:#3a6b4c">
+       <i></i>${hideDone ? "Show" : "Hide"} done<b>${done}</b></button>` : "") +
     `<button class="tagchip addbtn" data-newtag>+ Tag</button>`;
 }
 $("#legend").addEventListener("click", e => {
@@ -2750,6 +2990,7 @@ $("#legend").addEventListener("click", e => {
     else toast("Select something and tap the tag button to apply it");
     return;
   }
+  if (b.dataset.donefilter !== undefined) { toggleHideDone(); return; }
   const id = b.dataset.tag; if (!id) return;
   activeTags.has(id) ? activeTags.delete(id) : activeTags.add(id);
   applyFilter();
@@ -2872,6 +3113,9 @@ function openInspector() {
   h += field("Tags", `<div class="swatches" style="gap:6px">${(board.tags || []).map(t =>
       `<button class="tagchip ${(it.tags || []).includes(t.id) ? "on" : ""}" data-tog="${t.id}" style="--tc:${t.color}"><i></i>${esc(t.name)}</button>`).join("")}
       <button class="tagchip addbtn" data-a="newtag">+ New</button></div>`);
+  h += `<button class="btn wide" data-a="done" style="margin-bottom:12px">${it.done
+    ? `<svg><use href="#i-undo"/></svg>Put back on the board`
+    : `<svg><use href="#i-list"/></svg>Mark this done`}</button>`;
   if (it.type !== "photo" && it.type !== "marker")
     h += `<button class="btn wide" data-a="fith" style="margin-bottom:12px"><svg><use href="#i-fit"/></svg>Fit height to the text</button>`;
   h += field("Text size", `<div class="seg">${SIZES.map(([lbl, v]) =>
@@ -2894,6 +3138,7 @@ function openInspector() {
       const lines = t.value.split("\n").filter(l => l.trim() !== "");
       const was = new Map(it.tasks.map(x => [x.t, x.done]));
       it.tasks = lines.map(l => ({ t: l.trim(), done: was.get(l.trim()) || false }));
+      syncListDone(it); plate(); renderLegend();
     } else it[f] = t.value;
     refresh(it.id); save(); applyFilter();
   };
@@ -2906,6 +3151,7 @@ function openInspector() {
     if (b.dataset.stamp !== undefined) { snap(); it.stamp = b.dataset.stamp; refresh(it.id); openInspector(); save(); }
     if (b.dataset.a === "pic") pickImage(it.id);
     if (b.dataset.a === "fith") fitHeight(it);
+    if (b.dataset.a === "done") { setDone([it.id]); openInspector(); }
     if (b.dataset.tog) { toggleTagOn([it.id], b.dataset.tog); openInspector(); }
     if (b.dataset.a === "newtag") {
       const v = prompt("Name this tag", "");
@@ -3003,10 +3249,14 @@ function switchBoard(id) {
   board = normalise(b); DB.current = id; history = []; future = []; updateUndo();
   view = Object.assign({ x: 0, y: 0, s: 1 }, b.view || {});
   sel = null; clearMulti(); cancelLink(); setLasso(false); setPen(null); closePanel("inspect");
-  activeTags.clear();
+  activeTags.clear(); hideDone = false;
   applyTheme(); renderAll(); applyView(); plate(); renderTimeline(); renderLegend(); save(true);
 }
-function plate() { $("#casename").textContent = board.name; $("#caseno").textContent = board.no || "CASE FILE"; }
+function plate() {
+  $("#casename").textContent = board.name;
+  const d = board.items.filter(i => i.done).length, n = board.items.length;
+  $("#caseno").textContent = (board.no || "CASE FILE") + (d ? ` · ${d}/${n} DONE` : "");
+}
 function applyTheme() {
   const t = (board && board.theme) || "cork";
   document.body.dataset.theme = t;
@@ -3144,15 +3394,8 @@ async function download(b) {
 $("#btn-export").addEventListener("click", () => download(board));
 $("#btn-shrink").addEventListener("click", () => { closePanel("cases"); shrinkAll(); });
 $("#btn-protect").addEventListener("click", () => askPersist(true));
-$("#version").addEventListener("click", () => {
-  closePanel("cases");
-  showNotice({
-    title: "Pin It " + VERSION,
-    body: "Released " + BUILD + ". What landed in this version:",
-    steps: WHATSNEW,
-    action: "Close"
-  });
-});
+$("#btn-releases").addEventListener("click", openReleaseHistory);
+$("#version").addEventListener("click", openReleaseHistory);
 $("#btn-tour").addEventListener("click", () => { closePanel("cases"); setTimeout(() => startTour("again"), 240); });
 $("#btn-import").addEventListener("click", () => { $("#jsonpick").value = ""; $("#jsonpick").click(); });
 $("#jsonpick").addEventListener("change", e => {
@@ -3208,6 +3451,7 @@ $("#search").addEventListener("keydown", e => {
 });
 
 addEventListener("keydown", e => {
+  if (!$("#releasewrap").hidden) { if (e.key === "Escape") closeReleaseHistory(); return; }
   if (!$("#tourwrap").hidden) { if (e.key === "Escape") endTour("skip"); return; }
   if (e.target && e.target.closest && e.target.closest("input,textarea")) return;
   const meta = e.metaKey || e.ctrlKey;
@@ -3229,6 +3473,7 @@ addEventListener("keydown", e => {
   }
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "a") { e.preventDefault(); setMulti(board.items.map(i => i.id)); return; }
   if (e.key.toLowerCase() === "t") { toggleTimeline(); document.body.classList.toggle("tl", tlOpen); return; }
+  if (e.key.toLowerCase() === "d" && (sel || multi.size)) { setDone(multi.size > 1 ? [...multi] : [sel]); return; }
   if (e.key.toLowerCase() === "l") { toggleLinkMode(!linking); return; }
   if (e.key.toLowerCase() === "f") { fitBoard(true); return; }
   if (e.key === "/") { e.preventDefault(); $("#btn-search").click(); return; }

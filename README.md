@@ -89,6 +89,18 @@ Four sizes — S, M, L, XL — scaling every bit of writing on an item together:
 
 Both are undoable, and picture exports render at whatever size you set.
 
+## Marking things done
+
+Tap the tick on the selection bar, press `D`, or use the button in an item's panel. A finished item fades back and desaturates, takes a green DONE ribbon across its top corner, and the strings running to it soften — so you can see at a glance what's still live without reading a word. Small items get a compact DONE pill instead of a ribbon.
+
+Checklists manage it themselves: tick every box and the item is done; untick one and it's back. Marking the item done the other way round ticks all its boxes.
+
+It works on a whole selection, so finishing off a week's work is one action, and it's undoable like anything else.
+
+Counts appear beside the board title (`9/24 DONE`) and on every tag chip (`3/12`), which is the quickest way to see which part of a project is lagging. A **Hide done** chip in the legend clears finished work out of view without deleting it.
+
+Finished items drop their due date, since the ribbon covers it.
+
 ## Tags
 
 Tags group things across the board without moving them. A tagged item gets a strip of colour down its left edge — tape on cork, a marker stripe on the whiteboard — carrying the tag's initial, so you can tell at a glance that the red-edged notes are engine work and the green ones are gameplay. An item can carry more than one tag; the strip splits into bands rather than picking a winner.
@@ -156,6 +168,7 @@ Transparent PNGs are flattened onto white rather than going black, and the board
 | `L` | String mode |
 | `T` | Show or hide the dates strip |
 | `P` | Pen, on a whiteboard |
+| `D` | Mark the selection done, or put it back |
 | `Esc` | Clear a tag filter (then selection, then modes) |
 | Corner handle | Resize an item (text keeps its size — use Text size for that) |
 | `Shift` + drag | Select several with a box |
@@ -192,13 +205,25 @@ In `localStorage`, under the key `pinit.v1` — one browser, one device, no acco
 
 To sync across devices you'd need a small backend — a Cloudflare Worker with KV would do it, swapping the `store` wrapper near the top of the script for `fetch` calls.
 
+## What's new and release history
+
+The boards drawer has a **What's new** button. It opens the full release history, newest first, with the current release expanded and every previous release available underneath. The version stamp at the bottom of the drawer opens the same view. The history is embedded in `index.html`, so it still works when the app is running as a single local/offline file.
+
+The historical list is intentionally retrospective: versions `1.0.0`, `1.1.0`, `1.1.1`, `1.2.0` and every later release must remain available rather than replacing the previous entry.
+
 ## Releasing an update
 
-The version lives in exactly one place: `VERSION` and `BUILD`, near the top of the script in `index.html` (there's a comment block at the very top of the file pointing at it). Bump those, add a matching entry to the top of `CHANGELOG.md`, and you're done.
+**Mandatory for every future agent/update:** do not consider project work complete, and do not push a release, until all of the following are true:
 
-The number shows in the boards drawer, and tapping it lists what changed. It's also saved alongside the data and stamped into every exported board as `"app"`, so a file that turns up later can be traced to the build that wrote it. When someone opens a build newer than the one they last used, they get a quiet "Updated to…" note.
+1. Bump `VERSION` and `BUILD` near the top of the script in `index.html`.
+2. Add the new release to the **top** of the `RELEASES` array in `index.html`. Never delete older releases.
+3. Add the same version/date and matching change summary to the **top** of `CHANGELOG.md`.
+4. Verify the newest `RELEASES` entry, `CHANGELOG.md`, `VERSION` and `BUILD` all agree.
+5. Run the project checks and only then finish/commit/push.
 
-Use major for a change that breaks old saved boards, minor for new features, patch for fixes.
+The version is shown in the boards drawer, saved alongside the data and stamped into every exported board as `"app"`, so a file that turns up later can be traced to the build that wrote it. When someone opens a build newer than the one they last used, they get a quiet "Updated to…" note.
+
+Use major for a change that breaks old saved boards, minor for new features, patch for fixes and polish.
 
 ## Editing the file
 
