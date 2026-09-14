@@ -6,6 +6,13 @@ Numbers follow the usual shape: **major** for a change that breaks old saved boa
 
 ---
 
+## 1.1.1 — 14 September 2026
+
+- Due dates moved from the bottom-left corner to the top right, level with an item's heading. They were fighting the tag strip and the date underline for the same corner.
+- Headings now stop short of the date rather than running underneath it.
+- A checklist's progress tally moved to the bottom-right corner to free the top line for the date.
+- The picture export follows all of the above.
+
 ## 1.1.0 — 14 September 2026
 
 - Tag strips have a second mode: the tag name runs down the height of the strip, read bottom to top, with the strip widened to suit. Set it per board in the boards drawer under **Tag strips**.

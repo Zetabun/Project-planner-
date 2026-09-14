@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Pin It — a corkboard for planning projects
-  Version 1.1.0 · 14 September 2026
+  Version 1.1.1 · 14 September 2026
 
   TO RELEASE AN UPDATE: bump VERSION and BUILD in the script below
   (search for "const VERSION"), then add a matching entry at the top
@@ -353,7 +353,10 @@ body[data-theme="white"] .stamp::after{
   border-radius:48% 52% 50% 50%/60% 40% 58% 42%; transform:rotate(3deg)}
 body[data-theme="white"] .due{
   background:none; color:var(--thread-navy); font-family:var(--hand); font-weight:700; font-size:14px;
-  padding:0 2px; box-shadow:none; border-bottom:2.5px solid currentColor; left:13px; bottom:-13px}
+  padding:0 2px; box-shadow:none; border-bottom:2.5px solid currentColor}
+body[data-theme="white"] .t-card .due,
+body[data-theme="white"] .t-doc .due,
+body[data-theme="white"] .t-list .due{top:7px}
 body[data-theme="white"] .due.over,body[data-theme="white"] .due.today{color:var(--thread-red)}
 body[data-theme="white"] .due.soon{color:var(--thread-gold)}
 
@@ -434,7 +437,8 @@ body[data-theme="white"] .item.linkable .surface{box-shadow:0 0 0 2px rgba(var(-
   box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
 .t-list .ttl{font-family:var(--type); font-size:calc(var(--fs,1)*13px); margin-bottom:7px; color:#1e1a15;
   display:flex; justify-content:space-between; gap:8px; align-items:baseline}
-.t-list .ttl b{font-weight:400; font-size:calc(var(--fs,1)*11px); color:#8a2018}
+.t-list .ttl b{position:absolute; right:12px; bottom:8px; font-weight:400;
+  font-size:calc(var(--fs,1)*11px); color:#8a2018; opacity:.85}
 .t-list ul{list-style:none; margin:0; padding:0; overflow:hidden}
 .t-list li{display:flex; gap:8px; align-items:flex-start; font-family:var(--hand); font-size:calc(var(--fs,1)*18px);
   line-height:1.25; color:#2a2f45; padding:3px 0; cursor:pointer}
@@ -536,13 +540,15 @@ body[data-theme="white"] .tagstrip{box-shadow:none; border-radius:2px 0 0 2px}
 
 .ph{opacity:.35; font-style:italic}
 
-/* due date tab */
-.due{position:absolute; left:11px; bottom:-9px; z-index:4; font-family:var(--type); font-size:10.5px;
+/* due date — top right, level with the heading on anything that has one */
+.due{position:absolute; right:11px; top:-9px; z-index:4; font-family:var(--type); font-size:10.5px;
   padding:2px 8px 3px; color:#fdf6e6; background:#4b4235; border-radius:2px; pointer-events:none;
-  box-shadow:0 3px 6px rgba(0,0,0,.4)}
+  white-space:nowrap; box-shadow:0 3px 6px rgba(0,0,0,.4)}
 .due.over,.due.today{background:var(--thread-red)}
 .due.soon{background:#8a5a12}
-.t-marker .due{bottom:0}
+.t-card .due,.t-doc .due,.t-list .due{top:9px; right:12px}
+.t-card.hasdue .ttl,.t-doc.hasdue .ttl,.t-list.hasdue .ttl{padding-right:74px}
+.item.hasdue.t-photo .stamp{top:48px}        /* stand clear of the date */
 
 /* marquee */
 #marquee{position:fixed; z-index:23; display:none; pointer-events:none;
@@ -964,12 +970,12 @@ body[data-theme="white"] #btn-pen{display:grid}
    matching entry to CHANGELOG.md. Shown in the boards drawer,
    saved with the data, and stamped into exported boards.
    ───────────────────────────────────────────────────────────── */
-const VERSION = "1.1.0";
+const VERSION = "1.1.1";
 const BUILD = "14 September 2026";
 const WHATSNEW = [
-  "Tag strips can now show the tag name running down the edge, not just a colour",
-  "Text on index cards clears the ruled margin instead of running over it",
-  "Every item makes room for its tag strip rather than letting it sit under the text"
+  "Due dates now sit top right, level with the heading, instead of hanging off the bottom corner",
+  "Tag strips can show the tag name running down the edge, not just a colour",
+  "Text on index cards clears the ruled margin instead of running over it"
 ];
 
 const $ = s => document.querySelector(s);
@@ -1264,6 +1270,7 @@ function refresh(id) {
     el.appendChild(d);
   }
   const od = el.querySelector(".due"); if (od) od.remove();
+  el.classList.toggle("hasdue", !!(it.due && validDue(it.due)));
   if (it.due && validDue(it.due)) {
     const d = document.createElement("div");
     d.className = "due " + dueState(it.due); d.textContent = dueLabel(it.due);
@@ -2174,7 +2181,7 @@ async function exportPNG() {
       const mx = SW + 22.5, cx = SW + 34;
       c.strokeStyle = "rgba(190,70,60,.4)"; c.beginPath(); c.moveTo(mx, 0); c.lineTo(mx, it.h); c.stroke();
       c.fillStyle = "#1e1a15"; c.font = (W_ ? "bold " + FS(16) + HAND : FS(14) + TYPED);
-      c.fillText((it.title || "").slice(0, 30), cx, 10);
+      c.fillText((it.title || "").slice(0, 30), cx, 10, it.w - cx - (it.due ? 86 : 12));
       c.strokeStyle = "rgba(0,0,0,.18)"; c.beginPath(); c.moveTo(cx, 30.5); c.lineTo(it.w - 12, 30.5); c.stroke();
       c.fillStyle = "#2a2f45"; c.font = FS(W_ ? 17 : 19) + HAND;
       lines(c, it.text, it.w - cx - 12, cx, 36, Math.round((W_ ? 25 : 26) * fs), it.h - 44);
@@ -2184,7 +2191,7 @@ async function exportPNG() {
       c.fillStyle = "#cfc3a6"; c.beginPath(); c.moveTo(it.w - 24, 0); c.lineTo(it.w, 24); c.lineTo(it.w - 24, 24); c.closePath(); c.fill();
       c.fillStyle = "#1e1a15"; c.font = FS(13) + TYPED;
       const dl = tgs.length ? PL : 15;
-      c.fillText((it.title || "").slice(0, 26), dl, 14);
+      c.fillText((it.title || "").slice(0, 26), dl, 14, it.w - dl - (it.due ? 86 : 15));
       c.fillRect(dl, 32, it.w - dl - 15, 2);
       c.fillStyle = "#33302a"; c.font = FS(12) + TYPED;
       lines(c, it.text, it.w - dl - 15, dl, 42, Math.round(18 * fs), it.h - 56);
@@ -2194,9 +2201,9 @@ async function exportPNG() {
       const done = it.tasks.filter(t => t.done).length;
       c.fillStyle = "#1e1a15"; c.font = (W_ ? "bold " + FS(15) + HAND : FS(13) + TYPED);
       const ll = tgs.length ? PL : 12;
-      c.fillText((it.title || "").slice(0, 24), ll, 11);
+      c.fillText((it.title || "").slice(0, 24), ll, 11, it.w - ll - (it.due ? 86 : 14));
       c.fillStyle = "#8a2018"; c.textAlign = "right";
-      c.fillText(done + "/" + it.tasks.length, it.w - 12, 11); c.textAlign = "left";
+      c.fillText(done + "/" + it.tasks.length, it.w - 12, it.h - 20); c.textAlign = "left";
       let y = 32;
       it.tasks.forEach(t => {
         if (y > it.h - 18) return;
@@ -2272,19 +2279,22 @@ async function exportPNG() {
     }
     if (it.due) {
       const st = dueState(it.due), t = dueLabel(it.due);
+      const boxed = it.type === "card" || it.type === "doc" || it.type === "list";
       if (W_) {
         c.font = 'bold 14px ' + HAND;
         const col = { over: "#cf2f26", today: "#cf2f26", soon: "#d08a12", later: "#1d4f9e" }[st];
         const tw = c.measureText(t).width;
-        c.fillStyle = col; c.fillText(t, 13, it.h - 4);
+        const x = it.w - 12 - tw, y = boxed ? 7 : -12;
+        c.fillStyle = col; c.fillText(t, x, y);
         c.strokeStyle = col; c.lineWidth = 2.5;
-        c.beginPath(); c.moveTo(13, it.h + 13); c.lineTo(13 + tw, it.h + 12); c.stroke();
+        c.beginPath(); c.moveTo(x, y + 18); c.lineTo(x + tw, y + 17); c.stroke();
       } else {
         c.font = '11px "Special Elite", monospace';
         const tw = c.measureText(t).width + 14;
+        const x = it.w - 11 - tw, y = boxed ? 9 : -10;
         c.fillStyle = { over: "#b3271e", today: "#b3271e", soon: "#8a5a12", later: "#4b4235" }[st];
-        c.fillRect(10, it.h - 8, tw, 17);
-        c.fillStyle = "#fdf6e6"; c.fillText(t, 17, it.h - 4);
+        c.fillRect(x, y, tw, 17);
+        c.fillStyle = "#fdf6e6"; c.fillText(t, x + 7, y + 4);
       }
     }
     if (W_) {
