@@ -47,6 +47,7 @@ jobs:
           assert html.count('const BUILD = "14 September 2026, 23:15 UTC";') == 1
           assert html.count('function groupBounds(g)') == 1
           assert html.count('function createGroupArea(ids)') == 1
+          assert html.count('n.className = "group-box"') == 1
           print(f'Second pass: {len(scripts)} inline scripts parse and group-area wiring is singular.')
           PY
 
