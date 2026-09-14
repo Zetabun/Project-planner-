@@ -8,6 +8,15 @@ Numbers follow the usual shape: **major** for a change that breaks old saved boa
 
 ---
 
+## 1.6.0 — 14 September 2026, 23:15 UTC
+
+- Added **Group areas**: lasso two or more items and wrap them in a faint named system/subtopic boundary.
+- Group boundaries automatically follow their member items as cards move or resize, while the items remain independently editable.
+- Tapping a group label lets you select its contents, rename the group or remove just the boundary.
+- Added theme-specific Corkboard, Whiteboard and Blueprint treatments, plus group support in Fit board and picture export.
+- Group membership now persists through save/import/export and undo/redo, and automatically cleans itself up when grouped items are removed.
+- Updated onboarding and the worked example to demonstrate system boundaries.
+
 ## 1.5.1 — 14 September 2026, 22:45 UTC
 
 - Idea Inbox cards now allow normal vertical drawer scrolling while preserving deliberate drag-out placement gestures.

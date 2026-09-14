@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Pin It — a corkboard for planning projects
-  Version 1.5.1 · 14 September 2026, 22:45 UTC
+  Version 1.6.0 · 14 September 2026, 23:15 UTC
 
   TO RELEASE AN UPDATE: bump VERSION and BUILD, add the release to
   RELEASES in the script below, and add the same release at the top
@@ -274,6 +274,21 @@ body[data-theme="blueprint"] .item.linkable .surface{outline:2px solid #8dd8ff; 
   transform-origin:0 0; will-change:transform;}
 #threads{position:absolute; top:0; left:0; overflow:visible; pointer-events:none; z-index:1}
 #threads path{pointer-events:stroke; cursor:pointer}
+.group-box{position:absolute; z-index:0; pointer-events:none; border:2px dashed rgba(86,49,23,.34); border-radius:18px;
+  background:rgba(255,244,213,.055); box-shadow:inset 0 0 30px rgba(73,42,18,.035)}
+.group-label{position:absolute; left:14px; top:10px; max-width:calc(100% - 28px); min-height:25px; padding:5px 10px 4px;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; pointer-events:auto; cursor:pointer;
+  font:700 12px/1.2 var(--type); letter-spacing:.07em; text-transform:uppercase; color:#5c3921;
+  background:rgba(240,224,188,.9); border:1px solid rgba(92,57,33,.2); border-radius:2px;
+  box-shadow:0 3px 8px rgba(54,30,12,.12); transform:rotate(-.45deg)}
+body[data-theme="white"] .group-box{border-color:rgba(58,146,201,.46); background:rgba(89,171,219,.035);
+  box-shadow:inset 0 0 34px rgba(72,151,198,.025)}
+body[data-theme="white"] .group-label{font-family:var(--hand-bold); font-size:14px; font-weight:400; letter-spacing:.015em; text-transform:none;
+  color:#315f7f; background:rgba(231,244,252,.94); border-color:rgba(58,146,201,.24); box-shadow:0 3px 8px rgba(54,96,124,.08)}
+body[data-theme="blueprint"] .group-box{border-color:rgba(141,216,255,.48); background:rgba(141,216,255,.024);
+  box-shadow:inset 0 0 34px rgba(141,216,255,.02)}
+body[data-theme="blueprint"] .group-label{font-family:var(--bp-mono); font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+  color:#cfeeff; background:#173f5d; border-color:rgba(141,216,255,.42); box-shadow:0 3px 8px rgba(5,16,25,.24)}
 
 /* ───────────── top bar ───────────── */
 #topbar{position:absolute; z-index:20; top:calc(14px + var(--safe-t)); left:14px; right:14px;
@@ -421,6 +436,8 @@ input[type=range]::-moz-range-thumb{width:18px; height:18px; border:0; border-ra
   border:1px solid var(--ui-line); box-shadow:0 12px 28px var(--ui-drop)}
 #selbar.show{display:flex; opacity:1; transform:translate(-50%,0)}
 #selbar.multi [data-s="edit"],#selbar.multi [data-s="link"],#selbar.multi [data-s="style"]{display:none}
+#selbar [data-s="group"]{display:none}
+#selbar.multi [data-s="group"]{display:grid}
 #selbar [data-s="tags"],#selbar [data-s="done"]{color:var(--ui-fg)}
 #selbar [data-s="done"]{color:#7fbf92}
 #selbar .count{display:none; align-items:center; padding:0 12px 0 8px; font-family:var(--type); font-size:12.5px; color:var(--ui-fg)}
@@ -1033,6 +1050,7 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
   <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20l1.6-4.2L16 5.4a2 2 0 0 1 2.8 0l1.4 1.4a2 2 0 0 1 0 2.8L9.8 20 4 20z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/><path d="M14.5 7l3.5 3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
   <symbol id="i-eraser" viewBox="0 0 24 24"><path d="M8.5 20L3.8 15.3a1.6 1.6 0 0 1 0-2.3l8.6-8.6a1.6 1.6 0 0 1 2.3 0l4.9 4.9a1.6 1.6 0 0 1 0 2.3L13.2 20z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/><path d="M8.6 20H20M9 8.6l5.8 5.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
   <symbol id="i-lasso" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2" stroke="currentColor" stroke-width="1.7" fill="none" stroke-dasharray="3.5 3"/><circle cx="20.5" cy="19.5" r="2.2" fill="currentColor"/></symbol>
+  <symbol id="i-group" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3" stroke="currentColor" stroke-width="1.7" fill="none" stroke-dasharray="3 2.8"/><path d="M6.5 8h9M6.5 11h6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></symbol>
   <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="8.5" cy="14.5" r="1.3" fill="currentColor"/><circle cx="13" cy="14.5" r="1.3" fill="currentColor"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
   <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
@@ -1120,6 +1138,7 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
     <button data-s="link" aria-label="Run string from here"><svg><use href="#i-string"/></svg></button>
     <button data-s="done" aria-label="Mark done"><svg><use href="#i-list"/></svg></button>
     <button data-s="tags" aria-label="Tags"><svg><use href="#i-tags"/></svg></button>
+    <button data-s="group" aria-label="Create group area" title="Create group area"><svg><use href="#i-group"/></svg></button>
     <button data-s="style" aria-label="Style and stamp"><svg><use href="#i-pin"/></svg></button>
     <button data-s="dup" aria-label="Duplicate"><svg><use href="#i-copy"/></svg></button>
     <button data-s="del" class="danger" aria-label="Remove"><svg><use href="#i-trash"/></svg></button>
@@ -1238,6 +1257,7 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
         <li><svg><use href="#i-sticky"/></svg><div><b>Sticky note = a detail</b>A behaviour, refinement, question, rule or observation that explains a feature.</div></li>
         <li><svg><use href="#i-list"/></svg><div><b>Checklist = implementation work</b>Concrete steps needed to make an idea real.</div></li>
         <li><svg><use href="#i-tags"/></svg><div><b>Tags = areas of the project</b>Use them for Engine, Sound, Environment or whatever systems an idea touches.</div></li>
+        <li><svg><use href="#i-group"/></svg><div><b>Group area = a system boundary</b>Lasso related items and wrap them in a faint labelled area. The boundary follows the cluster as it grows.</div></li>
       </ul>
       <div class="tourfoot"><button class="btn" data-back>Back</button><button class="btn primary" data-next>Next</button></div>
     </section>
@@ -1296,14 +1316,25 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
    matching entry to CHANGELOG.md. Shown in the boards drawer,
    saved with the data, and stamped into exported boards.
    ───────────────────────────────────────────────────────────── */
-const VERSION = "1.5.1";
-const BUILD = "14 September 2026, 22:45 UTC";
+const VERSION = "1.6.0";
+const BUILD = "14 September 2026, 23:15 UTC";
 /*
   RELEASE HISTORY — mandatory for every future release.
   Before completing or pushing an update: bump VERSION/BUILD, add the new
   release here (newest first), and add the same release to CHANGELOG.md.
 */
 const RELEASES = [
+  {
+    version: "1.6.0", date: "14 September 2026, 23:15 UTC",
+    summary: "Named group areas make related clusters read as systems while keeping every card and note independently editable.",
+    items: [
+      "Lasso-select two or more items and use Group area to wrap them in a faint labelled boundary.",
+      "Group areas automatically grow, shrink and move with their member items instead of becoming another rigid container.",
+      "Tap a group label to select its contents, rename the area or remove only the boundary while keeping the items.",
+      "Added distinct Corkboard, Whiteboard and Blueprint group styling, plus group regions in fit-to-board and picture export.",
+      "Group membership persists through save, import/export and undo/redo, with automatic cleanup when grouped items are removed."
+    ]
+  },
   {
     version: "1.5.1", date: "14 September 2026, 22:45 UTC",
     summary: "A mobile polish pass makes the new idea workflow safer and easier to use on small screens.",
@@ -1520,7 +1551,7 @@ function newBoard(name) {
     no: "NO. " + String(n).padStart(3, "0"),
     created: Date.now(), updated: Date.now(), theme: (board && board.theme) || "cork",
     fs: (board && board.fs) || 1,
-    items: [], links: [], ink: [], tags: [], inbox: [], view: { x: 0, y: 0, s: 1 }
+    items: [], links: [], ink: [], tags: [], inbox: [], groups: [], view: { x: 0, y: 0, s: 1 }
   };
 }
 function mkItem(type, x, y, extra) {
@@ -1545,6 +1576,7 @@ function normalise(b) {
   if (!Array.isArray(b.ink)) b.ink = [];
   if (!Array.isArray(b.tags)) b.tags = [];
   if (!Array.isArray(b.inbox)) b.inbox = [];
+  if (!Array.isArray(b.groups)) b.groups = [];
   b.tags = b.tags.filter(t => t && t.id).slice(0, MAXTAGS);
   b.tags.forEach((t, i) => { if (!t.color) t.color = TAGC[i % TAGC.length]; if (!t.name) t.name = "Tag " + (i + 1); });
   if (!b.theme) b.theme = "cork";
@@ -1567,6 +1599,10 @@ function normalise(b) {
   });
   b.ink = b.ink.filter(s => s && Array.isArray(s.pts) && s.pts.length >= 2);
   const ids = new Set(b.items.map(i => i.id));
+  b.groups = b.groups.filter(g => g && g.id).map(g => {
+    const itemIds = [...new Set(Array.isArray(g.itemIds) ? g.itemIds : [])].filter(id => ids.has(id));
+    return { id: g.id, name: String(g.name || "Group").slice(0, 48), itemIds, pad: clamp(+g.pad || 42, 28, 120) };
+  }).filter(g => g.itemIds.length >= 2);
   b.links = b.links.filter(l => l && ids.has(l.a) && ids.has(l.b));   // drop strings to nothing
   b.links.forEach(l => { if (!l.rel || !RELATIONS[l.rel]) l.rel = relationKeyFromLabel(l.label) || "related"; });
   b.inbox = b.inbox.filter(i => i && i.id && String(i.text || "").trim()).map(i => ({ id: i.id, text: String(i.text).slice(0, 400), kind: i.kind === "card" ? "card" : "sticky", created: +i.created || Date.now() }));
@@ -1612,22 +1648,22 @@ function load() {
 
 /* ── undo ── */
 function snap() {
-  history.push(JSON.stringify({ items: board.items, links: board.links, ink: board.ink, inbox: board.inbox }));
+  history.push(JSON.stringify({ items: board.items, links: board.links, ink: board.ink, inbox: board.inbox, groups: board.groups }));
   if (history.length > 60) history.shift();
   future.length = 0; updateUndo();
 }
 function applySnap(s) {
-  const d = JSON.parse(s); board.items = d.items; board.links = d.links; board.ink = d.ink || []; board.inbox = d.inbox || [];
+  const d = JSON.parse(s); board.items = d.items; board.links = d.links; board.ink = d.ink || []; board.inbox = d.inbox || []; board.groups = d.groups || [];
   sel = null; renderAll(); closePanel("inspect"); save();
 }
 function undo() {
   if (!history.length) return;
-  future.push(JSON.stringify({ items: board.items, links: board.links, ink: board.ink, inbox: board.inbox }));
+  future.push(JSON.stringify({ items: board.items, links: board.links, ink: board.ink, inbox: board.inbox, groups: board.groups }));
   applySnap(history.pop()); updateUndo();
 }
 function redo() {
   if (!future.length) return;
-  history.push(JSON.stringify({ items: board.items, links: board.links, ink: board.ink, inbox: board.inbox }));
+  history.push(JSON.stringify({ items: board.items, links: board.links, ink: board.ink, inbox: board.inbox, groups: board.groups }));
   applySnap(future.pop()); updateUndo();
 }
 function updateUndo() {
@@ -1637,7 +1673,7 @@ function updateUndo() {
 
 /* ── first-run sample board: teaches the interaction ── */
 function seedBoard() {
-  const b = { theme: "cork", id: uid(), name: "The Greenhouse Job", no: "NO. 001", created: Date.now(), updated: Date.now(), items: [], links: [], ink: [], tags: [], inbox: [], view: { x: 0, y: 0, s: 1 } };
+  const b = { theme: "cork", id: uid(), name: "The Greenhouse Job", no: "NO. 001", created: Date.now(), updated: Date.now(), items: [], links: [], ink: [], tags: [], inbox: [], groups: [], view: { x: 0, y: 0, s: 1 } };
   const it = (t, x, y, o) => { const i = mkItemRaw(t, x, y, o); b.items.push(i); return i; };
   function mkItemRaw(type, x, y, extra) {
     const d = DEFAULTS[type];
@@ -1666,6 +1702,7 @@ function seedBoard() {
     { id: uid(), a: string.id, b: risk.id, rel: "affects", color: "green", style: "solid", label: "affects" },
     { id: uid(), a: risk.id, b: tag.id, rel: "blocked", color: "red", style: "dashed", label: "blocked by" }
   );
+  b.groups.push({ id: uid(), name: "FEATURE SYSTEM", itemIds: [brief.id, string.id, plan.id], pad: 42 });
   b.inbox.push({ id: uid(), text: "Could this feature react differently at night?", kind: "sticky", created: Date.now() });
   return b;
 }
@@ -1766,9 +1803,80 @@ function refresh(id) {
   place(el, it);
   drawThreads(); renderTimeline();
 }
+function groupBounds(g) {
+  const members = (g.itemIds || []).map(byId).filter(Boolean);
+  if (members.length < 2) return null;
+  const pad = clamp(+g.pad || 42, 28, 120);
+  const x1 = Math.min(...members.map(i => i.x)) - pad;
+  const y1 = Math.min(...members.map(i => i.y)) - pad;
+  const x2 = Math.max(...members.map(i => i.x + i.w)) + pad;
+  const y2 = Math.max(...members.map(i => i.y + i.h)) + pad;
+  return { x: x1, y: y1, w: x2 - x1, h: y2 - y1 };
+}
+function renderGroups() {
+  $$(".group-box").forEach(n => n.remove());
+  (board.groups || []).forEach(g => {
+    const b = groupBounds(g); if (!b) return;
+    const n = document.createElement("div");
+    n.className = "group-box"; n.dataset.group = g.id;
+    n.style.left = b.x + "px"; n.style.top = b.y + "px";
+    n.style.width = b.w + "px"; n.style.height = b.h + "px";
+    n.innerHTML = `<button type="button" class="group-label" data-group-label="${g.id}" title="Group area">${esc(g.name || "Group")}</button>`;
+    const label = n.querySelector(".group-label");
+    label.addEventListener("pointerdown", e => {
+      e.preventDefault(); e.stopPropagation();
+      groupMenu(g.id, e.clientX, e.clientY);
+    });
+    world.appendChild(n);
+  });
+}
+function pruneGroups() {
+  const ids = new Set(board.items.map(i => i.id));
+  board.groups = (board.groups || []).map(g => ({ ...g, itemIds: (g.itemIds || []).filter(id => ids.has(id)) }))
+    .filter(g => g.itemIds.length >= 2);
+}
+function createGroupArea(ids) {
+  const clean = [...new Set(ids)].filter(id => byId(id));
+  if (clean.length < 2) { toast("Select at least two items first"); return; }
+  const same = (board.groups || []).find(g => {
+    const a = [...(g.itemIds || [])].sort(), b = [...clean].sort();
+    return a.length === b.length && a.every((id, i) => id === b[i]);
+  });
+  if (same) { toast("Those items already have a group area"); return; }
+  const v = prompt("Name this group area", "SYSTEM");
+  if (v === null) return;
+  snap();
+  board.groups = board.groups || [];
+  board.groups.push({ id: uid(), name: (v.trim() || "Group").slice(0, 48), itemIds: clean, pad: 42 });
+  renderGroups(); save();
+  toast("Group area added");
+}
+function groupMenu(id, x, y) {
+  const g = (board.groups || []).find(k => k.id === id); if (!g) return;
+  showCtx(`<div class="ctx-rel-head"><b>${esc(g.name || "Group")}</b><span>${g.itemIds.length} items in this area.</span></div>
+    <button data-a="select"><svg><use href="#i-lasso"/></svg>Select contents</button>
+    <button data-a="rename"><svg><use href="#i-card"/></svg>Rename group area</button>
+    <hr><button data-a="del" class="danger"><svg><use href="#i-trash"/></svg>Remove group area</button>`, x, y);
+  ctx.onclick = e => {
+    const b = e.target.closest("button"); if (!b) return;
+    hideCtx();
+    if (b.dataset.a === "select") { setMulti((g.itemIds || []).filter(id => byId(id))); return; }
+    if (b.dataset.a === "rename") {
+      const v = prompt("Rename group area", g.name || "Group");
+      if (v !== null && v.trim()) { snap(); g.name = v.trim().slice(0, 48); renderGroups(); save(); }
+      return;
+    }
+    if (b.dataset.a === "del") {
+      snap(); board.groups = (board.groups || []).filter(k => k.id !== id); renderGroups(); save();
+      toast("Group area removed — items kept");
+    }
+  };
+}
+
 function renderAll() {
   [...world.children].forEach(c => { if (c !== svg && c.id !== "ink") c.remove(); });
   els.clear();
+  renderGroups();
   board.items.slice().sort((a, b) => (a.z || 0) - (b.z || 0)).forEach(it => { makeEl(it); refresh(it.id); });
   drawInk(); drawThreads(); updateEmpty(); renderLegend(); applyFilter();
   if (typeof renderIdeaInbox === "function") renderIdeaInbox();
@@ -1892,6 +2000,11 @@ function extents() {
     x1 = Math.min(x1, i.x); y1 = Math.min(y1, i.y);
     x2 = Math.max(x2, i.x + i.w); y2 = Math.max(y2, i.y + i.h);
   });
+  (board.groups || []).forEach(g => {
+    const b = groupBounds(g); if (!b) return;
+    x1 = Math.min(x1, b.x); y1 = Math.min(y1, b.y);
+    x2 = Math.max(x2, b.x + b.w); y2 = Math.max(y2, b.y + b.h);
+  });
   (board.ink || []).forEach(s => {
     for (let i = 0; i < s.pts.length; i += 2) {
       x1 = Math.min(x1, s.pts[i]); x2 = Math.max(x2, s.pts[i]);
@@ -2001,7 +2114,7 @@ let uiThread = "red", uiStyle = "solid";
 const ptrs = new Map();
 let drag = null, pan = null, pinch = null, resize = null, pressT = null, snapped = false;
 let raf = 0;
-const redraw = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; drawThreads(); }); };
+const redraw = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; renderGroups(); drawThreads(); }); };
 
 const isNarrow = () => matchMedia("(max-width:720px)").matches;
 let multi = new Set();
@@ -2044,6 +2157,7 @@ function removeMany(ids) {
   const kill = new Set(ids);
   board.items = board.items.filter(i => !kill.has(i.id));
   board.links = board.links.filter(l => !kill.has(l.a) && !kill.has(l.b));
+  pruneGroups(); renderGroups();
   ids.forEach(id => { const el = els.get(id); if (el) el.remove(); els.delete(id); });
   deselect(); drawThreads(); updateEmpty(); renderTimeline(); save();
   toast(ids.length + " items removed");
@@ -2057,6 +2171,7 @@ $("#selbar").addEventListener("click", e => {
     tagPicker(multi.size > 1 ? [...multi] : [sel], r.left, r.top - 8);
     return;
   }
+  if (a === "group") { if (multi.size > 1) createGroupArea([...multi]); return; }
   if (multi.size > 1) {
     if (a === "dup") {
       snap(); const made = [];
@@ -2537,6 +2652,7 @@ function removeItem(id) {
   snap();
   board.items = board.items.filter(i => i.id !== id);
   board.links = board.links.filter(l => l.a !== id && l.b !== id);
+  pruneGroups(); renderGroups();
   const el = els.get(id); if (el) el.remove(); els.delete(id);
   if (sel === id) deselect();
   drawThreads(); updateEmpty(); renderTimeline(); save();
@@ -2719,6 +2835,27 @@ async function exportPNG() {
     vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(38,20,6,.4)");
     c.fillStyle = vg; c.fillRect(x0, y0, W, H);
   }
+
+  /* faint group/system areas */
+  (board.groups || []).forEach(gp => {
+    const b = groupBounds(gp); if (!b) return;
+    c.save();
+    c.lineWidth = 2; c.setLineDash([8, 6]);
+    if (blueprint) { c.strokeStyle = "rgba(141,216,255,.52)"; c.fillStyle = "rgba(141,216,255,.025)"; }
+    else if (W_) { c.strokeStyle = "rgba(58,146,201,.46)"; c.fillStyle = "rgba(89,171,219,.035)"; }
+    else { c.strokeStyle = "rgba(86,49,23,.36)"; c.fillStyle = "rgba(255,244,213,.055)"; }
+    rrect(c, b.x, b.y, b.w, b.h, 18); c.fill(); c.stroke(); c.setLineDash([]);
+    const label = String(gp.name || "Group");
+    c.font = blueprint ? '700 11px Consolas, monospace' : W_ ? 'bold 14px "Kalam", cursive' : '700 12px "Special Elite", monospace';
+    const lw = Math.min(Math.max(72, c.measureText(label).width + 20), Math.max(72, b.w - 28));
+    const lx = b.x + 14, ly = b.y + 10;
+    c.fillStyle = blueprint ? "#173f5d" : W_ ? "rgba(231,244,252,.94)" : "rgba(240,224,188,.92)";
+    c.strokeStyle = blueprint ? "rgba(141,216,255,.42)" : W_ ? "rgba(58,146,201,.24)" : "rgba(92,57,33,.2)";
+    c.lineWidth = 1; c.fillRect(lx, ly, lw, 25); c.strokeRect(lx, ly, lw, 25);
+    c.fillStyle = blueprint ? "#cfeeff" : W_ ? "#315f7f" : "#5c3921";
+    c.textAlign = "left"; c.textBaseline = "middle"; c.fillText(label, lx + 10, ly + 12.5, lw - 20);
+    c.restore();
+  });
 
   /* string, or marker lines */
   board.links.forEach(l => {
@@ -3923,6 +4060,7 @@ function storeItemInInbox(id) {
   board.inbox.unshift({ id: uid(), text: ideaFromItem(it), kind: it.type === "card" ? "card" : "sticky", created: Date.now() });
   board.items = board.items.filter(i => i.id !== id);
   board.links = board.links.filter(l => l.a !== id && l.b !== id);
+  pruneGroups(); renderGroups();
   const el = els.get(id); if (el) el.remove(); els.delete(id);
   if (sel === id) deselect();
   multi.delete(id); markSelected();

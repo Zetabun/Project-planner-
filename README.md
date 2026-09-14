@@ -121,6 +121,14 @@ Tap the dashed-box tool (bottom of the tool rail) and drag a box around what you
 
 With several selected you can drag the whole cluster as one, duplicate it, or remove it. Tap the background to drop the selection.
 
+## Group areas
+
+When a cluster represents one system or subtopic, lasso two or more items and tap **Group area** on the selection bar. Give it a name such as **RAIN SYSTEM** and Pin It draws a faint labelled boundary behind those items.
+
+The area is deliberately not another rigid container: every note and card remains individually draggable, resizable and linkable. The boundary recalculates from its members, so it grows, shrinks and moves as the cluster changes. Tap the group label to select all of its contents, rename it, or remove only the boundary while leaving the work untouched.
+
+Group areas are stored with the board, survive import/export and undo/redo, adapt to Corkboard, Whiteboard and Blueprint themes, count toward **Fit board**, and are included when the board is saved as a picture.
+
 ## Dates and the timeline
 
 Any item can take a due date, set under **Due** in its panel. A small tab appears on the item — red if it's due today or overdue, amber within a week, grey beyond that.
