@@ -8,6 +8,14 @@ Numbers follow the usual shape: **major** for a change that breaks old saved boa
 
 ---
 
+## 1.9.7 — 15 September 2026, 14:23 UTC
+
+- Follow-up hardening for the new multi-tab safety system.
+- Writer IDs are now **unique per loaded document**. They are no longer persisted as a session tab ID, because some browsers copy `sessionStorage` when duplicating a tab and could otherwise give two live pages the same writer identity.
+- Added a one-shot predecessor token so a normal refresh/reload can reclaim the exact lease owned by the document it replaced without making duplicated tabs writable.
+- Startup now reads IndexedDB inside the same cross-tab **Web Lock** used for writes when supported, reducing a reload race with an in-flight exit save.
+- A genuinely fresh/recreated database can clear an orphaned saved-revision marker when there is no active tab lease, preventing a stale marker from trapping an empty recovery state in read-only mode.
+
 ## 1.9.6 — 15 September 2026, 14:17 UTC
 
 - Added **single-writer multi-tab protection**: a second Pin It tab/window is blocked from saving instead of silently racing the first one.

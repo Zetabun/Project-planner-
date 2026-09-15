@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Pin It — a corkboard for planning projects
-  Version 1.9.6 · 15 September 2026, 14:17 UTC
+  Version 1.9.7 · 15 September 2026, 14:23 UTC
 
   TO RELEASE AN UPDATE: bump VERSION and BUILD, add the release to
   RELEASES in the script below, and add the same release at the top
@@ -1436,14 +1436,24 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
    matching entry to CHANGELOG.md. Shown in the boards drawer,
    saved with the data, and stamped into exported boards.
    ───────────────────────────────────────────────────────────── */
-const VERSION = "1.9.6";
-const BUILD = "15 September 2026, 14:17 UTC";
+const VERSION = "1.9.7";
+const BUILD = "15 September 2026, 14:23 UTC";
 /*
   RELEASE HISTORY — mandatory for every future release.
   Before completing or pushing an update: bump VERSION/BUILD, add the new
   release here (newest first), and add the same release to CHANGELOG.md.
 */
 const RELEASES = [
+  {
+    version: "1.9.7", date: "15 September 2026, 14:23 UTC",
+    summary: "A follow-up hardening pass closes duplicate-tab and reload edge cases found while second-checking the new single-writer protection.",
+    items: [
+      "Tab writer IDs are now unique per document rather than stored as the tab session ID, so browser Duplicate Tab behaviour cannot accidentally give two live pages the same save identity.",
+      "Normal reloads use a one-shot predecessor handoff token to reclaim their own lease without weakening duplicate-tab detection.",
+      "Initial database loading now participates in the cross-tab Web Lock where supported, reducing reload races with an in-flight save from the page being replaced.",
+      "Fresh/recreated databases can reset an orphaned revision marker when no active writer exists, avoiding a stale local marker trapping an empty recovered app in read-only mode."
+    ]
+  },
   {
     version: "1.9.6", date: "15 September 2026, 14:17 UTC",
     summary: "Multi-tab protection and another storage-performance pass reduce the remaining ways two sessions or large projects could lose or stall work.",
@@ -1874,16 +1884,16 @@ const TAB_LEASE_TTL = 7000;
 const TAB_HEARTBEAT_MS = 2200;
 const TAB_STARTED_AT = Date.now();
 let tabGuardStarted = false, tabReadOnly = false, tabLeaseTimer = null, tabChannel = null;
-let tabLeaseStorageOK = true, tabForceTakeover = false;
-let TAB_ID = "";
+let tabLeaseStorageOK = true, tabForceTakeover = false, tabPreviousId = "";
+const TAB_ID = (typeof crypto !== "undefined" && crypto.randomUUID)
+  ? crypto.randomUUID()
+  : (Date.now().toString(36) + "-" + Math.random().toString(36).slice(2) + "-" + Math.random().toString(36).slice(2));
 try {
-  TAB_ID = sessionStorage.getItem("pinit.tabId.v1") || (Date.now().toString(36) + "-" + Math.random().toString(36).slice(2));
-  sessionStorage.setItem("pinit.tabId.v1", TAB_ID);
   tabForceTakeover = sessionStorage.getItem("pinit.tabTakeover.v1") === "1";
+  tabPreviousId = sessionStorage.getItem("pinit.tabPrev.v1") || "";
   sessionStorage.removeItem("pinit.tabTakeover.v1");
-} catch (e) {
-  TAB_ID = Date.now().toString(36) + "-" + Math.random().toString(36).slice(2);
-}
+  sessionStorage.removeItem("pinit.tabPrev.v1");
+} catch (e) {}
 try { localStorage.setItem("__pinit_tab_test", "1"); localStorage.removeItem("__pinit_tab_test"); }
 catch (e) { tabLeaseStorageOK = false; }
 
@@ -2010,16 +2020,21 @@ function initTabGuard() {
       }
     });
   }
-  if (readExternalRevision() > (+storageRevision || 0)) {
+  let cur = readTabLease();
+  const ownReload = !!(tabPreviousId && cur && cur.id === tabPreviousId);
+  if (FRESH && !tabLeaseFresh(cur) && tabLeaseStorageOK) {
+    try { localStorage.setItem(TAB_REV_KEY, String(+storageRevision || 0)); } catch (e) {}
+  }
+  if (!ownReload && readExternalRevision() > (+storageRevision || 0)) {
     setTabReadOnly(true, "A newer saved revision already exists. Reload this tab before making changes.");
     return false;
   }
-  const cur = readTabLease();
-  if (!tabForceTakeover && tabLeaseFresh(cur) && cur.id !== TAB_ID) {
+  cur = readTabLease();
+  if (!tabForceTakeover && !ownReload && tabLeaseFresh(cur) && cur.id !== TAB_ID) {
     setTabReadOnly(true, "Pin It is already open in another tab. This copy is read-only to prevent one tab overwriting the other.");
   } else {
-    writeTabLease(!!tabForceTakeover);
-    tabForceTakeover = false;
+    writeTabLease(!!tabForceTakeover || ownReload);
+    tabForceTakeover = false; tabPreviousId = "";
     setTabReadOnly(false);
     clearInterval(tabLeaseTimer);
     tabLeaseTimer = setInterval(() => { if (!tabReadOnly) writeTabLease(false); }, TAB_HEARTBEAT_MS);
@@ -5414,9 +5429,12 @@ addEventListener("resize", () => {
   }, 220);
 });
 addEventListener("orientationchange", () => setTimeout(() => { if (board.items.length && !anyVisible()) fitBoard(true); }, 350));
-const flushForExit = () => { clearTimeout(saveT); if (board) { storageDirty = true; void flushStorage(); } };
+const flushForExit = () => { clearTimeout(saveT); if (board && !tabReadOnly) { storageDirty = true; void flushStorage(); } };
+const markTabPredecessor = () => { try { sessionStorage.setItem("pinit.tabPrev.v1", TAB_ID); } catch (e) {} };
 addEventListener("beforeunload", flushForExit);
+addEventListener("beforeunload", markTabPredecessor);
 addEventListener("pagehide", flushForExit);
+addEventListener("pagehide", markTabPredecessor);
 document.addEventListener("visibilitychange", () => { if (document.hidden) flushForExit(); });
 document.addEventListener("freeze", flushForExit);
 addEventListener("pageshow", () => {
@@ -5430,7 +5448,7 @@ addEventListener("focus", () => {
 
 /* ═══════════════ go ═══════════════ */
 (async function bootPinIt() {
-  await load();
+  await withCrossTabStorageLock(() => load());
   initTabGuard();
   $("#version").textContent = "Pin It " + VERSION + " · " + BUILD;
   const wasVersion = DB.version;
