@@ -8,6 +8,16 @@ Numbers follow the usual shape: **major** for a change that breaks old saved boa
 
 ---
 
+## 1.9.0 — 15 September 2026, 11:31 UTC
+
+- Added a collapsible **Board Map** beside the zoom controls, showing system boundaries, item clusters and the live viewport.
+- The map can be tapped or dragged to navigate large boards, updates continuously while panning/zooming, opens by default on desktop and starts collapsed on narrow/mobile screens.
+- Added **Board Outline**, grouping items by system and collecting loose items under Ungrouped.
+- **Expands into** relationships inside a system are represented as nested parent/child rows in the outline, with cycle-safe fallbacks for more complex graphs.
+- Outline items jump to and select their corresponding board item; hidden items automatically expand their collapsed system first. System headings fit that system into view.
+- Added responsive styling and dedicated map/outline icons without changing existing board data or export formats.
+- Fixed automatic systems not recognising newly added notes: ungrouped items created or deliberately dropped inside an automatic system now join it automatically and immediately participate in auto-sizing. Existing members are not silently removed when dragged out.
+
 ## 1.8.1 — 15 September 2026, 11:21 UTC
 
 - Moved the board label 10px to the right on mobile/narrow screens so its decorative tape edge no longer crowds the burger/boards button.

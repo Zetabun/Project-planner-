@@ -125,7 +125,7 @@ With several selected you can drag the whole cluster as one, duplicate it, or re
 
 When a cluster represents one system or subtopic, lasso two or more items and tap **Group area** on the selection bar. Give it a name such as **RAIN SYSTEM** and Pin It draws a faint labelled boundary behind those items.
 
-Group areas start in **Automatic sizing**. The boundary recalculates from its members, so it grows, shrinks and moves as the cluster changes while every note and card remains individually draggable, resizable and linkable.
+Group areas start in **Automatic sizing**. The boundary recalculates from its members, so it grows, shrinks and moves as the cluster changes while every note and card remains individually draggable, resizable and linkable. New ungrouped notes/cards created inside an automatic system — or deliberately dragged into it — are adopted by that system automatically, so the boundary immediately grows to respect them. Existing membership remains explicit when an item is moved back out; use **Edit contents** when you want to remove it from the system.
 
 Tap the group/system name to open its menu. **Edit contents** turns membership into an explicit editing mode: tap any card or note to add or remove it, without deleting and recreating the system. **Move system + contents** selects all of its members as one cluster; drag any selected item and the full system moves together, including a manually positioned boundary.
 
@@ -134,6 +134,18 @@ Tap the group/system name to open its menu. **Edit contents** turns membership i
 Choose **Use manual sizing** when you want the border itself to be art-directed: drag the box to move it and drag any corner handle to resize it without moving the cards inside. Once it is where you want it, choose **Lock box** to prevent accidental movement or resizing. The same menu can unlock it later, or switch the group back to automatic sizing at any time.
 
 Membership, collapse state, manual size, position and lock state are stored with the board, survive import/export and undo/redo, adapt to Corkboard, Whiteboard and Blueprint themes, count toward **Fit board**, and are included when the board is saved as a picture.
+
+## Board map
+
+The map button beside the zoom controls opens a compact live overview of the whole board. System boundaries and item clusters are drawn at board scale, with a highlighted rectangle showing the part currently on screen. Tap or drag anywhere in the map to move the camera there without changing the board itself.
+
+The map updates while you pan and zoom. It opens by default on desktop, can be collapsed at any time, and starts collapsed on narrow/mobile screens so it does not take over the working area.
+
+## Board outline
+
+The outline button beside the zoom controls opens a structured companion view of the same board data. Systems appear as sections, their member cards and notes appear underneath, and loose items are collected under **Ungrouped**. Where items inside a section use the **Expands into** relationship, the outline nests the child item under its parent so a visual chain can also be read as a hierarchy.
+
+Tap an item in the outline to close the panel, centre the board on it and select it. If that item was hidden inside a collapsed system, Pin It expands the system first. Tap a system heading to fit that whole system into view. The outline never creates a second copy of the project — it is only another way to navigate and read the existing board.
 
 ## Dates and the timeline
 

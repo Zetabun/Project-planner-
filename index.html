@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Pin It — a corkboard for planning projects
-  Version 1.8.1 · 15 September 2026, 11:21 UTC
+  Version 1.9.0 · 15 September 2026, 11:31 UTC
 
   TO RELEASE AN UPDATE: bump VERSION and BUILD, add the release to
   RELEASES in the script below, and add the same release at the top
@@ -400,6 +400,21 @@ body.tl #zoomrail{bottom:calc(90px + var(--safe-b))}
 #zoomrail .chip.icon{width:40px; height:40px}
 #zoomlvl{font-family:var(--type); font-size:11px; color:var(--ui-fg); opacity:.85}
 
+#minimap{position:absolute; z-index:21; right:68px; bottom:calc(14px + var(--safe-b)); width:196px;
+  padding:7px; border:1px solid var(--ui-line); border-radius:5px;
+  background:linear-gradient(180deg,var(--ui-1),var(--ui-2)); color:var(--ui-fg);
+  box-shadow:0 8px 24px var(--ui-drop), inset 0 1px 0 var(--ui-hi);
+  opacity:0; transform:translateY(8px) scale(.98); pointer-events:none;
+  transition:opacity .16s, transform .18s, bottom .2s}
+#minimap.show{opacity:1; transform:none; pointer-events:auto}
+#minimap .minimap-head{height:24px; display:flex; align-items:center; justify-content:space-between; padding:0 2px 5px 5px;
+  font:700 9.5px/1 var(--ui); letter-spacing:.12em; text-transform:uppercase; opacity:.9}
+#minimap .minimap-close{width:22px; height:22px; display:grid; place-items:center; color:var(--ui-fg); opacity:.7; border-radius:3px}
+#minimap .minimap-close:hover{opacity:1; background:var(--ui-hi)}
+#minimap canvas{display:block; width:180px; height:112px; border-radius:3px; background:var(--sheet-2); touch-action:none; cursor:crosshair}
+body.inspecting #minimap{transform:translateX(calc(-1 * min(300px,84vw)))}
+body.tl #minimap{bottom:calc(90px + var(--safe-b))}
+
 /* ───────────── drawers / sheets ───────────── */
 .scrim{position:fixed; inset:0; background:var(--scrim); z-index:30; opacity:0; pointer-events:none;
   transition:opacity .22s; backdrop-filter:blur(2px)}
@@ -415,6 +430,31 @@ body.tl #zoomrail{bottom:calc(90px + var(--safe-b))}
 #inspect{top:0; bottom:0; right:0; width:min(300px,84vw); transform:translateX(104%);
   border-left:1px solid var(--pan-line); padding-top:var(--safe-t)}
 #inspect.show{transform:none}
+#outline{top:0; bottom:0; right:0; width:min(390px,92vw); transform:translateX(104%);
+  border-left:1px solid var(--pan-line); padding-top:var(--safe-t)}
+#outline.show{transform:none}
+#outline .outline-sub{margin-top:3px; color:var(--pan-sub); font:10.5px/1.25 var(--ui)}
+#outline-body{padding:10px 10px 20px}
+.outline-system{border:1px solid var(--pan-line); border-radius:5px; overflow:hidden; margin-bottom:10px; background:var(--pan-soft)}
+.outline-system-head{width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px; text-align:left;
+  padding:10px 11px; color:var(--pan-head); border-bottom:1px solid var(--pan-line); background:var(--pan-soft2)}
+.outline-system-head:hover{filter:brightness(1.08)}
+.outline-system-head b{display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font:700 12px/1.2 var(--type)}
+.outline-system-head small{display:block; margin-top:3px; color:var(--pan-sub); font:10.5px/1.2 var(--ui); font-weight:400}
+.outline-system-head svg{width:15px; height:15px; flex:none; opacity:.65}
+.outline-list{padding:4px 0}
+.outline-item{--depth:0; width:100%; display:grid; grid-template-columns:12px minmax(0,1fr) auto; align-items:center; gap:7px;
+  padding:7px 9px 7px calc(9px + var(--depth) * 15px); color:var(--pan-fg); text-align:left; border-radius:3px}
+.outline-item:hover{background:var(--pan-soft2)}
+.outline-node{width:7px; height:7px; border:1px solid var(--pan-sub); border-radius:50%; opacity:.7}
+.outline-item[data-depth]:not([data-depth="0"]) .outline-node{border-radius:1px; transform:scale(.78)}
+.outline-copy{min-width:0}
+.outline-copy b{display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font:600 12px/1.25 var(--ui)}
+.outline-copy small{display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-top:2px; color:var(--pan-sub); font:9.5px/1.2 var(--ui); text-transform:uppercase; letter-spacing:.06em}
+.outline-state{max-width:74px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:2px 5px; border:1px solid var(--pan-line); border-radius:999px;
+  color:var(--pan-sub); font:9px/1.2 var(--ui)}
+.outline-state.done{color:var(--ok); border-color:color-mix(in srgb,var(--ok) 44%,transparent)}
+.outline-empty{padding:24px 16px; color:var(--pan-sub); text-align:center; font:12px/1.5 var(--ui)}
 .panel h2{font-family:var(--type); font-size:16px; margin:0; letter-spacing:.02em; color:var(--pan-head)}
 .panel header{display:flex; align-items:center; justify-content:space-between; gap:10px;
   padding:16px 16px 12px; border-bottom:1px solid var(--pan-line)}
@@ -889,7 +929,7 @@ body.inspecting #timeline{right:calc(min(300px,84vw) + 16px)}
 #penbar .swatch{width:26px; height:26px; border-radius:50%; border:2px solid transparent;
   box-shadow:0 1px 3px rgba(0,0,0,.35)}
 #penbar .swatch.on{border-color:var(--ui-fg); transform:scale(1.08)}
-body.penmode #selbar,body.penmode #zoomrail{display:none}
+body.penmode #selbar,body.penmode #zoomrail,body.penmode #minimap{display:none}
 .tips li.ink{display:none}
 body[data-theme="white"] .tips li.ink,
 body[data-theme="blueprint"] .tips li.ink{display:flex}
@@ -1059,6 +1099,12 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
   .tool svg{width:20px; height:20px}
   .tool .tip{display:none}
   #zoomrail{right:8px; bottom:calc(64px + var(--safe-b)); flex-direction:column}
+  #minimap{right:56px; bottom:calc(64px + var(--safe-b)); width:166px; padding:6px}
+  #minimap canvas{width:152px; height:96px}
+  body.tl #minimap{bottom:calc(126px + var(--safe-b))}
+  #outline{top:auto; bottom:0; left:0; right:0; width:auto; height:min(82vh,640px); transform:translateY(104%);
+    border-left:0; border-top:1px solid var(--pan-line); border-radius:12px 12px 0 0; padding-top:0}
+  #outline.show{transform:none}
   body.inspecting #zoomrail{transform:none}
   body.tl #zoomrail{bottom:calc(126px + var(--safe-b))}
   #searchwrap.open #search{width:46vw}
@@ -1096,6 +1142,8 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
   <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
   <symbol id="i-fit" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-map" viewBox="0 0 24 24"><path d="M4 5l5-2 6 3 5-2v15l-5 2-6-3-5 2z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/><path d="M9 3v15M15 6v15" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></symbol>
+  <symbol id="i-outline" viewBox="0 0 24 24"><path d="M5 6h3M11 6h8M5 12h3M11 12h8M5 18h3M11 18h8" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/><circle cx="7" cy="6" r="1" fill="currentColor"/><circle cx="7" cy="12" r="1" fill="currentColor"/><circle cx="7" cy="18" r="1" fill="currentColor"/></symbol>
   <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 7H5V3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.5 7.5A8 8 0 1 1 4.7 14" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></symbol>
   <symbol id="i-redo" viewBox="0 0 24 24"><path d="M15 7h4V3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 7.5A8 8 0 1 0 19.3 14" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
@@ -1153,11 +1201,18 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
     <button class="tool" id="btn-lasso"><svg><use href="#i-lasso"/></svg><span class="tip">Select several</span></button>
   </div>
 
+  <div id="minimap" aria-label="Board map">
+    <div class="minimap-head"><span>Board map</span><button class="minimap-close" id="btn-map-close" aria-label="Collapse board map"><svg width="14" height="14"><use href="#i-x"/></svg></button></div>
+    <canvas id="minimap-canvas" aria-label="Board overview; tap or drag to navigate"></canvas>
+  </div>
+
   <div id="zoomrail">
     <button class="chip icon" id="btn-zin" aria-label="Zoom in"><svg><use href="#i-plus"/></svg></button>
     <span id="zoomlvl">100%</span>
     <button class="chip icon" id="btn-zout" aria-label="Zoom out"><svg><use href="#i-minus"/></svg></button>
     <button class="chip icon" id="btn-fit" aria-label="Fit board"><svg><use href="#i-fit"/></svg></button>
+    <button class="chip icon" id="btn-map" aria-label="Toggle board map" aria-pressed="false" title="Board map"><svg><use href="#i-map"/></svg></button>
+    <button class="chip icon" id="btn-outline" aria-label="Open board outline" title="Board outline"><svg><use href="#i-outline"/></svg></button>
   </div>
 
   <div id="timeline"></div>
@@ -1242,6 +1297,14 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
   </header>
   <div class="body" id="inspect-body"></div>
   <footer id="inspect-foot"></footer>
+</aside>
+
+<aside class="panel" id="outline" aria-label="Board outline">
+  <header>
+    <div><h2>Board outline</h2><div class="outline-sub" id="outline-summary">Systems and items</div></div>
+    <button class="xbtn" data-close="outline" aria-label="Close board outline"><svg width="18" height="18"><use href="#i-x"/></svg></button>
+  </header>
+  <div class="body" id="outline-body"></div>
 </aside>
 
 <button id="idea-tab" type="button" title="Idea Inbox (I)" aria-label="Open Idea Inbox" aria-controls="idea-drawer" aria-expanded="false">
@@ -1357,14 +1420,25 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
    matching entry to CHANGELOG.md. Shown in the boards drawer,
    saved with the data, and stamped into exported boards.
    ───────────────────────────────────────────────────────────── */
-const VERSION = "1.8.1";
-const BUILD = "15 September 2026, 11:21 UTC";
+const VERSION = "1.9.0";
+const BUILD = "15 September 2026, 11:31 UTC";
 /*
   RELEASE HISTORY — mandatory for every future release.
   Before completing or pushing an update: bump VERSION/BUILD, add the new
   release here (newest first), and add the same release to CHANGELOG.md.
 */
 const RELEASES = [
+  {
+    version: "1.9.0", date: "15 September 2026, 11:31 UTC",
+    summary: "Large boards are easier to navigate with a live minimap and a structured outline view of systems, items and expansion relationships.",
+    items: [
+      "Added a collapsible Board Map beside the zoom controls. It shows system boundaries, item clusters and the current viewport, and supports tap/drag navigation.",
+      "The Board Map stays live while panning and zooming, opens by default on desktop, and starts collapsed on narrow/mobile screens to preserve workspace.",
+      "Added Board Outline, a structured view grouped by systems with ungrouped items separated out. Expands into relationships become nested hierarchy where possible.",
+      "Clicking an outline item jumps back to and selects it on the board; clicking a system fits that system into view. Hidden members of collapsed systems are expanded automatically when targeted.",
+      "Automatic systems now adopt newly created or deliberately dropped ungrouped items when their centre lands inside the system boundary, so the auto-sized box immediately grows to include new notes."
+    ]
+  },
   {
     version: "1.8.1", date: "15 September 2026, 11:21 UTC",
     summary: "Polishes the mobile top bar so the board label sits cleanly clear of the boards menu.",
@@ -1795,6 +1869,7 @@ function seedBoard() {
 <script>
 /* ═══════════════ rendering ═══════════════ */
 const world = $("#world"), svg = $("#threads"), viewport = $("#viewport");
+let minimapOpen = !matchMedia("(max-width:720px)").matches, minimapMetrics = null, minimapDragging = false;
 const nl2br = s => esc(s).replace(/\n/g, "<br>");
 
 function itemInner(it) {
@@ -2023,6 +2098,40 @@ function createGroupArea(ids) {
   renderGroups(); save();
   toast("Group area added");
 }
+let autoGroupRefreshQueued = false;
+function queueAutoGroupRefresh() {
+  if (autoGroupRefreshQueued) return;
+  autoGroupRefreshQueued = true;
+  requestAnimationFrame(() => {
+    autoGroupRefreshQueued = false;
+    renderGroups();
+    if (typeof renderMinimap === "function") renderMinimap();
+    if ($("#outline") && $("#outline").classList.contains("show") && typeof renderOutline === "function") renderOutline();
+  });
+}
+function autoJoinItemToContainingSystem(it) {
+  if (!it || !board || !(board.groups || []).length) return "";
+  // Explicit membership wins. Do not create accidental multi-system membership.
+  if ((board.groups || []).some(g => (g.itemIds || []).includes(it.id))) return "";
+  const cx = it.x + it.w / 2, cy = it.y + it.h / 2;
+  const candidates = (board.groups || []).filter(g => g.mode === "auto" && !g.collapsed).map(g => {
+    const b = autoGroupBounds(g);
+    return b && cx >= b.x && cx <= b.x + b.w && cy >= b.y && cy <= b.y + b.h ? { g, b } : null;
+  }).filter(Boolean).sort((a, b) => (a.b.w * a.b.h) - (b.b.w * b.b.h));
+  if (!candidates.length) return "";
+  const g = candidates[0].g;
+  g.itemIds = [...(g.itemIds || []), it.id];
+  queueAutoGroupRefresh();
+  return g.name || "System";
+}
+function autoJoinItemsToContainingSystems(ids) {
+  const joined = [];
+  [...new Set(ids || [])].forEach(id => {
+    const name = autoJoinItemToContainingSystem(byId(id));
+    if (name) joined.push(name);
+  });
+  return [...new Set(joined)];
+}
 function toggleGroupMemberItem(itemId) {
   const g = (board.groups || []).find(k => k.id === editingGroupMembersId);
   if (!g) { editingGroupMembersId = ""; return false; }
@@ -2124,7 +2233,7 @@ function renderAll() {
   els.clear();
   renderGroups();
   board.items.slice().sort((a, b) => (a.z || 0) - (b.z || 0)).forEach(it => { makeEl(it); refresh(it.id); });
-  drawInk(); drawThreads(); updateEmpty(); renderLegend(); applyFilter();
+  drawInk(); drawThreads(); updateEmpty(); renderLegend(); applyFilter(); renderMinimap();
   if (typeof renderIdeaInbox === "function") renderIdeaInbox();
 }
 function updateEmpty() {
@@ -2302,6 +2411,81 @@ function applyView() {
   $("#zoomlvl").textContent = Math.round(view.s * 100) + "%";
   const r = viewport.getBoundingClientRect();
   view.w = Math.round(r.width); view.h = Math.round(r.height);
+  renderMinimap();
+}
+function minimapBounds() {
+  const rects = [];
+  (board.groups || []).forEach(g => {
+    const b = typeof groupBounds === "function" ? groupBounds(g) : null;
+    if (b) rects.push(b);
+  });
+  (board.items || []).forEach(it => {
+    if (typeof itemHiddenByGroup === "function" && itemHiddenByGroup(it.id)) return;
+    rects.push({ x:it.x, y:it.y, w:it.w, h:it.h });
+  });
+  if (!rects.length) {
+    const s = Math.max(.05, view.s || 1);
+    return { x:-view.x / s, y:-view.y / s, w:Math.max(320, viewport.clientWidth / s), h:Math.max(220, viewport.clientHeight / s) };
+  }
+  const x1 = Math.min(...rects.map(b => b.x)), y1 = Math.min(...rects.map(b => b.y));
+  const x2 = Math.max(...rects.map(b => b.x + b.w)), y2 = Math.max(...rects.map(b => b.y + b.h));
+  const pad = Math.max(60, Math.min(180, Math.max(x2 - x1, y2 - y1) * .08));
+  return { x:x1 - pad, y:y1 - pad, w:Math.max(180, x2 - x1 + pad * 2), h:Math.max(120, y2 - y1 + pad * 2) };
+}
+function setMinimapOpen(on) {
+  minimapOpen = !!on;
+  const box = $("#minimap"), btn = $("#btn-map");
+  if (box) box.classList.toggle("show", minimapOpen);
+  if (btn) { btn.classList.toggle("on", minimapOpen); btn.setAttribute("aria-pressed", minimapOpen ? "true" : "false"); }
+  if (minimapOpen) requestAnimationFrame(renderMinimap);
+}
+function renderMinimap() {
+  const canvas = $("#minimap-canvas");
+  if (!minimapOpen || !canvas || !board) return;
+  const r = canvas.getBoundingClientRect();
+  if (r.width < 20 || r.height < 20) return;
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const pw = Math.max(1, Math.round(r.width * dpr)), ph = Math.max(1, Math.round(r.height * dpr));
+  if (canvas.width !== pw || canvas.height !== ph) { canvas.width = pw; canvas.height = ph; }
+  const c = canvas.getContext("2d");
+  c.setTransform(dpr,0,0,dpr,0,0); c.clearRect(0,0,r.width,r.height);
+  const css = getComputedStyle(document.body);
+  const bg = css.getPropertyValue("--sheet-2").trim() || "#241a12";
+  const fg = css.getPropertyValue("--pan-fg").trim() || "#eee1c8";
+  const line = css.getPropertyValue("--brass").trim() || "#c9a227";
+  const hot = css.getPropertyValue("--ink-red").trim() || "#b02a1f";
+  c.fillStyle = bg; c.fillRect(0,0,r.width,r.height);
+  const b = minimapBounds(), pad = 7;
+  const sc = Math.max(.0001, Math.min((r.width - pad * 2) / b.w, (r.height - pad * 2) / b.h));
+  const ox = pad + (r.width - pad * 2 - b.w * sc) / 2 - b.x * sc;
+  const oy = pad + (r.height - pad * 2 - b.h * sc) / 2 - b.y * sc;
+  minimapMetrics = { b, sc, ox, oy };
+  c.save(); c.beginPath(); c.rect(0,0,r.width,r.height); c.clip();
+  c.globalAlpha = .52; c.strokeStyle = line; c.lineWidth = 1;
+  (board.groups || []).forEach(g => {
+    const gb = typeof groupBounds === "function" ? groupBounds(g) : null; if (!gb) return;
+    c.strokeRect(ox + gb.x * sc, oy + gb.y * sc, Math.max(1, gb.w * sc), Math.max(1, gb.h * sc));
+  });
+  c.globalAlpha = .62; c.fillStyle = fg;
+  (board.items || []).forEach(it => {
+    if (typeof itemHiddenByGroup === "function" && itemHiddenByGroup(it.id)) return;
+    const x = ox + it.x * sc, y = oy + it.y * sc;
+    c.fillRect(x, y, Math.max(2.2, it.w * sc), Math.max(2.2, it.h * sc));
+  });
+  const s = Math.max(.05, view.s || 1);
+  const vx = -view.x / s, vy = -view.y / s, vw = viewport.clientWidth / s, vh = viewport.clientHeight / s;
+  c.globalAlpha = .95; c.strokeStyle = hot; c.lineWidth = 1.6;
+  c.strokeRect(ox + vx * sc, oy + vy * sc, Math.max(3, vw * sc), Math.max(3, vh * sc));
+  c.restore();
+}
+function navigateFromMinimap(e) {
+  if (!minimapMetrics) renderMinimap();
+  if (!minimapMetrics) return;
+  const canvas = $("#minimap-canvas"), r = canvas.getBoundingClientRect(), m = minimapMetrics;
+  const wx = (e.clientX - r.left - m.ox) / m.sc, wy = (e.clientY - r.top - m.oy) / m.sc;
+  view.x = viewport.clientWidth / 2 - wx * view.s;
+  view.y = viewport.clientHeight / 2 - wy * view.s;
+  applyView();
 }
 function toWorld(sx, sy) {
   const r = viewport.getBoundingClientRect();
@@ -2435,7 +2619,7 @@ $("#selbar").addEventListener("click", e => {
       [...multi].forEach(id => {
         const o = byId(id); if (!o) return;
         const c = JSON.parse(JSON.stringify(o)); c.id = uid(); c.x += 30; c.y += 30; c.z = nextZ();
-        board.items.push(c); makeEl(c); refresh(c.id); made.push(c.id);
+        board.items.push(c); autoJoinItemToContainingSystem(c); makeEl(c); refresh(c.id); made.push(c.id);
       });
       setMulti(made); save();
     }
@@ -2447,7 +2631,7 @@ $("#selbar").addEventListener("click", e => {
   if (a === "edit") startEdit(sel, "text");
   if (a === "link") { linking = { from: sel, to: null }; $("#btn-link").classList.add("on"); $$(".item").forEach(n => n.classList.toggle("linkable", n.dataset.id !== sel)); toast("Now tap what it connects to"); }
   if (a === "style") openInspector();
-  if (a === "dup") { snap(); const c = JSON.parse(JSON.stringify(it)); c.id = uid(); c.x += 26; c.y += 26; c.z = nextZ(); board.items.push(c); makeEl(c); refresh(c.id); selectItem(c.id); save(); }
+  if (a === "dup") { snap(); const c = JSON.parse(JSON.stringify(it)); c.id = uid(); c.x += 26; c.y += 26; c.z = nextZ(); board.items.push(c); autoJoinItemToContainingSystem(c); makeEl(c); refresh(c.id); selectItem(c.id); save(); }
   if (a === "del") removeItem(sel);
 });
 function bump(it) { it.z = nextZ(); els.get(it.id).style.zIndex = it.z; }
@@ -2651,6 +2835,8 @@ function endDrag() {
     if (drag.moved) {
       justMoved = true;
       if (drag.systemMove) movingGroupContentsId = "";
+      const movedIds = drag.group ? drag.group.map(o => o.id) : [drag.id];
+      autoJoinItemsToContainingSystems(movedIds);
       save(); renderGroups();
     }
   }
@@ -2887,7 +3073,7 @@ function itemMenu(id, x, y) {
     if (act === "link") { linking = { from: id, to: null }; $("#btn-link").classList.add("on"); $$(".item").forEach(n => n.classList.toggle("linkable", n.dataset.id !== id)); toast("Now tap what it connects to"); }
     if (act === "done") setDone([id]);
     if (act === "props") openInspector();
-    if (act === "dup") { snap(); const c = JSON.parse(JSON.stringify(it)); c.id = uid(); c.x += 26; c.y += 26; c.z = nextZ(); board.items.push(c); makeEl(c); refresh(c.id); selectItem(c.id); save(); }
+    if (act === "dup") { snap(); const c = JSON.parse(JSON.stringify(it)); c.id = uid(); c.x += 26; c.y += 26; c.z = nextZ(); board.items.push(c); autoJoinItemToContainingSystem(c); makeEl(c); refresh(c.id); selectItem(c.id); save(); }
     if (act === "front") { snap(); bump(it); save(); }
     if (act === "back") { snap(); const m = Math.min(...board.items.map(i => i.z || 1)); it.z = m - 1; place(els.get(id), it); save(); }
     if (act === "inbox") storeItemInInbox(id);
@@ -3973,18 +4159,128 @@ const scrim = $("#scrim");
 function openPanel(id) {
   $("#" + id).classList.add("show");
   if (id === "cases") renderCases();
+  if (id === "outline") renderOutline();
   syncScrim();
 }
 function closePanel(id) { $("#" + id).classList.remove("show"); syncScrim(); }
 function syncScrim() {
   document.body.classList.toggle("inspecting",
     $("#inspect").classList.contains("show") && !matchMedia("(max-width:720px)").matches);
-  const need = $("#cases").classList.contains("show") ||
+  const need = $("#cases").classList.contains("show") || $("#outline").classList.contains("show") ||
     ($("#inspect").classList.contains("show") && matchMedia("(max-width:720px)").matches);
   scrim.classList.toggle("show", need);
 }
-scrim.addEventListener("click", () => { closePanel("cases"); closePanel("inspect"); deselect(); });
+scrim.addEventListener("click", () => { closePanel("cases"); closePanel("inspect"); closePanel("outline"); deselect(); });
 $$("[data-close]").forEach(b => b.addEventListener("click", () => { closePanel(b.dataset.close); if (b.dataset.close === "inspect") deselect(); }));
+
+/* ═══════════════ board outline ═══════════════ */
+function outlineItemName(it) {
+  const raw = it && (it.title || it.text || TYPE_NAMES[it.type] || "Item");
+  return String(raw || "Item").split("\n")[0].trim().slice(0, 70) || TYPE_NAMES[it.type] || "Item";
+}
+function outlineItemMeta(it) {
+  const bits = [TYPE_NAMES[it.type] || it.type || "item"];
+  if (it.due) bits.push(it.due);
+  if (it.stamp && !it.done) bits.push(it.stamp);
+  return bits.join(" · ");
+}
+function outlineSortIds(ids) {
+  return [...ids].sort((a, b) => {
+    const A = byId(a), B = byId(b); if (!A || !B) return 0;
+    return (A.y - B.y) || (A.x - B.x) || outlineItemName(A).localeCompare(outlineItemName(B));
+  });
+}
+function outlineRows(ids) {
+  const allowed = new Set(ids.filter(id => byId(id)));
+  const children = new Map([...allowed].map(id => [id, []]));
+  const incoming = new Set();
+  (board.links || []).forEach(l => {
+    const rel = l.rel || (typeof relationKeyFromLabel === "function" ? relationKeyFromLabel(l.label) : "");
+    if (rel !== "expands" || l.a === l.b || !allowed.has(l.a) || !allowed.has(l.b)) return;
+    children.get(l.a).push(l.b); incoming.add(l.b);
+  });
+  children.forEach((list, id) => children.set(id, outlineSortIds([...new Set(list)])));
+  const seen = new Set();
+  const row = (id, depth, path) => {
+    if (seen.has(id) || path.has(id)) return "";
+    const it = byId(id); if (!it) return "";
+    seen.add(id);
+    const nextPath = new Set(path); nextPath.add(id);
+    const state = it.done ? "Done" : (it.stamp || "");
+    let h = `<button class="outline-item" data-outline-item="${esc(id)}" data-depth="${depth}" style="--depth:${Math.min(depth,6)}"><span class="outline-node"></span><span class="outline-copy"><b>${esc(outlineItemName(it))}</b><small>${esc(outlineItemMeta(it))}</small></span>${state ? `<span class="outline-state${it.done ? " done" : ""}">${esc(state)}</span>` : "<span></span>"}</button>`;
+    (children.get(id) || []).forEach(child => { h += row(child, depth + 1, nextPath); });
+    return h;
+  };
+  const roots = outlineSortIds([...allowed].filter(id => !incoming.has(id)));
+  let h = roots.map(id => row(id, 0, new Set())).join("");
+  outlineSortIds([...allowed].filter(id => !seen.has(id))).forEach(id => { h += row(id, 0, new Set()); });
+  return h;
+}
+function outlineGroupMeta(g) {
+  const members = (g.itemIds || []).map(byId).filter(Boolean);
+  const done = members.filter(it => it.done).length;
+  let tasks = 0, tasksDone = 0;
+  members.forEach(it => (it.tasks || []).forEach(t => { tasks++; if (t.done) tasksDone++; }));
+  const bits = [`${members.length} item${members.length === 1 ? "" : "s"}`, `${done}/${members.length || 0} done`];
+  if (tasks) bits.push(`${tasksDone}/${tasks} tasks`);
+  if (g.collapsed) bits.push("collapsed");
+  return bits.join(" · ");
+}
+function renderOutline() {
+  const body = $("#outline-body"), summary = $("#outline-summary");
+  if (!body || !board) return;
+  const groups = [...(board.groups || [])].sort((a, b) => {
+    const A = typeof expandedGroupBounds === "function" ? expandedGroupBounds(a) : null;
+    const B = typeof expandedGroupBounds === "function" ? expandedGroupBounds(b) : null;
+    if (!A || !B) return String(a.name || "").localeCompare(String(b.name || ""));
+    return (A.y - B.y) || (A.x - B.x);
+  });
+  const memberIds = new Set(groups.flatMap(g => g.itemIds || []));
+  const ungrouped = board.items.filter(it => !memberIds.has(it.id)).map(it => it.id);
+  if (summary) summary.textContent = `${groups.length} system${groups.length === 1 ? "" : "s"} · ${board.items.length} item${board.items.length === 1 ? "" : "s"} · ${(board.links || []).length} connection${(board.links || []).length === 1 ? "" : "s"}`;
+  let h = "";
+  groups.forEach(g => {
+    const ids = (g.itemIds || []).filter(id => byId(id));
+    h += `<section class="outline-system"><button class="outline-system-head" data-outline-group="${esc(g.id)}"><span><b>${esc(g.name || "System")}</b><small>${esc(outlineGroupMeta(g))}</small></span><svg><use href="#i-fit"/></svg></button><div class="outline-list">${outlineRows(ids)}</div></section>`;
+  });
+  if (ungrouped.length || !groups.length) {
+    const ids = ungrouped.length ? ungrouped : board.items.map(it => it.id);
+    h += `<section class="outline-system"><div class="outline-system-head"><span><b>${groups.length ? "Ungrouped" : "Board items"}</b><small>${ids.length} item${ids.length === 1 ? "" : "s"}</small></span><svg><use href="#i-outline"/></svg></div><div class="outline-list">${outlineRows(ids)}</div></section>`;
+  }
+  body.innerHTML = h || '<div class="outline-empty">Nothing is on this board yet.</div>';
+}
+function focusOutlineRect(b, maxScale) {
+  if (!b) return;
+  const r = viewport.getBoundingClientRect(), marginX = Math.min(150, r.width * .22), marginY = Math.min(170, r.height * .24);
+  const sx = (r.width - marginX) / Math.max(80, b.w), sy = (r.height - marginY) / Math.max(80, b.h);
+  view.s = clamp(Math.min(sx, sy), .18, maxScale || 1.15);
+  view.x = r.width / 2 - (b.x + b.w / 2) * view.s;
+  view.y = r.height / 2 - (b.y + b.h / 2) * view.s;
+  applyView(); save(true);
+}
+function jumpToOutlineItem(id) {
+  const it = byId(id); if (!it) return;
+  let expanded = false;
+  (board.groups || []).forEach(g => {
+    if (g.collapsed && (g.itemIds || []).includes(id)) { g.collapsed = false; expanded = true; }
+  });
+  if (expanded) renderAll();
+  closePanel("outline");
+  const r = viewport.getBoundingClientRect();
+  view.s = clamp(Math.max(view.s || 1, .55), .25, 1.35);
+  view.x = r.width / 2 - (it.x + it.w / 2) * view.s;
+  view.y = r.height / 2 - (it.y + it.h / 2) * view.s;
+  applyView(); selectItem(id); save(true);
+}
+$("#outline-body").addEventListener("click", e => {
+  const item = e.target.closest("[data-outline-item]");
+  if (item) { jumpToOutlineItem(item.dataset.outlineItem); return; }
+  const gb = e.target.closest("[data-outline-group]");
+  if (!gb) return;
+  const g = (board.groups || []).find(x => x.id === gb.dataset.outlineGroup); if (!g) return;
+  const b = g.collapsed && typeof groupBounds === "function" ? groupBounds(g) : (typeof expandedGroupBounds === "function" ? expandedGroupBounds(g) : null);
+  closePanel("outline"); focusOutlineRect(b, 1.12);
+});
 
 /* ═══════════════ inspector ═══════════════ */
 function openInspector() {
@@ -4075,7 +4371,7 @@ function openInspector() {
   };
   $("#inspect-foot").onclick = e => {
     const b = e.target.closest("button"); if (!b) return;
-    if (b.dataset.a === "dup") { snap(); const c = JSON.parse(JSON.stringify(it)); c.id = uid(); c.x += 28; c.y += 28; c.z = nextZ(); board.items.push(c); makeEl(c); refresh(c.id); selectItem(c.id); save(); }
+    if (b.dataset.a === "dup") { snap(); const c = JSON.parse(JSON.stringify(it)); c.id = uid(); c.x += 28; c.y += 28; c.z = nextZ(); board.items.push(c); autoJoinItemToContainingSystem(c); makeEl(c); refresh(c.id); selectItem(c.id); save(); }
     if (b.dataset.a === "front") { snap(); bump(it); save(); toast("Brought to front"); }
     if (b.dataset.a === "del") removeItem(it.id);
   };
@@ -4231,7 +4527,7 @@ function readImage(file, id, at) {
       if (!it) {
         const p = at || centerPoint();
         it = mkItem("photo", p.x - 105, p.y - 118);
-        board.items.push(it); makeEl(it);
+        board.items.push(it); autoJoinItemToContainingSystem(it); makeEl(it);
       }
       it.src = got.data;
       it.h = Math.round(clamp(it.w * (img.height / img.width), 90, 620)) + 46;
@@ -4262,13 +4558,13 @@ addEventListener("paste", e => {
       for (let i = 0; i < n; i++) {
         const it = mkItem("sticky", x0 + (i % cols) * gap, y0 + Math.floor(i / cols) * gap,
           { text: rows[i].slice(0, 300), color: STICKY[i % 3] });
-        board.items.push(it); makeEl(it); refresh(it.id); made.push(it.id);
+        board.items.push(it); autoJoinItemToContainingSystem(it); makeEl(it); refresh(it.id); made.push(it.id);
       }
       setMulti(made); updateEmpty(); save();
       toast(n + " notes pinned up" + (rows.length > n ? ` (first ${n} of ${rows.length})` : ""));
     } else {
       const n = mkItem("sticky", p.x - 91, p.y - 91, { text: txt.trim().slice(0, 400) });
-      board.items.push(n); makeEl(n); refresh(n.id); selectItem(n.id); updateEmpty(); save();
+      board.items.push(n); autoJoinItemToContainingSystem(n); makeEl(n); refresh(n.id); selectItem(n.id); updateEmpty(); save();
     }
   }
 });
@@ -4332,7 +4628,7 @@ function pinInboxIdea(id, at, forcedKind) {
   snap();
   board.inbox = board.inbox.filter(i => i.id !== id);
   const it = mkItem(kind, p.x - d.w / 2, p.y - d.h / 2, extra);
-  board.items.push(it); makeEl(it); refresh(it.id); selectItem(it.id);
+  board.items.push(it); autoJoinItemToContainingSystem(it); makeEl(it); refresh(it.id); selectItem(it.id);
   renderIdeaInbox(); updateEmpty(); save();
   if (isNarrow()) toggleIdeaDrawer(false);
   toast(kind === "card" ? "Feature placed on the board" : "Idea placed as a detail note");
@@ -4420,7 +4716,7 @@ function addItem(type) {
   const jitter = (Math.random() * 40 - 20);
   const it = mkItem(type, p.x - d.w / 2 + jitter, p.y - d.h / 2 + jitter);
   if (type === "tag") it.text = "Evidence " + String(board.items.filter(i => i.type === "tag").length + 1).padStart(2, "0");
-  snap(); board.items.push(it); makeEl(it); refresh(it.id); selectItem(it.id);
+  snap(); board.items.push(it); autoJoinItemToContainingSystem(it); makeEl(it); refresh(it.id); selectItem(it.id);
   updateEmpty(); save();
   if (type === "photo") pickImage(it.id);
   else if (type === "sticky" || type === "marker" || type === "tag") {
@@ -4491,6 +4787,23 @@ $("#btn-redo").addEventListener("click", redo);
 $("#btn-zin").addEventListener("click", () => { const r = viewport.getBoundingClientRect(); zoomAt(r.left + r.width / 2, r.top + r.height / 2, 1.2); });
 $("#btn-zout").addEventListener("click", () => { const r = viewport.getBoundingClientRect(); zoomAt(r.left + r.width / 2, r.top + r.height / 2, 1 / 1.2); });
 $("#btn-fit").addEventListener("click", () => fitBoard(true));
+$("#btn-map").addEventListener("click", () => setMinimapOpen(!minimapOpen));
+$("#btn-map-close").addEventListener("click", () => setMinimapOpen(false));
+$("#btn-outline").addEventListener("click", () => { closePanel("inspect"); openPanel("outline"); });
+const minimapCanvas = $("#minimap-canvas");
+minimapCanvas.addEventListener("pointerdown", e => {
+  if (e.pointerType === "mouse" && e.button !== 0) return;
+  e.preventDefault(); minimapDragging = true; minimapCanvas.setPointerCapture(e.pointerId); navigateFromMinimap(e);
+});
+minimapCanvas.addEventListener("pointermove", e => { if (minimapDragging) { e.preventDefault(); navigateFromMinimap(e); } });
+const finishMinimapDrag = e => {
+  if (!minimapDragging) return; minimapDragging = false;
+  if (minimapCanvas.hasPointerCapture && minimapCanvas.hasPointerCapture(e.pointerId)) minimapCanvas.releasePointerCapture(e.pointerId);
+  save(true);
+};
+minimapCanvas.addEventListener("pointerup", finishMinimapDrag);
+minimapCanvas.addEventListener("pointercancel", finishMinimapDrag);
+setMinimapOpen(minimapOpen);
 $("#btn-search").addEventListener("click", () => {
   const w = $("#searchwrap"); w.classList.toggle("open");
   if (w.classList.contains("open")) $("#search").focus();
@@ -4526,7 +4839,7 @@ addEventListener("keydown", e => {
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "d" && sel) {
     e.preventDefault(); const it = byId(sel); if (!it) return;
     snap(); const c = JSON.parse(JSON.stringify(it)); c.id = uid(); c.x += 28; c.y += 28; c.z = nextZ();
-    board.items.push(c); makeEl(c); refresh(c.id); selectItem(c.id); save(); return;
+    board.items.push(c); autoJoinItemToContainingSystem(c); makeEl(c); refresh(c.id); selectItem(c.id); save(); return;
   }
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "a") { e.preventDefault(); setMulti(board.items.map(i => i.id)); return; }
   if (e.key.toLowerCase() === "t") { toggleTimeline(); document.body.classList.toggle("tl", tlOpen); return; }
