@@ -37,3 +37,5 @@ jobs:
           git add -A
           git commit -m 'Release Pin It 1.9.7 multi-tab hardening'
           git push origin HEAD:main
+
+# trigger retry
