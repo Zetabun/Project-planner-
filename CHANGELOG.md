@@ -8,6 +8,16 @@ Numbers follow the usual shape: **major** for a change that breaks old saved boa
 
 ---
 
+## 1.9.3 — 15 September 2026, 13:46 UTC
+
+- Moved Pin It's primary board database from `localStorage` to **IndexedDB**, removing the old ~5 MB structural ceiling for normal browsers.
+- Existing saved boards migrate automatically the first time 1.9.3 loads; after a successful migration the old `localStorage` copy is removed to immediately free that quota.
+- Kept `localStorage` only as a fallback for browsers where IndexedDB is unavailable.
+- Updated autosave and board import to use ordered asynchronous database writes so newer state cannot be overwritten by an older pending save.
+- Imports remain transactional: the candidate database must be stored successfully before the imported board is added to the live session.
+- Updated the storage meter to show project-data size and, where supported, the browser's real storage estimate rather than a fixed 5 MB ceiling.
+- Photo compression now uses a conservative IndexedDB soft budget while preserving the tighter legacy fallback behaviour.
+
 ## 1.9.2 — 15 September 2026, 13:34 UTC
 
 - Fixed the desktop **Ideas** drawer doing unnecessary work on every open: it no longer rebuilds the full idea list just to display it.

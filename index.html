@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Pin It — a corkboard for planning projects
-  Version 1.9.2 · 15 September 2026, 13:34 UTC
+  Version 1.9.3 · 15 September 2026, 13:46 UTC
 
   TO RELEASE AN UPDATE: bump VERSION and BUILD, add the release to
   RELEASES in the script below, and add the same release at the top
@@ -1435,14 +1435,25 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
    matching entry to CHANGELOG.md. Shown in the boards drawer,
    saved with the data, and stamped into exported boards.
    ───────────────────────────────────────────────────────────── */
-const VERSION = "1.9.2";
-const BUILD = "15 September 2026, 13:34 UTC";
+const VERSION = "1.9.3";
+const BUILD = "15 September 2026, 13:46 UTC";
 /*
   RELEASE HISTORY — mandatory for every future release.
   Before completing or pushing an update: bump VERSION/BUILD, add the new
   release here (newest first), and add the same release to CHANGELOG.md.
 */
 const RELEASES = [
+  {
+    version: "1.9.3", date: "15 September 2026, 13:46 UTC",
+    summary: "Moves board persistence to IndexedDB so normal projects and imports are no longer constrained by localStorage's small quota.",
+    items: [
+      "IndexedDB is now the primary board database, with automatic one-time migration from the old localStorage record and cleanup of that legacy copy after migration.",
+      "Existing boards migrate automatically on first load; no re-import is required for boards that were already saved.",
+      "Imports are written transactionally to IndexedDB before they are added to the live board list, so failed imports still leave existing work untouched.",
+      "The storage meter now reports project data and browser storage estimates instead of treating 5 MB as the app's hard ceiling when IndexedDB is available.",
+      "Photo compression keeps a conservative soft budget while allowing substantially larger projects than the old localStorage backend."
+    ]
+  },
   {
     version: "1.9.2", date: "15 September 2026, 13:34 UTC",
     summary: "Stability hotfix for the Ideas drawer and browser storage pressure, especially on large imported boards.",
@@ -1699,20 +1710,90 @@ const DEFAULTS = {
   marker: { w: 260, h: 60, text: "Heading" }
 };
 
-/* ── storage: localStorage with a memory fallback only when persistence is unavailable at startup ── */
+/* ── storage: IndexedDB first; localStorage is migration/fallback only ── */
 const store = (() => {
-  let ok = true, mem = {};
-  try { localStorage.setItem("__t", "1"); localStorage.removeItem("__t"); } catch (e) { ok = false; }
+  const DB_NAME = "pin-it-storage";
+  const STORE_NAME = "kv";
+  let mem = {}, openP = null;
+  let localOK = true;
+  let idbOK = typeof indexedDB !== "undefined";
+  try { localStorage.setItem("__t", "1"); localStorage.removeItem("__t"); } catch (e) { localOK = false; }
+
+  function openDB() {
+    if (!idbOK) return Promise.reject(new Error("IndexedDB unavailable"));
+    if (openP) return openP;
+    openP = new Promise((resolve, reject) => {
+      let req;
+      try { req = indexedDB.open(DB_NAME, 1); }
+      catch (e) { idbOK = false; reject(e); return; }
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME);
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => { idbOK = false; openP = null; reject(req.error || new Error("IndexedDB open failed")); };
+      req.onblocked = () => { openP = null; reject(new Error("IndexedDB open blocked")); };
+    });
+    return openP;
+  }
+  async function idbGet(k) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readonly");
+      const req = tx.objectStore(STORE_NAME).get(k);
+      req.onsuccess = () => resolve(req.result == null ? null : req.result);
+      req.onerror = () => reject(req.error || new Error("IndexedDB read failed"));
+      tx.onabort = () => reject(tx.error || new Error("IndexedDB read aborted"));
+    });
+  }
+  async function idbSet(k, v) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      tx.objectStore(STORE_NAME).put(v, k);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => reject(tx.error || new Error("IndexedDB write failed"));
+      tx.onabort = () => reject(tx.error || new Error("IndexedDB write aborted"));
+    });
+  }
+  function legacyGet(k) {
+    if (!localOK) return mem[k] ?? null;
+    try { return localStorage.getItem(k); } catch (e) { return mem[k] ?? null; }
+  }
+  function clearLegacy(k) {
+    if (!localOK) return;
+    try { localStorage.removeItem(k); } catch (e) {}
+  }
+
   return {
-    persistent: ok,
-    get(k) { try { return ok ? localStorage.getItem(k) : mem[k] ?? null; } catch (e) { return mem[k] ?? null; } },
-    set(k, v) {
-      if (!ok) { mem[k] = v; return true; }
-      try { localStorage.setItem(k, v); return true; }
-      catch (e) {
-        // A quota failure must not keep another multi-megabyte copy alive in RAM.
-        return false;
+    get persistent() { return idbOK || localOK; },
+    get largeCapacity() { return idbOK; },
+    async get(k) {
+      if (idbOK) {
+        try {
+          const v = await idbGet(k);
+          if (v != null) { clearLegacy(k); return v; }
+          const legacy = legacyGet(k);
+          if (legacy != null) {
+            try { await idbSet(k, legacy); clearLegacy(k); } catch (e) {}
+            return legacy;
+          }
+          return null;
+        } catch (e) { idbOK = false; openP = null; }
       }
+      return legacyGet(k);
+    },
+    async set(k, v) {
+      if (idbOK) {
+        try {
+          await idbSet(k, v);
+          clearLegacy(k);
+          return true;
+        } catch (e) { idbOK = false; openP = null; }
+      }
+      if (!localOK) { mem[k] = v; return false; }
+      try { localStorage.setItem(k, v); return true; }
+      catch (e) { return false; }
     }
   };
 })();
@@ -1810,36 +1891,45 @@ const byId = id => board.items.find(i => i.id === id);
 /* ── persistence ── */
 let saveT = null;
 let storageWriteBlocked = false;
+let storageWriteP = Promise.resolve(true);
 function allowStorageRetry() { storageWriteBlocked = false; }
+function queueStorageWrite(payload) {
+  storageWriteP = storageWriteP.catch(() => false).then(() => store.set(KEY, payload));
+  return storageWriteP;
+}
 function save(now) {
-  if (!board) return;
+  if (!board) return Promise.resolve(false);
   board.updated = Date.now();
   board.view = { x: view.x, y: view.y, s: view.s, w: view.w, h: view.h };
   clearTimeout(saveT);
   renderTimeline();
-  const write = () => {
-    if (storageWriteBlocked) { flashSaved("not saved — storage full"); return; }
+  const write = async () => {
+    if (storageWriteBlocked) { flashSaved("not saved — storage unavailable"); return false; }
     let payload;
     try { payload = JSON.stringify(DB); }
-    catch (e) { flashSaved("not saved"); return; }
-    const okw = store.set(KEY, payload);
+    catch (e) { flashSaved("not saved"); return false; }
+    const okw = await queueStorageWrite(payload);
     payload = null;
     if (!okw) {
       storageWriteBlocked = true;
-      toast("Storage is full — saving is paused until you remove something or shrink pictures.", 5200);
-      flashSaved("not saved — storage full");
+      toast("Browser storage could not be written — saving is paused. Export a backup before closing this tab.", 6200);
+      flashSaved("not saved — storage unavailable");
+      return false;
     }
-    else if (!store.persistent) flashSaved("not saved — private mode");
+    if (!store.persistent) flashSaved("not saved — private mode");
     else flashSaved("saved");
+    return true;
   };
-  now ? write() : saveT = setTimeout(write, 450);
+  if (now) return write();
+  saveT = setTimeout(() => { void write(); }, 450);
+  return Promise.resolve(true);
 }
 function flashSaved(txt) {
   const t = $("#savetag"); t.textContent = txt; t.classList.add("show");
   clearTimeout(flashSaved._t); flashSaved._t = setTimeout(() => t.classList.remove("show"), 1400);
 }
-function load() {
-  let raw = store.get(KEY);
+async function load() {
+  let raw = await store.get(KEY);
   if (raw) { try { DB = JSON.parse(raw); } catch (e) { DB = { boards: [], current: null }; } }
   if (!DB.boards || !DB.boards.length) {
     DB = { boards: [], current: null };
@@ -3945,15 +4035,41 @@ function squeeze(img, budget = 240 * 1024, startDim = 1100) {
   }
   return { data: out, size, w: cv.width, h: cv.height };
 }
-function dbBytes() { try { return JSON.stringify(DB).length; } catch (e) { return 0; } }
-const QUOTA = 5 * 1024 * 1024;
+function dbBytes() {
+  try { return new Blob([JSON.stringify(DB)]).size; }
+  catch (e) { try { return JSON.stringify(DB).length; } catch (e2) { return 0; } }
+}
+const LEGACY_QUOTA = 5 * 1024 * 1024;
+const IDB_SOFT_BUDGET = 64 * 1024 * 1024;
+const storageBudget = () => store.largeCapacity ? IDB_SOFT_BUDGET : LEGACY_QUOTA;
 function renderMeter() {
   const bar = $("#meter"); if (!bar) return;
-  const used = dbBytes(), pct = Math.min(100, Math.round(used / QUOTA * 100));
-  bar.querySelector("i").style.width = Math.max(2, pct) + "%";
-  bar.classList.toggle("full", pct > 80);
+  const used = dbBytes();
   const pics = DB.boards.reduce((n, b) => n + b.items.filter(i => i.src).length, 0);
-  $("#meterlab").textContent = `${fmtBytes(used)} used of about 5 MB · ${pics} picture${pics === 1 ? "" : "s"}`;
+  const picText = `${pics} picture${pics === 1 ? "" : "s"}`;
+  if (store.largeCapacity) {
+    const softPct = Math.min(100, Math.round(used / IDB_SOFT_BUDGET * 100));
+    bar.querySelector("i").style.width = Math.max(2, softPct) + "%";
+    bar.classList.toggle("full", false);
+    $("#meterlab").textContent = `${fmtBytes(used)} project data · database storage · ${picText}`;
+    if (navigator.storage && navigator.storage.estimate) {
+      navigator.storage.estimate().then(est => {
+        if (!bar.isConnected || !store.largeCapacity) return;
+        const usage = +est.usage || 0, quota = +est.quota || 0;
+        const pct = quota ? Math.min(100, Math.round(usage / quota * 100)) : softPct;
+        bar.querySelector("i").style.width = Math.max(2, pct) + "%";
+        bar.classList.toggle("full", pct > 85);
+        $("#meterlab").textContent = quota
+          ? `${fmtBytes(used)} project data · ${fmtBytes(usage)} of ${fmtBytes(quota)} browser storage used · ${picText}`
+          : `${fmtBytes(used)} project data · database storage · ${picText}`;
+      }).catch(() => {});
+    }
+  } else {
+    const pct = Math.min(100, Math.round((used * 2) / LEGACY_QUOTA * 100));
+    bar.querySelector("i").style.width = Math.max(2, pct) + "%";
+    bar.classList.toggle("full", pct > 80);
+    $("#meterlab").textContent = `${fmtBytes(used * 2)} local storage used of about 5 MB · ${picText}`;
+  }
   $("#btn-shrink").style.display = board.items.some(i => i.src) ? "" : "none";
   backupLine();
 }
@@ -4600,7 +4716,7 @@ function readImage(file, id, at) {
   fr.onload = () => {
     const img = new Image();
     img.onload = () => {
-      const room = QUOTA - dbBytes();
+      const room = storageBudget() - dbBytes();
       const budget = clamp(Math.round(room * .25), 60 * 1024, 240 * 1024);
       const got = squeeze(img, budget);
       snap();
@@ -4841,7 +4957,7 @@ $("#btn-import").addEventListener("click", () => { $("#jsonpick").value = ""; $(
 $("#jsonpick").addEventListener("change", e => {
   const f = e.target.files[0]; if (!f) return;
   const fr = new FileReader();
-  fr.onload = () => {
+  fr.onload = async () => {
     try {
       const d = JSON.parse(fr.result);
       const incoming = d.board ? [d.board] : (d.boards || []);
@@ -4855,14 +4971,16 @@ $("#jsonpick").addEventListener("change", e => {
       });
       const candidate = Object.assign({}, DB, { boards: DB.boards.concat(staged) });
       let payload = JSON.stringify(candidate);
-      if (payload.length > QUOTA * .96) {
+      if (!store.largeCapacity && payload.length * 2 > LEGACY_QUOTA * .96) {
         payload = null;
-        toast("Import cancelled — it would exceed this browser's safe storage budget. Shrink pictures or remove a board first.", 6200);
+        toast("Import cancelled — this browser fell back to limited local storage. Export/remove a board or try a normal browser window.", 6200);
         return;
       }
-      if (!store.set(KEY, payload)) {
+      clearTimeout(saveT);
+      await storageWriteP.catch(() => false);
+      if (!await queueStorageWrite(payload)) {
         payload = null;
-        toast("Import cancelled — the browser could not store it. Your existing boards were left unchanged.", 6200);
+        toast("Import cancelled — browser database storage could not be written. Your existing boards were left unchanged.", 6200);
         return;
       }
       payload = null;
@@ -4987,29 +5105,35 @@ addEventListener("beforeunload", () => save(true));
 document.addEventListener("visibilitychange", () => { if (document.hidden) save(true); });
 
 /* ═══════════════ go ═══════════════ */
-load();
-$("#version").textContent = "Pin It " + VERSION + " · " + BUILD;
-const wasVersion = DB.version;
-if (!DB.lastSeenRelease) DB.lastSeenRelease = wasVersion || VERSION;
-DB.version = VERSION;
-updateReleaseBadges();
-applyTheme();
-renderLegend();
-plate();
-renderAll();
-applyView();
-if (board.items.length) {
-  const v = board.view || {}, r = viewport.getBoundingClientRect();
-  const resized = !v.w || !v.h || Math.abs(v.w - r.width) > r.width * 0.18 || Math.abs(v.h - r.height) > r.height * 0.18;
-  if (resized || (!v.x && !v.y) || !anyVisible()) fitBoard(false);
-}
-updateUndo();
-if (wasVersion && wasVersion !== VERSION) setTimeout(() => toast("Updated to Pin It " + VERSION, 3600), 1200);
-save(true);
-quietPersistOnce();
-setTimeout(safetyCheck, 2600);
-if (FRESH) startTour("first");
-else if (!store.persistent) toast("This browser won't save boards — export before you close the tab.", 5000);
+(async function bootPinIt() {
+  await load();
+  $("#version").textContent = "Pin It " + VERSION + " · " + BUILD;
+  const wasVersion = DB.version;
+  if (!DB.lastSeenRelease) DB.lastSeenRelease = wasVersion || VERSION;
+  DB.version = VERSION;
+  updateReleaseBadges();
+  applyTheme();
+  renderLegend();
+  plate();
+  renderAll();
+  applyView();
+  if (board.items.length) {
+    const v = board.view || {}, r = viewport.getBoundingClientRect();
+    const resized = !v.w || !v.h || Math.abs(v.w - r.width) > r.width * 0.18 || Math.abs(v.h - r.height) > r.height * 0.18;
+    if (resized || (!v.x && !v.y) || !anyVisible()) fitBoard(false);
+  }
+  updateUndo();
+  if (wasVersion && wasVersion !== VERSION) setTimeout(() => toast("Updated to Pin It " + VERSION, 3600), 1200);
+  await save(true);
+  renderMeter();
+  quietPersistOnce();
+  setTimeout(safetyCheck, 2600);
+  if (FRESH) startTour("first");
+  else if (!store.persistent) toast("This browser won't save boards — export before you close the tab.", 5000);
+})().catch(err => {
+  console.error("Pin It startup failed", err);
+  toast("Pin It could not open browser storage. Reload the page or export any visible work before closing.", 7000);
+});
 </script>
 </body>
 </html>
