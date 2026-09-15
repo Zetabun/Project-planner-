@@ -22,11 +22,13 @@ jobs:
           from pathlib import Path
           p=Path('.github/scripts/release_reliability_195.py')
           s=p.read_text(encoding='utf-8')
-          old="'single duplicate chrome',1)"
-          new="'single duplicate chrome',3)"
+          s=s.replace("'single duplicate chrome',1)","'single duplicate chrome',3)",1)
+          old="html=rep(html,'markBackup();','markBackup(b);','download backup target',1)\nhtml=rep(html,'markBackup();\\n      return true;','markBackup(b);\\n      return true;','share backup target',1)"
+          new="html=rep(html,'markBackup();','markBackup(b);','backup targets',2)"
           if old not in s:
-              raise SystemExit('retry patch target missing')
-          p.write_text(s.replace(old,new,1),encoding='utf-8')
+              raise SystemExit('backup retry patch target missing')
+          s=s.replace(old,new,1)
+          p.write_text(s,encoding='utf-8')
           PY
           python .github/scripts/release_reliability_195.py
       - name: Second pass checks
