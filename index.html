@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Pin It — a corkboard for planning projects
-  Version 1.9.1 · 15 September 2026, 11:56 UTC
+  Version 1.9.2 · 15 September 2026, 13:34 UTC
 
   TO RELEASE AN UPDATE: bump VERSION and BUILD, add the release to
   RELEASES in the script below, and add the same release at the top
@@ -557,21 +557,20 @@ body.ideas-open #idea-tab{opacity:0; pointer-events:none; transform:translateX(1
 .idea-card{position:relative; margin:0 0 9px; padding:11px 10px 9px; border:1px solid var(--pan-line); border-radius:5px;
   background:var(--pan-soft); box-shadow:0 3px 9px rgba(0,0,0,.12); touch-action:pan-y; user-select:none; -webkit-user-select:none}
 .idea-card:active{background:var(--pan-soft2)}
-#idea-drawer.opening .idea-card{transform-origin:50% 90%;
-  animation:idea-drawer-rummage .78s cubic-bezier(.22,.8,.24,1) both;
-  animation-delay:calc((var(--idea-order,0) * 34ms) + 80ms); will-change:transform}
+#idea-drawer.opening .idea-card:nth-child(-n+8){transform-origin:50% 90%;
+  animation:idea-drawer-rummage .48s cubic-bezier(.22,.8,.24,1) both;
+  animation-delay:calc((var(--idea-order,0) * 22ms) + 28ms); will-change:transform}
 .idea-card:nth-child(4n+1){--idea-order:0;--idea-x1:9px;--idea-y1:-5px;--idea-r1:1.7deg;--idea-x2:-5px;--idea-r2:-1.1deg}
 .idea-card:nth-child(4n+2){--idea-order:1;--idea-x1:-8px;--idea-y1:-3px;--idea-r1:-1.5deg;--idea-x2:5px;--idea-r2:.9deg}
 .idea-card:nth-child(4n+3){--idea-order:2;--idea-x1:6px;--idea-y1:-7px;--idea-r1:1.2deg;--idea-x2:-4px;--idea-r2:-.8deg}
 .idea-card:nth-child(4n){--idea-order:3;--idea-x1:-6px;--idea-y1:-4px;--idea-r1:-1.1deg;--idea-x2:4px;--idea-r2:.7deg}
 @keyframes idea-drawer-rummage{
-  0%{transform:translate(var(--idea-x1,8px),var(--idea-y1,-5px)) rotate(var(--idea-r1,1.4deg));box-shadow:0 7px 14px rgba(0,0,0,.18)}
-  34%{transform:translate(var(--idea-x2,-5px),3px) rotate(var(--idea-r2,-1deg))}
-  62%{transform:translate(3px,-1px) rotate(.45deg)}
-  82%{transform:translate(-1px,1px) rotate(-.18deg)}
-  100%{transform:none;box-shadow:0 3px 9px rgba(0,0,0,.12)}
+  0%{transform:translate(var(--idea-x1,8px),var(--idea-y1,-5px)) rotate(var(--idea-r1,1.4deg))}
+  38%{transform:translate(var(--idea-x2,-5px),2px) rotate(var(--idea-r2,-1deg))}
+  70%{transform:translate(2px,-1px) rotate(.3deg)}
+  100%{transform:none}
 }
-@media(prefers-reduced-motion:reduce){#idea-drawer.opening .idea-card{animation:none;will-change:auto}}
+@media(prefers-reduced-motion:reduce){#idea-drawer.opening .idea-card:nth-child(-n+8){animation:none;will-change:auto}}
 .idea-text{font-family:var(--hand); font-size:18px; line-height:1.24; overflow-wrap:anywhere; white-space:pre-wrap}
 .idea-kind{margin-top:5px; color:var(--pan-hint); font:700 9px/1 var(--ui); letter-spacing:.09em; text-transform:uppercase}
 .idea-actions{display:flex; gap:6px; margin-top:9px; align-items:center}
@@ -1436,14 +1435,25 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
    matching entry to CHANGELOG.md. Shown in the boards drawer,
    saved with the data, and stamped into exported boards.
    ───────────────────────────────────────────────────────────── */
-const VERSION = "1.9.1";
-const BUILD = "15 September 2026, 11:56 UTC";
+const VERSION = "1.9.2";
+const BUILD = "15 September 2026, 13:34 UTC";
 /*
   RELEASE HISTORY — mandatory for every future release.
   Before completing or pushing an update: bump VERSION/BUILD, add the new
   release here (newest first), and add the same release to CHANGELOG.md.
 */
 const RELEASES = [
+  {
+    version: "1.9.2", date: "15 September 2026, 13:34 UTC",
+    summary: "Stability hotfix for the Ideas drawer and browser storage pressure, especially on large imported boards.",
+    items: [
+      "Stopped the Ideas drawer rebuilding its full list every time it opens and limited the paper shuffle to the first visible ideas, removing the expensive animated shadow work.",
+      "Fixed failed localStorage writes retaining a second multi-megabyte copy of the database in memory after browser storage fills.",
+      "Autosave now backs off after a quota failure instead of repeatedly serialising and retrying the same oversized database until something is removed or compressed.",
+      "Board imports are now transactional: Pin It tests the complete candidate database before committing the imported board, so a failed import cannot leave an oversized unsaved board in memory.",
+      "Undo snapshots now de-duplicate embedded picture data instead of copying every image into every history entry, sharply reducing memory growth on image-heavy boards."
+    ]
+  },
   {
     version: "1.9.1", date: "15 September 2026, 11:56 UTC",
     summary: "Polishes the mobile Idea Inbox and gives stored ideas a physical drawer-opening shuffle.",
@@ -1689,7 +1699,7 @@ const DEFAULTS = {
   marker: { w: 260, h: 60, text: "Heading" }
 };
 
-/* ── storage: localStorage with a memory fallback so it never hard-fails ── */
+/* ── storage: localStorage with a memory fallback only when persistence is unavailable at startup ── */
 const store = (() => {
   let ok = true, mem = {};
   try { localStorage.setItem("__t", "1"); localStorage.removeItem("__t"); } catch (e) { ok = false; }
@@ -1699,7 +1709,10 @@ const store = (() => {
     set(k, v) {
       if (!ok) { mem[k] = v; return true; }
       try { localStorage.setItem(k, v); return true; }
-      catch (e) { mem[k] = v; return false; }
+      catch (e) {
+        // A quota failure must not keep another multi-megabyte copy alive in RAM.
+        return false;
+      }
     }
   };
 })();
@@ -1796,6 +1809,8 @@ const byId = id => board.items.find(i => i.id === id);
 
 /* ── persistence ── */
 let saveT = null;
+let storageWriteBlocked = false;
+function allowStorageRetry() { storageWriteBlocked = false; }
 function save(now) {
   if (!board) return;
   board.updated = Date.now();
@@ -1803,8 +1818,17 @@ function save(now) {
   clearTimeout(saveT);
   renderTimeline();
   const write = () => {
-    const okw = store.set(KEY, JSON.stringify(DB));
-    if (!okw) toast("Storage is full — try “Shrink the pictures” in the boards drawer, or export and remove a few.", 5200);
+    if (storageWriteBlocked) { flashSaved("not saved — storage full"); return; }
+    let payload;
+    try { payload = JSON.stringify(DB); }
+    catch (e) { flashSaved("not saved"); return; }
+    const okw = store.set(KEY, payload);
+    payload = null;
+    if (!okw) {
+      storageWriteBlocked = true;
+      toast("Storage is full — saving is paused until you remove something or shrink pictures.", 5200);
+      flashSaved("not saved — storage full");
+    }
     else if (!store.persistent) flashSaved("not saved — private mode");
     else flashSaved("saved");
   };
@@ -1830,23 +1854,52 @@ function load() {
 }
 
 /* ── undo ── */
+const undoMediaByValue = new Map(), undoMediaByKey = new Map();
+let undoMediaSeq = 0;
+function clearUndoMedia() { undoMediaByValue.clear(); undoMediaByKey.clear(); undoMediaSeq = 0; }
+function snapshotState() {
+  const items = board.items.map(it => {
+    if (!it.src || typeof it.src !== "string") return it;
+    let key = undoMediaByValue.get(it.src);
+    if (!key) {
+      key = "m" + (++undoMediaSeq);
+      undoMediaByValue.set(it.src, key);
+      undoMediaByKey.set(key, it.src);
+    }
+    const copy = Object.assign({}, it, { src: null, _undoSrc: key });
+    return copy;
+  });
+  return JSON.stringify({ items, links: board.links, ink: board.ink, inbox: board.inbox, groups: board.groups });
+}
+function inflateSnapshot(s) {
+  const d = JSON.parse(s);
+  d.items = (d.items || []).map(it => {
+    if (!it || !it._undoSrc) return it;
+    const copy = Object.assign({}, it, { src: undoMediaByKey.get(it._undoSrc) || "" });
+    delete copy._undoSrc;
+    return copy;
+  });
+  return d;
+}
 function snap() {
-  history.push(JSON.stringify({ items: board.items, links: board.links, ink: board.ink, inbox: board.inbox, groups: board.groups }));
-  if (history.length > 60) history.shift();
+  history.push(snapshotState());
+  if (history.length > 40) history.shift();
   future.length = 0; updateUndo();
 }
 function applySnap(s) {
-  const d = JSON.parse(s); board.items = d.items; board.links = d.links; board.ink = d.ink || []; board.inbox = d.inbox || []; board.groups = d.groups || [];
+  const d = inflateSnapshot(s); board.items = d.items; board.links = d.links; board.ink = d.ink || []; board.inbox = d.inbox || []; board.groups = d.groups || [];
   sel = null; renderAll(); closePanel("inspect"); save();
 }
 function undo() {
   if (!history.length) return;
-  future.push(JSON.stringify({ items: board.items, links: board.links, ink: board.ink, inbox: board.inbox, groups: board.groups }));
+  future.push(snapshotState());
+  if (future.length > 40) future.shift();
   applySnap(history.pop()); updateUndo();
 }
 function redo() {
   if (!future.length) return;
-  history.push(JSON.stringify({ items: board.items, links: board.links, ink: board.ink, inbox: board.inbox, groups: board.groups }));
+  history.push(snapshotState());
+  if (history.length > 40) history.shift();
   applySnap(future.pop()); updateUndo();
 }
 function updateUndo() {
@@ -2619,6 +2672,7 @@ function clearMulti(quiet) {
 function removeMany(ids) {
   if (linking && ids.includes(linking.from)) cancelLink();
   snap();
+  allowStorageRetry();
   const kill = new Set(ids);
   board.items = board.items.filter(i => !kill.has(i.id));
   board.links = board.links.filter(l => !kill.has(l.a) && !kill.has(l.b));
@@ -3131,6 +3185,7 @@ function linkMenu(id, x, y) {
 function removeItem(id) {
   if (linking && linking.from === id) cancelLink();
   snap();
+  allowStorageRetry();
   board.items = board.items.filter(i => i.id !== id);
   board.links = board.links.filter(l => l.a !== id && l.b !== id);
   pruneGroups(); renderGroups();
@@ -3906,6 +3961,7 @@ function renderMeter() {
 async function shrinkAll() {
   const pics = board.items.filter(i => i.src);
   if (!pics.length) { toast("No pictures on this board"); return; }
+  allowStorageRetry();
   toast("Shrinking " + pics.length + " picture" + (pics.length === 1 ? "" : "s") + "…", 6000);
   snap();
   let before = 0, after = 0;
@@ -4470,6 +4526,7 @@ function boardMenu(id, x, y) {
     if (t.dataset.a === "del") {
       if (DB.boards.length === 1) { toast("That's your only board — make another first."); return; }
       if (!confirm(`Delete "${b.name}"? This can't be undone.`)) return;
+      allowStorageRetry();
       DB.boards = DB.boards.filter(k => k.id !== id);
       if (board.id === id) switchBoard(DB.boards[0].id);
       save(true); renderCases();
@@ -4479,7 +4536,7 @@ function boardMenu(id, x, y) {
 function switchBoard(id) {
   const b = DB.boards.find(k => k.id === id); if (!b) return;
   save(true);
-  board = normalise(b); DB.current = id; history = []; future = []; updateUndo();
+  board = normalise(b); DB.current = id; history = []; future = []; clearUndoMedia(); updateUndo();
   view = Object.assign({ x: 0, y: 0, s: 1 }, b.view || {});
   sel = null; clearMulti(); cancelLink(); setLasso(false); setPen(null); closePanel("inspect");
   activeTags.clear(); hideDone = false;
@@ -4611,10 +4668,10 @@ function toggleIdeaDrawer(force) {
   clearTimeout(ideaDrawerMotionT);
   ideaDrawer.classList.remove("opening");
   if (on) {
-    renderIdeaInbox();
+    // The inbox is kept current when its data changes; opening it should not rebuild every card.
     if (!matchMedia("(prefers-reduced-motion: reduce)").matches && board.inbox.length) {
-      requestAnimationFrame(() => requestAnimationFrame(() => ideaDrawer.classList.add("opening")));
-      ideaDrawerMotionT = setTimeout(() => ideaDrawer.classList.remove("opening"), 1150);
+      requestAnimationFrame(() => ideaDrawer.classList.add("opening"));
+      ideaDrawerMotionT = setTimeout(() => ideaDrawer.classList.remove("opening"), 620);
     }
     setTimeout(() => { if (!isNarrow()) ideaInput.focus(); }, 80);
   }
@@ -4789,13 +4846,31 @@ $("#jsonpick").addEventListener("change", e => {
       const d = JSON.parse(fr.result);
       const incoming = d.board ? [d.board] : (d.boards || []);
       if (!incoming.length) throw 0;
-      incoming.forEach(b => {
+      const staged = incoming.map((raw, ix) => {
+        const b = normalise(JSON.parse(JSON.stringify(raw)));
         b.id = uid(); b.name = b.name || "Imported board";
-        b.no = "NO. " + String(DB.boards.length + 1).padStart(3, "0");
+        b.no = "NO. " + String(DB.boards.length + ix + 1).padStart(3, "0");
         b.updated = Date.now();
-        DB.boards.push(normalise(b));
+        return b;
       });
-      save(true); renderCases(); toast(incoming.length + " board" + (incoming.length > 1 ? "s" : "") + " imported");
+      const candidate = Object.assign({}, DB, { boards: DB.boards.concat(staged) });
+      let payload = JSON.stringify(candidate);
+      if (payload.length > QUOTA * .96) {
+        payload = null;
+        toast("Import cancelled — it would exceed this browser's safe storage budget. Shrink pictures or remove a board first.", 6200);
+        return;
+      }
+      if (!store.set(KEY, payload)) {
+        payload = null;
+        toast("Import cancelled — the browser could not store it. Your existing boards were left unchanged.", 6200);
+        return;
+      }
+      payload = null;
+      DB.boards.push(...staged);
+      storageWriteBlocked = false;
+      if (!store.persistent) flashSaved("not saved — private mode"); else flashSaved("saved");
+      renderCases(); renderMeter();
+      toast(staged.length + " board" + (staged.length > 1 ? "s" : "") + " imported");
     } catch (err) { toast("That file isn't a Pin It board"); }
   };
   fr.readAsText(f);

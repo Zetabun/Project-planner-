@@ -8,6 +8,15 @@ Numbers follow the usual shape: **major** for a change that breaks old saved boa
 
 ---
 
+## 1.9.2 — 15 September 2026, 13:34 UTC
+
+- Fixed the desktop **Ideas** drawer doing unnecessary work on every open: it no longer rebuilds the full idea list just to display it.
+- Kept the physical drawer feel while limiting the shuffle to the first eight visible ideas, shortening it, and removing animated box-shadow work that caused expensive repaints.
+- Fixed failed `localStorage` writes retaining a second copy of the full database in RAM after quota exhaustion.
+- Autosave now stops repeatedly serialising/retrying an oversized database after the first quota failure; deleting items/boards or shrinking pictures enables a clean retry.
+- Imports are now transactional: the full candidate database is checked and persisted before the live board list is changed, so a too-large import is cancelled without leaving unsaved data resident in memory.
+- Reworked undo history so embedded image data is stored once and referenced by snapshots rather than copied into every undo entry; history remains capped and is cleared between boards.
+
 ## 1.9.1 — 15 September 2026, 11:56 UTC
 
 - Moved the **Ideas** tray button upward on mobile and made its position adapt to short viewport heights so it stays clear of the taller zoom/navigation rail.
