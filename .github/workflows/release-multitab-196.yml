@@ -1,0 +1,39 @@
+name: Release Pin It 1.9.6 multi-tab reliability pass
+
+on:
+  push:
+    paths:
+      - '.github/workflows/release-multitab-196.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply reliability fixes
+        run: python .github/scripts/release_multitab_196.py
+      - name: Second pass checks
+        run: |
+          git diff --check
+          grep -q 'const VERSION = "1.9.6";' index.html
+          grep -q '## 1.9.6 — 15 September 2026, 14:17 UTC' CHANGELOG.md
+          grep -q 'const TAB_LEASE_KEY = "pinit.tabLease.v1";' index.html
+          grep -q 'navigator.locks.request("pin-it-storage-write-v1"' index.html
+          grep -q 'One editing tab at a time.' README.md
+      - name: Commit release to main
+        run: |
+          rm -f .github/scripts/release_multitab_196.py .github/workflows/release-multitab-196.yml
+          rmdir .github/scripts 2>/dev/null || true
+          rmdir .github/workflows 2>/dev/null || true
+          rmdir .github 2>/dev/null || true
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Release Pin It 1.9.6 multi-tab protection'
+          git push origin HEAD:main
