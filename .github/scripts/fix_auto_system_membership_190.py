@@ -102,11 +102,6 @@ push_replacements = [
         'snap(); board.items.push(it); autoJoinItemToContainingSystem(it); makeEl(it); refresh(it.id); selectItem(it.id);',
         "toolbar add auto-join",
     ),
-    (
-        'board.items.push(c); makeEl(c); refresh(c.id); selectItem(c.id); save(); return;',
-        'board.items.push(c); autoJoinItemToContainingSystem(c); makeEl(c); refresh(c.id); selectItem(c.id); save(); return;',
-        "keyboard duplicate auto-join",
-    ),
 ]
 for spec in push_replacements:
     old, new, label, *count = spec
