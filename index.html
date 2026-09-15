@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Pin It — a corkboard for planning projects
-  Version 1.9.0 · 15 September 2026, 11:31 UTC
+  Version 1.9.1 · 15 September 2026, 11:56 UTC
 
   TO RELEASE AN UPDATE: bump VERSION and BUILD, add the release to
   RELEASES in the script below, and add the same release at the top
@@ -557,6 +557,21 @@ body.ideas-open #idea-tab{opacity:0; pointer-events:none; transform:translateX(1
 .idea-card{position:relative; margin:0 0 9px; padding:11px 10px 9px; border:1px solid var(--pan-line); border-radius:5px;
   background:var(--pan-soft); box-shadow:0 3px 9px rgba(0,0,0,.12); touch-action:pan-y; user-select:none; -webkit-user-select:none}
 .idea-card:active{background:var(--pan-soft2)}
+#idea-drawer.opening .idea-card{transform-origin:50% 90%;
+  animation:idea-drawer-rummage .78s cubic-bezier(.22,.8,.24,1) both;
+  animation-delay:calc((var(--idea-order,0) * 34ms) + 80ms); will-change:transform}
+.idea-card:nth-child(4n+1){--idea-order:0;--idea-x1:9px;--idea-y1:-5px;--idea-r1:1.7deg;--idea-x2:-5px;--idea-r2:-1.1deg}
+.idea-card:nth-child(4n+2){--idea-order:1;--idea-x1:-8px;--idea-y1:-3px;--idea-r1:-1.5deg;--idea-x2:5px;--idea-r2:.9deg}
+.idea-card:nth-child(4n+3){--idea-order:2;--idea-x1:6px;--idea-y1:-7px;--idea-r1:1.2deg;--idea-x2:-4px;--idea-r2:-.8deg}
+.idea-card:nth-child(4n){--idea-order:3;--idea-x1:-6px;--idea-y1:-4px;--idea-r1:-1.1deg;--idea-x2:4px;--idea-r2:.7deg}
+@keyframes idea-drawer-rummage{
+  0%{transform:translate(var(--idea-x1,8px),var(--idea-y1,-5px)) rotate(var(--idea-r1,1.4deg));box-shadow:0 7px 14px rgba(0,0,0,.18)}
+  34%{transform:translate(var(--idea-x2,-5px),3px) rotate(var(--idea-r2,-1deg))}
+  62%{transform:translate(3px,-1px) rotate(.45deg)}
+  82%{transform:translate(-1px,1px) rotate(-.18deg)}
+  100%{transform:none;box-shadow:0 3px 9px rgba(0,0,0,.12)}
+}
+@media(prefers-reduced-motion:reduce){#idea-drawer.opening .idea-card{animation:none;will-change:auto}}
 .idea-text{font-family:var(--hand); font-size:18px; line-height:1.24; overflow-wrap:anywhere; white-space:pre-wrap}
 .idea-kind{margin-top:5px; color:var(--pan-hint); font:700 9px/1 var(--ui); letter-spacing:.09em; text-transform:uppercase}
 .idea-actions{display:flex; gap:6px; margin-top:9px; align-items:center}
@@ -590,7 +605,8 @@ body.idea-dragging #idea-drawer{opacity:.88}
   font:700 9px/1.2 var(--ui); color:var(--pan-sub); background:var(--pan-soft)}
 
 @media(max-width:720px){
-  #idea-tab{right:6px; top:50%; width:45px; min-height:61px}
+  #idea-tab{right:6px; top:44%; width:45px; min-height:61px}
+  @supports(height:100dvh){#idea-tab{top:min(44%, max(calc(var(--safe-t) + 82px), calc(100dvh - 376px - var(--safe-b))))}}
   #idea-drawer{top:calc(var(--safe-t) + 68px); bottom:calc(var(--safe-b) + 72px); width:min(86vw,330px)}
   .idea-text{font-size:17px}
   #ctx button.rel-choice{min-width:min(250px,76vw)}
@@ -1420,14 +1436,22 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
    matching entry to CHANGELOG.md. Shown in the boards drawer,
    saved with the data, and stamped into exported boards.
    ───────────────────────────────────────────────────────────── */
-const VERSION = "1.9.0";
-const BUILD = "15 September 2026, 11:31 UTC";
+const VERSION = "1.9.1";
+const BUILD = "15 September 2026, 11:56 UTC";
 /*
   RELEASE HISTORY — mandatory for every future release.
   Before completing or pushing an update: bump VERSION/BUILD, add the new
   release here (newest first), and add the same release to CHANGELOG.md.
 */
 const RELEASES = [
+  {
+    version: "1.9.1", date: "15 September 2026, 11:56 UTC",
+    summary: "Polishes the mobile Idea Inbox and gives stored ideas a physical drawer-opening shuffle.",
+    items: [
+      "Moved the Ideas tray button upward on mobile and made its position responsive to short viewport heights so it stays clear of the expanded zoom/navigation rail.",
+      "When the Idea Inbox opens, stored ideas now shift, wobble and settle with a short staggered paper-like animation, while reduced-motion preferences remain respected."
+    ]
+  },
   {
     version: "1.9.0", date: "15 September 2026, 11:31 UTC",
     summary: "Large boards are easier to navigate with a live minimap and a structured outline view of systems, items and expansion relationships.",
@@ -4576,6 +4600,7 @@ addEventListener("paste", e => {
 
 /* ═══════════════ idea inbox ═══════════════ */
 const ideaDrawer = $("#idea-drawer"), ideaList = $("#idea-list"), ideaInput = $("#idea-input");
+let ideaDrawerMotionT = null;
 function ideaDrawerOpen() { return ideaDrawer.classList.contains("show"); }
 function toggleIdeaDrawer(force) {
   const on = force === undefined ? !ideaDrawerOpen() : !!force;
@@ -4583,7 +4608,16 @@ function toggleIdeaDrawer(force) {
   ideaDrawer.setAttribute("aria-hidden", on ? "false" : "true");
   $("#idea-tab").setAttribute("aria-expanded", on ? "true" : "false");
   document.body.classList.toggle("ideas-open", on);
-  if (on) { renderIdeaInbox(); setTimeout(() => { if (!isNarrow()) ideaInput.focus(); }, 80); }
+  clearTimeout(ideaDrawerMotionT);
+  ideaDrawer.classList.remove("opening");
+  if (on) {
+    renderIdeaInbox();
+    if (!matchMedia("(prefers-reduced-motion: reduce)").matches && board.inbox.length) {
+      requestAnimationFrame(() => requestAnimationFrame(() => ideaDrawer.classList.add("opening")));
+      ideaDrawerMotionT = setTimeout(() => ideaDrawer.classList.remove("opening"), 1150);
+    }
+    setTimeout(() => { if (!isNarrow()) ideaInput.focus(); }, 80);
+  }
 }
 function ideaFromItem(it) {
   const boring = new Set(["Untitled", "New feature", "Report", "Checklist", "Implementation checklist"]);

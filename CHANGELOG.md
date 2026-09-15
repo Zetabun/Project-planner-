@@ -8,6 +8,12 @@ Numbers follow the usual shape: **major** for a change that breaks old saved boa
 
 ---
 
+## 1.9.1 — 15 September 2026, 11:56 UTC
+
+- Moved the **Ideas** tray button upward on mobile and made its position adapt to short viewport heights so it stays clear of the taller zoom/navigation rail.
+- Added a short staggered physical shuffle when the Idea Inbox opens: stored ideas wobble, slide and settle like loose paper in a drawer that has just been opened.
+- The movement does not change card positions or data, does not interfere with dragging, and is disabled when the device requests reduced motion.
+
 ## 1.9.0 — 15 September 2026, 11:31 UTC
 
 - Added a collapsible **Board Map** beside the zoom controls, showing system boundaries, item clusters and the live viewport.
