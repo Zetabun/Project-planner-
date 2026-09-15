@@ -1,0 +1,39 @@
+name: Release Pin It 1.9.8 interaction fixes
+
+on:
+  push:
+    paths:
+      - '.github/workflows/release-bugfix-198.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply bug fixes
+        run: python .github/scripts/release_bugfix_198.py
+      - name: Second pass checks
+        run: |
+          git diff --check
+          grep -q 'const VERSION = "1.9.8";' index.html
+          grep -q '## 1.9.8 — 15 September 2026, 14:43 UTC' CHANGELOG.md
+          grep -q 'maxW:520, maxH:520' index.html
+          grep -q 'Finish moving system' index.html
+          grep -q 'clearMulti(false); }' index.html
+      - name: Commit release to main
+        run: |
+          rm -f .github/scripts/release_bugfix_198.py .github/workflows/release-bugfix-198.yml
+          rmdir .github/scripts 2>/dev/null || true
+          rmdir .github/workflows 2>/dev/null || true
+          rmdir .github 2>/dev/null || true
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Release Pin It 1.9.8 sticky and system move fixes'
+          git push origin HEAD:main
