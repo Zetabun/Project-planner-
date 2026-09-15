@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Pin It — a corkboard for planning projects
-  Version 1.8.0 · 15 September 2026, 10:49 UTC
+  Version 1.8.1 · 15 September 2026, 11:21 UTC
 
   TO RELEASE AN UPDATE: bump VERSION and BUILD, add the release to
   RELEASES in the script below, and add the same release at the top
@@ -1043,7 +1043,7 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
 
 @media (max-width:720px){
   #topbar{top:calc(8px + var(--safe-t)); left:8px; right:8px; gap:5px}
-  #caseplate{max-width:38vw; font-size:12.5px; padding:5px 10px 7px}
+  #caseplate{max-width:38vw; font-size:12.5px; padding:5px 10px 7px; margin-left:10px}
   #caseplate .no{font-size:8.5px}
   .chip{height:34px; font-size:12px}
   .chip.icon{width:34px}
@@ -1357,14 +1357,21 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
    matching entry to CHANGELOG.md. Shown in the boards drawer,
    saved with the data, and stamped into exported boards.
    ───────────────────────────────────────────────────────────── */
-const VERSION = "1.8.0";
-const BUILD = "15 September 2026, 10:49 UTC";
+const VERSION = "1.8.1";
+const BUILD = "15 September 2026, 11:21 UTC";
 /*
   RELEASE HISTORY — mandatory for every future release.
   Before completing or pushing an update: bump VERSION/BUILD, add the new
   release here (newest first), and add the same release to CHANGELOG.md.
 */
 const RELEASES = [
+  {
+    version: "1.8.1", date: "15 September 2026, 11:21 UTC",
+    summary: "Polishes the mobile top bar so the board label sits cleanly clear of the boards menu.",
+    items: [
+      "Moved the board label 10px to the right on screens up to 720px, keeping its taped edge clear of the burger/boards button without changing desktop spacing."
+    ]
+  },
   {
     version: "1.8.0", date: "15 September 2026, 10:49 UTC",
     summary: "Systems become active planning objects: edit their membership, move whole systems, collapse them for overview, and see when a new release is waiting to be read.",

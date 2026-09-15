@@ -8,6 +8,11 @@ Numbers follow the usual shape: **major** for a change that breaks old saved boa
 
 ---
 
+## 1.8.1 — 15 September 2026, 11:21 UTC
+
+- Moved the board label 10px to the right on mobile/narrow screens so its decorative tape edge no longer crowds the burger/boards button.
+- Desktop top-bar spacing is unchanged.
+
 ## 1.8.0 — 15 September 2026, 10:49 UTC
 
 - Added **Edit contents** to system/group menus so existing systems can gain or lose cards and notes without being recreated.
