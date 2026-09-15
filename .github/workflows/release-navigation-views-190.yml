@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/release-navigation-views-190.yml'
+      - '.github/scripts/fix_auto_system_membership_190.py'
 
 permissions:
   contents: write
@@ -51,4 +52,4 @@ jobs:
           git commit -m 'Release Pin It 1.9.0 map, outline and auto systems'
           git push origin HEAD:main
 
-# Retry after correcting the duplicate-path verification count.
+# Retry after correcting the automatic-system release script.
