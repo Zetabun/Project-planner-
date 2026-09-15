@@ -1,0 +1,47 @@
+name: Release Pin It 1.9.1 idea tray polish
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/release-idea-tray-polish-191.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply idea tray polish
+        run: python .github/scripts/release_idea_tray_polish_191.py
+
+      - name: Second pass checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          grep -F 'const VERSION = "1.9.1";' index.html
+          grep -F 'version: "1.9.1", date: "15 September 2026, 11:56 UTC"' index.html
+          grep -F '#idea-tab{right:6px; top:44%; width:45px; min-height:61px}' index.html
+          grep -F 'calc(100dvh - 376px - var(--safe-b))' index.html
+          grep -F 'ideaDrawer.classList.add("opening")' index.html
+          grep -F '@keyframes idea-drawer-rummage' index.html
+          grep -F 'prefers-reduced-motion:reduce' index.html
+          grep -F '## 1.9.1 — 15 September 2026, 11:56 UTC' CHANGELOG.md
+
+      - name: Commit release to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html CHANGELOG.md
+          git rm .github/scripts/release_idea_tray_polish_191.py .github/workflows/release-idea-tray-polish-191.yml
+          git commit -m 'Release Pin It 1.9.1 idea tray polish'
+          git push origin HEAD:main
