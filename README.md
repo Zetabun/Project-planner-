@@ -125,9 +125,11 @@ With several selected you can drag the whole cluster as one, duplicate it, or re
 
 When a cluster represents one system or subtopic, lasso two or more items and tap **Group area** on the selection bar. Give it a name such as **RAIN SYSTEM** and Pin It draws a faint labelled boundary behind those items.
 
-The area is deliberately not another rigid container: every note and card remains individually draggable, resizable and linkable. The boundary recalculates from its members, so it grows, shrinks and moves as the cluster changes. A small title band is reserved above the nearest item so the group name stays visually separate from its contents. Tap the group label to select all of its contents, rename it, or remove only the boundary while leaving the work untouched.
+Group areas start in **Automatic sizing**. The boundary recalculates from its members, so it grows, shrinks and moves as the cluster changes while every note and card remains individually draggable, resizable and linkable.
 
-Group areas are stored with the board, survive import/export and undo/redo, adapt to Corkboard, Whiteboard and Blueprint themes, count toward **Fit board**, and are included when the board is saved as a picture.
+Tap the group/system name to open its menu. Choose **Use manual sizing** when you want the border itself to be art-directed: drag the box to move it and drag any corner handle to resize it without moving the cards inside. Once it is where you want it, choose **Lock box** to prevent accidental movement or resizing. The same menu can unlock it later, or switch the group back to automatic sizing at any time.
+
+Manual size, position and lock state are stored with the board, survive import/export and undo/redo, adapt to Corkboard, Whiteboard and Blueprint themes, count toward **Fit board**, and are included when the board is saved as a picture.
 
 ## Dates and the timeline
 

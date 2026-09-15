@@ -8,6 +8,15 @@ Numbers follow the usual shape: **major** for a change that breaks old saved boa
 
 ---
 
+## 1.7.0 — 15 September 2026, 10:07 UTC
+
+- Added **Automatic / Manual sizing** to the menu opened from a system/group name.
+- Manual group boundaries can be moved independently and resized from four touch-friendly corner handles without moving the cards inside them.
+- Added **Lock box / Unlock box** for manual boundaries to prevent accidental movement or resizing once positioned.
+- Switching back to Automatic immediately returns the boundary to following its member items.
+- Manual box geometry and lock state persist through save, backup/import, undo/redo, Fit board and picture export.
+- Updated onboarding and README guidance for the new group-boundary controls.
+
 ## 1.6.1 — 14 September 2026, 23:38 UTC
 
 - Added extra breathing room between a group/system label and the nearest card or note.
