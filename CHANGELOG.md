@@ -8,6 +8,12 @@ Numbers follow the usual shape: **major** for a change that breaks old saved boa
 
 ---
 
+## 1.9.4 — 15 September 2026, 13:54 UTC
+
+- Changed **Board Map** so it starts closed on desktop as well as mobile; it now opens only when requested.
+- Removed the visible large-scale cork texture tiling by making the low-frequency cork variation a single non-repeating viewport layer while retaining the fine surface grain.
+- Added desktop clearance between the burger/boards button and the board-name case card so the decorative tape no longer visually clashes with the menu.
+
 ## 1.9.3 — 15 September 2026, 13:46 UTC
 
 - Moved Pin It's primary board database from `localStorage` to **IndexedDB**, removing the old ~5 MB structural ceiling for normal browsers.

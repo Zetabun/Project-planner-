@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Pin It — a corkboard for planning projects
-  Version 1.9.3 · 15 September 2026, 13:46 UTC
+  Version 1.9.4 · 15 September 2026, 13:54 UTC
 
   TO RELEASE AN UPDATE: bump VERSION and BUILD, add the release to
   RELEASES in the script below, and add the same release at the top
@@ -265,7 +265,8 @@ body[data-theme="blueprint"] .item.linkable .surface{outline:2px solid #8dd8ff; 
     radial-gradient(130% 100% at 26% -6%, rgba(255,229,186,.34), rgba(0,0,0,0) 58%),
     radial-gradient(130% 120% at 74% 112%, rgba(58,31,9,.5), rgba(0,0,0,0) 62%),
     linear-gradient(178deg, var(--cork-1), var(--cork-2) 55%, var(--cork-3));
-  background-size:300px 300px, 620px 620px, 100% 100%, 100% 100%, 100% 100%;
+  background-size:300px 300px, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+  background-repeat:repeat, no-repeat, no-repeat, no-repeat, no-repeat;
   background-blend-mode:multiply, soft-light, normal, normal, normal;
 }
 #viewport.panning{cursor:grabbing}
@@ -346,7 +347,7 @@ body[data-theme="blueprint"] .group-box.group-members-editing,body[data-theme="b
   border-radius:999px; background:#e24c3f; color:#fff; font:700 9px/1.35 var(--ui); letter-spacing:.08em; box-shadow:0 2px 6px rgba(0,0,0,.2)}
 
 #caseplate{
-  pointer-events:auto; position:relative; padding:7px 16px 9px; min-width:0;
+  pointer-events:auto; position:relative; padding:7px 16px 9px; min-width:0; margin-left:10px;
   background:linear-gradient(180deg,#f4ecd8,#e2d5b8); color:#231f1a;
   font-family:var(--type); font-size:15px; line-height:1.15;
   border-radius:2px; transform:rotate(-.5deg);
@@ -1435,14 +1436,23 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
    matching entry to CHANGELOG.md. Shown in the boards drawer,
    saved with the data, and stamped into exported boards.
    ───────────────────────────────────────────────────────────── */
-const VERSION = "1.9.3";
-const BUILD = "15 September 2026, 13:46 UTC";
+const VERSION = "1.9.4";
+const BUILD = "15 September 2026, 13:54 UTC";
 /*
   RELEASE HISTORY — mandatory for every future release.
   Before completing or pushing an update: bump VERSION/BUILD, add the new
   release here (newest first), and add the same release to CHANGELOG.md.
 */
 const RELEASES = [
+  {
+    version: "1.9.4", date: "15 September 2026, 13:54 UTC",
+    summary: "A board presentation polish pass keeps the map out of the way on load, removes visible cork tiling and gives the desktop board label proper clearance.",
+    items: [
+      "Board Map now starts closed on every screen size and only opens when the user presses the map button.",
+      "Removed the obvious 620px repeating seam from the cork surface by stretching the low-frequency texture layer across the viewport instead of tiling it.",
+      "Added desktop spacing between the burger/boards button and the board-name card so its decorative tape no longer overlaps the menu control."
+    ]
+  },
   {
     version: "1.9.3", date: "15 September 2026, 13:46 UTC",
     summary: "Moves board persistence to IndexedDB so normal projects and imports are no longer constrained by localStorage's small quota.",
@@ -2036,7 +2046,7 @@ function seedBoard() {
 <script>
 /* ═══════════════ rendering ═══════════════ */
 const world = $("#world"), svg = $("#threads"), viewport = $("#viewport");
-let minimapOpen = !matchMedia("(max-width:720px)").matches, minimapMetrics = null, minimapDragging = false;
+let minimapOpen = false, minimapMetrics = null, minimapDragging = false;
 const nl2br = s => esc(s).replace(/\n/g, "<br>");
 
 function itemInner(it) {
