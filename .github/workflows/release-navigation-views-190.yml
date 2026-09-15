@@ -50,3 +50,5 @@ jobs:
           git rm .github/scripts/release_navigation_views_190.py .github/scripts/fix_auto_system_membership_190.py .github/workflows/release-navigation-views-190.yml
           git commit -m 'Release Pin It 1.9.0 map, outline and auto systems'
           git push origin HEAD:main
+
+# Retry after correcting the duplicate-path verification count.
