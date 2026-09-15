@@ -1,0 +1,52 @@
+name: Release Pin It 1.9.0 navigation views
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/release-navigation-views-190.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply map and outline update
+        run: python .github/scripts/release_navigation_views_190.py
+
+      - name: Fold in automatic system membership fix
+        run: python .github/scripts/fix_auto_system_membership_190.py
+
+      - name: Second pass checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          grep -F 'const VERSION = "1.9.0";' index.html
+          grep -F 'version: "1.9.0", date: "15 September 2026, 11:31 UTC"' index.html
+          grep -F 'id="minimap-canvas"' index.html
+          grep -F 'id="btn-outline"' index.html
+          grep -F 'function renderOutline()' index.html
+          grep -F 'function autoJoinItemToContainingSystem(it)' index.html
+          grep -F 'autoJoinItemsToContainingSystems(movedIds)' index.html
+          grep -F 'New ungrouped notes/cards created inside an automatic system' README.md
+          grep -F 'Fixed automatic systems not recognising newly added notes' CHANGELOG.md
+          grep -F '## 1.9.0 — 15 September 2026, 11:31 UTC' CHANGELOG.md
+
+      - name: Commit release to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html README.md CHANGELOG.md
+          git rm .github/scripts/release_navigation_views_190.py .github/scripts/fix_auto_system_membership_190.py .github/workflows/release-navigation-views-190.yml
+          git commit -m 'Release Pin It 1.9.0 map, outline and auto systems'
+          git push origin HEAD:main
