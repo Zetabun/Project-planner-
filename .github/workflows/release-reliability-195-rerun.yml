@@ -1,0 +1,50 @@
+name: Retry Pin It 1.9.5 reliability pass
+
+on:
+  push:
+    paths:
+      - '.github/workflows/release-reliability-195-rerun.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Patch release script and apply
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('.github/scripts/release_reliability_195.py')
+          s=p.read_text(encoding='utf-8')
+          old="'single duplicate chrome',1)"
+          new="'single duplicate chrome',3)"
+          if old not in s:
+              raise SystemExit('retry patch target missing')
+          p.write_text(s.replace(old,new,1),encoding='utf-8')
+          PY
+          python .github/scripts/release_reliability_195.py
+      - name: Second pass checks
+        run: |
+          git diff --check
+          grep -q 'const VERSION = "1.9.5";' index.html
+          grep -q '## 1.9.5 — 15 September 2026, 14:08 UTC' CHANGELOG.md
+          grep -q 'function pruneUndoMedia()' index.html
+          grep -q 'while (storageDirty && !storageWriteBlocked)' index.html
+          grep -q 'It starts collapsed on desktop and mobile' README.md
+      - name: Commit release to main
+        run: |
+          rm -f .github/scripts/release_reliability_195.py .github/workflows/release-reliability-195.yml .github/workflows/release-reliability-195-rerun.yml
+          rmdir .github/scripts 2>/dev/null || true
+          rmdir .github/workflows 2>/dev/null || true
+          rmdir .github 2>/dev/null || true
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Release Pin It 1.9.5 reliability pass'
+          git push origin HEAD:main
