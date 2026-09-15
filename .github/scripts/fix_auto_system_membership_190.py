@@ -75,7 +75,7 @@ push_replacements = [
         'board.items.push(c); makeEl(c); refresh(c.id); selectItem(c.id); save();',
         'board.items.push(c); autoJoinItemToContainingSystem(c); makeEl(c); refresh(c.id); selectItem(c.id); save();',
         "duplicate auto-join",
-        3,
+        4,
     ),
     (
         'board.items.push(it); makeEl(it);\n      }\n      it.src = got.data;',
