@@ -8,6 +8,15 @@ Numbers follow the usual shape: **major** for a change that breaks old saved boa
 
 ---
 
+## 1.8.0 — 15 September 2026, 10:49 UTC
+
+- Added **Edit contents** to system/group menus so existing systems can gain or lose cards and notes without being recreated.
+- Added **Move system + contents** using the existing multi-drag interaction; manual boundaries travel with the selected system.
+- Added **Collapse / Expand system** with a compact system summary. Internal items hide without being deleted and external links reroute to the collapsed block.
+- Fit Board and picture export now respect collapsed systems and omit their hidden internal items while preserving all data for later expansion.
+- Added unread-update badges: a dot on the burger menu and a **NEW** badge on **What's new** until the latest release history is opened.
+- Updated onboarding and README guidance for the expanded system workflow and release notifications.
+
 ## 1.7.0 — 15 September 2026, 10:07 UTC
 
 - Added **Automatic / Manual sizing** to the menu opened from a system/group name.

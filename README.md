@@ -127,9 +127,13 @@ When a cluster represents one system or subtopic, lasso two or more items and ta
 
 Group areas start in **Automatic sizing**. The boundary recalculates from its members, so it grows, shrinks and moves as the cluster changes while every note and card remains individually draggable, resizable and linkable.
 
-Tap the group/system name to open its menu. Choose **Use manual sizing** when you want the border itself to be art-directed: drag the box to move it and drag any corner handle to resize it without moving the cards inside. Once it is where you want it, choose **Lock box** to prevent accidental movement or resizing. The same menu can unlock it later, or switch the group back to automatic sizing at any time.
+Tap the group/system name to open its menu. **Edit contents** turns membership into an explicit editing mode: tap any card or note to add or remove it, without deleting and recreating the system. **Move system + contents** selects all of its members as one cluster; drag any selected item and the full system moves together, including a manually positioned boundary.
 
-Manual size, position and lock state are stored with the board, survive import/export and undo/redo, adapt to Corkboard, Whiteboard and Blueprint themes, count toward **Fit board**, and are included when the board is saved as a picture.
+**Collapse system** compresses a busy system into a small summary block while keeping its cards, notes and links intact underneath. Links that leave the system temporarily terminate at the collapsed block, and **Fit board** plus picture export use the compact view. Expand it from the same menu to restore the full layout exactly where it was.
+
+Choose **Use manual sizing** when you want the border itself to be art-directed: drag the box to move it and drag any corner handle to resize it without moving the cards inside. Once it is where you want it, choose **Lock box** to prevent accidental movement or resizing. The same menu can unlock it later, or switch the group back to automatic sizing at any time.
+
+Membership, collapse state, manual size, position and lock state are stored with the board, survive import/export and undo/redo, adapt to Corkboard, Whiteboard and Blueprint themes, count toward **Fit board**, and are included when the board is saved as a picture.
 
 ## Dates and the timeline
 
@@ -220,6 +224,8 @@ To sync across devices you'd need a small backend — a Cloudflare Worker with K
 ## What's new and release history
 
 The boards drawer has a **What's new** button. It opens the full release history, newest first, with the current release expanded and every previous release available underneath. The version stamp at the bottom of the drawer opens the same view. The history is embedded in `index.html`, so it still works when the app is running as a single local/offline file.
+
+When the app version is newer than the last release history the user opened, a notification dot appears on the burger menu and a **NEW** badge appears on **What's new**. Opening the release history marks the current version as read and clears both badges; if it is not opened, the badges remain on later visits.
 
 The historical list is intentionally retrospective: versions `1.0.0`, `1.1.0`, `1.1.1`, `1.2.0`, `1.3.0` and every later release must remain available rather than replacing the previous entry.
 

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Pin It — a corkboard for planning projects
-  Version 1.7.0 · 15 September 2026, 10:07 UTC
+  Version 1.8.0 · 15 September 2026, 10:49 UTC
 
   TO RELEASE AN UPDATE: bump VERSION and BUILD, add the release to
   RELEASES in the script below, and add the same release at the top
@@ -309,6 +309,18 @@ body[data-theme="white"] .group-box.group-editing{outline-color:rgba(58,146,201,
 body[data-theme="white"] .group-resize-handle::after{border-color:#3a92c9; background:#f7fbfd}
 body[data-theme="blueprint"] .group-box.group-editing{outline-color:rgba(141,216,255,.5)}
 body[data-theme="blueprint"] .group-resize-handle::after{border-color:#8dd8ff; background:#173f5d}
+.group-box.collapsed{height:76px; min-height:76px; background:rgba(255,244,213,.12); box-shadow:inset 0 0 26px rgba(73,42,18,.06),0 7px 18px rgba(50,28,12,.06)}
+.group-box.collapsed .group-label{max-width:calc(100% - 28px)}
+.group-summary{position:absolute; left:16px; right:14px; top:44px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  font:10.5px/1.2 var(--ui); letter-spacing:.025em; color:rgba(92,57,33,.72); pointer-events:none}
+.group-box.group-members-editing{outline:2px solid rgba(201,162,39,.68); outline-offset:5px}
+.group-box.group-moving{outline:2px dashed rgba(201,162,39,.72); outline-offset:5px}
+body[data-theme="white"] .group-box.collapsed{background:rgba(89,171,219,.09)}
+body[data-theme="white"] .group-summary{color:rgba(49,95,127,.78)}
+body[data-theme="white"] .group-box.group-members-editing,body[data-theme="white"] .group-box.group-moving{outline-color:rgba(58,146,201,.66)}
+body[data-theme="blueprint"] .group-box.collapsed{background:rgba(141,216,255,.065)}
+body[data-theme="blueprint"] .group-summary{font-family:var(--bp-mono); color:#9fcde5}
+body[data-theme="blueprint"] .group-box.group-members-editing,body[data-theme="blueprint"] .group-box.group-moving{outline-color:rgba(141,216,255,.7)}
 
 /* ───────────── top bar ───────────── */
 #topbar{position:absolute; z-index:20; top:calc(14px + var(--safe-t)); left:14px; right:14px;
@@ -326,6 +338,12 @@ body[data-theme="blueprint"] .group-resize-handle::after{border-color:#8dd8ff; b
 .chip.on{background:linear-gradient(180deg,var(--ui-on1),var(--ui-on2)); border-color:var(--ui-online); color:var(--ui-onfg)}
 .chip svg{width:16px; height:16px; flex:none}
 .chip.icon{width:38px; padding:0; justify-content:center}
+#btn-cases{position:relative}
+#btn-cases.has-update::after{content:""; position:absolute; right:-4px; top:-4px; width:11px; height:11px; border-radius:50%;
+  background:#e24c3f; box-shadow:0 0 0 2px var(--ui-2),0 2px 6px rgba(0,0,0,.42)}
+#btn-releases{position:relative; justify-content:flex-start; padding-right:52px}
+#btn-releases.has-update::after{content:"NEW"; position:absolute; right:10px; top:50%; transform:translateY(-50%); padding:2px 6px 1px;
+  border-radius:999px; background:#e24c3f; color:#fff; font:700 9px/1.35 var(--ui); letter-spacing:.08em; box-shadow:0 2px 6px rgba(0,0,0,.2)}
 
 #caseplate{
   pointer-events:auto; position:relative; padding:7px 16px 9px; min-width:0;
@@ -1280,7 +1298,7 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
         <li><svg><use href="#i-sticky"/></svg><div><b>Sticky note = a detail</b>A behaviour, refinement, question, rule or observation that explains a feature.</div></li>
         <li><svg><use href="#i-list"/></svg><div><b>Checklist = implementation work</b>Concrete steps needed to make an idea real.</div></li>
         <li><svg><use href="#i-tags"/></svg><div><b>Tags = areas of the project</b>Use them for Engine, Sound, Environment or whatever systems an idea touches.</div></li>
-        <li><svg><use href="#i-group"/></svg><div><b>Group area = a system boundary</b>Lasso related items and wrap them in a faint labelled area. It follows the cluster automatically, or tap its name to switch to manual sizing and lock the box in place.</div></li>
+        <li><svg><use href="#i-group"/></svg><div><b>Group area = a system boundary</b>Lasso related items into a named system. Tap its name later to edit what belongs, move the whole system, collapse it for overview, or take manual control of its boundary.</div></li>
       </ul>
       <div class="tourfoot"><button class="btn" data-back>Back</button><button class="btn primary" data-next>Next</button></div>
     </section>
@@ -1339,14 +1357,25 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
    matching entry to CHANGELOG.md. Shown in the boards drawer,
    saved with the data, and stamped into exported boards.
    ───────────────────────────────────────────────────────────── */
-const VERSION = "1.7.0";
-const BUILD = "15 September 2026, 10:07 UTC";
+const VERSION = "1.8.0";
+const BUILD = "15 September 2026, 10:49 UTC";
 /*
   RELEASE HISTORY — mandatory for every future release.
   Before completing or pushing an update: bump VERSION/BUILD, add the new
   release here (newest first), and add the same release to CHANGELOG.md.
 */
 const RELEASES = [
+  {
+    version: "1.8.0", date: "15 September 2026, 10:49 UTC",
+    summary: "Systems become active planning objects: edit their membership, move whole systems, collapse them for overview, and see when a new release is waiting to be read.",
+    items: [
+      "Added Edit contents to system/group menus: tap cards and notes to add or remove them from an existing system without recreating the boundary.",
+      "Added Move system + contents, which selects a system as one movable cluster while keeping manual boundaries aligned with their contents.",
+      "Added Collapse / Expand system. Collapsed systems hide their internal cards, compress to a compact summary, and keep external connections routed to the system block.",
+      "Collapsed systems are respected by Fit board and picture export, while their hidden item data and links remain intact for expansion later.",
+      "Added unread-update badges to the burger menu and What's new button. Opening the latest release history marks that version as read and clears both badges."
+    ]
+  },
   {
     version: "1.7.0", date: "15 September 2026, 10:07 UTC",
     summary: "System/group boundaries can now switch between automatic and manual sizing, with direct resize/move controls and an optional lock.",
@@ -1650,7 +1679,7 @@ function normalise(b) {
       box = { x:+g.box.x, y:+g.box.y, w:Math.max(180, +g.box.w), h:Math.max(120, +g.box.h) };
     } else if (mode === "manual") mode = "auto";
     return { id:g.id, name:String(g.name || "Group").slice(0, 48), itemIds, pad:clamp(+g.pad || 42, 28, 120),
-      mode, locked:mode === "manual" && !!g.locked, box };
+      mode, locked:mode === "manual" && !!g.locked, collapsed:!!g.collapsed, box };
   }).filter(g => g.itemIds.length >= 2);
   b.links = b.links.filter(l => l && ids.has(l.a) && ids.has(l.b));   // drop strings to nothing
   b.links.forEach(l => { if (!l.rel || !RELATIONS[l.rel]) l.rel = relationKeyFromLabel(l.label) || "related"; });
@@ -1853,7 +1882,7 @@ function refresh(id) {
   drawThreads(); renderTimeline();
 }
 const GROUP_MIN_W = 180, GROUP_MIN_H = 120;
-let editingGroupId = "";
+let editingGroupId = "", editingGroupMembersId = "", movingGroupContentsId = "";
 function autoGroupBounds(g) {
   const members = (g.itemIds || []).map(byId).filter(Boolean);
   if (members.length < 2) return null;
@@ -1865,19 +1894,41 @@ function autoGroupBounds(g) {
   const y2 = Math.max(...members.map(i => i.y + i.h)) + pad;
   return { x:x1, y:y1, w:x2 - x1, h:y2 - y1 };
 }
-function groupBounds(g) {
+function expandedGroupBounds(g) {
   if (g && g.mode === "manual" && g.box && [g.box.x, g.box.y, g.box.w, g.box.h].every(Number.isFinite)) {
     return { x:g.box.x, y:g.box.y, w:Math.max(GROUP_MIN_W, g.box.w), h:Math.max(GROUP_MIN_H, g.box.h) };
   }
   return autoGroupBounds(g);
+}
+function groupBounds(g) {
+  const b = expandedGroupBounds(g); if (!b) return null;
+  if (!g.collapsed) return b;
+  const nameW = 174 + Math.min(130, String(g.name || "Group").length * 4.6);
+  return { x:b.x, y:b.y, w:clamp(nameW, 220, 340), h:76 };
+}
+function collapsedGroupForItem(id) {
+  return (board.groups || []).find(g => g.collapsed && (g.itemIds || []).includes(id)) || null;
+}
+function itemHiddenByGroup(id) { return !!collapsedGroupForItem(id); }
+function linkEndpoint(id) {
+  const g = collapsedGroupForItem(id);
+  if (!g) return byId(id);
+  const b = groupBounds(g); if (!b) return null;
+  return { id:"group:" + g.id, x:b.x, y:b.y, w:b.w, h:b.h, type:"marker", done:false };
+}
+function groupStats(g) {
+  const members = (g.itemIds || []).map(byId).filter(Boolean);
+  let tasks = 0, done = 0;
+  members.forEach(i => (i.tasks || []).forEach(t => { tasks++; if (t.done) done++; }));
+  return tasks ? `${members.length} items · ${done}/${tasks} tasks` : `${members.length} items`;
 }
 function placeGroupBox(n, b) {
   n.style.left = b.x + "px"; n.style.top = b.y + "px";
   n.style.width = b.w + "px"; n.style.height = b.h + "px";
 }
 function beginGroupBoxGesture(e, g, n, kind) {
-  if (!g || g.mode !== "manual" || g.locked) return;
-  const base = groupBounds(g); if (!base) return;
+  if (!g || g.mode !== "manual" || g.locked || g.collapsed) return;
+  const base = expandedGroupBounds(g); if (!base) return;
   e.preventDefault(); e.stopPropagation();
   const sx = e.clientX, sy = e.clientY;
   let snapped = false;
@@ -1912,12 +1963,15 @@ function renderGroups() {
   $$(".group-box").forEach(n => n.remove());
   (board.groups || []).forEach(g => {
     const b = groupBounds(g); if (!b) return;
-    const manual = g.mode === "manual", editing = manual && !g.locked && editingGroupId === g.id;
+    const manual = g.mode === "manual", editing = manual && !g.locked && !g.collapsed && editingGroupId === g.id;
+    const membersEditing = editingGroupMembersId === g.id, moving = movingGroupContentsId === g.id;
     const n = document.createElement("div");
-    n.className = "group-box" + (manual ? " manual" : " auto") + (editing ? " group-editing" : "") + (g.locked ? " group-locked" : "");
+    n.className = "group-box" + (manual ? " manual" : " auto") + (editing ? " group-editing" : "") +
+      (g.locked ? " group-locked" : "") + (g.collapsed ? " collapsed" : "") +
+      (membersEditing ? " group-members-editing" : "") + (moving ? " group-moving" : "");
     n.dataset.group = g.id;
     placeGroupBox(n, b);
-    n.innerHTML = `<button type="button" class="group-label" data-group-label="${g.id}" title="Group area — ${manual ? (g.locked ? "manual, locked" : "manual sizing") : "automatic sizing"}">${esc(g.name || "Group")}</button>${editing ? `
+    n.innerHTML = `<button type="button" class="group-label" data-group-label="${g.id}" title="Group area — ${g.collapsed ? "collapsed" : manual ? (g.locked ? "manual, locked" : "manual sizing") : "automatic sizing"}">${esc(g.name || "Group")}</button>${g.collapsed ? `<div class="group-summary">${esc(groupStats(g))} · collapsed</div>` : ""}${editing ? `
       <button type="button" class="group-resize-handle nw" data-dir="nw" aria-label="Resize top left"></button>
       <button type="button" class="group-resize-handle ne" data-dir="ne" aria-label="Resize top right"></button>
       <button type="button" class="group-resize-handle sw" data-dir="sw" aria-label="Resize bottom left"></button>
@@ -1941,7 +1995,10 @@ function pruneGroups() {
   const ids = new Set(board.items.map(i => i.id));
   board.groups = (board.groups || []).map(g => ({ ...g, itemIds: (g.itemIds || []).filter(id => ids.has(id)) }))
     .filter(g => g.itemIds.length >= 2);
-  if (editingGroupId && !(board.groups || []).some(g => g.id === editingGroupId)) editingGroupId = "";
+  const has = id => id && (board.groups || []).some(g => g.id === id);
+  if (!has(editingGroupId)) editingGroupId = "";
+  if (!has(editingGroupMembersId)) editingGroupMembersId = "";
+  if (!has(movingGroupContentsId)) movingGroupContentsId = "";
 }
 function createGroupArea(ids) {
   const clean = [...new Set(ids)].filter(id => byId(id));
@@ -1955,17 +2012,33 @@ function createGroupArea(ids) {
   if (v === null) return;
   snap();
   board.groups = board.groups || [];
-  board.groups.push({ id:uid(), name:(v.trim() || "Group").slice(0, 48), itemIds:clean, pad:42, mode:"auto", locked:false, box:null });
+  board.groups.push({ id:uid(), name:(v.trim() || "Group").slice(0, 48), itemIds:clean, pad:42, mode:"auto", locked:false, collapsed:false, box:null });
   renderGroups(); save();
   toast("Group area added");
+}
+function toggleGroupMemberItem(itemId) {
+  const g = (board.groups || []).find(k => k.id === editingGroupMembersId);
+  if (!g) { editingGroupMembersId = ""; return false; }
+  const has = (g.itemIds || []).includes(itemId);
+  if (has && g.itemIds.length <= 2) { toast("A system needs at least two items"); return true; }
+  snap();
+  g.itemIds = has ? g.itemIds.filter(id => id !== itemId) : [...g.itemIds, itemId];
+  setMulti(g.itemIds.filter(id => byId(id)));
+  renderGroups(); save();
+  toast(has ? "Removed from " + g.name : "Added to " + g.name, 1600);
+  return true;
 }
 function groupMenu(id, x, y) {
   const g = (board.groups || []).find(k => k.id === id); if (!g) return;
   const manual = g.mode === "manual";
-  const editing = manual && !g.locked && editingGroupId === id;
-  const state = manual ? `Manual sizing${g.locked ? " · Locked" : editing ? " · Editing" : ""}` : "Automatic sizing";
+  const editing = manual && !g.locked && !g.collapsed && editingGroupId === id;
+  const membersEditing = editingGroupMembersId === id;
+  const state = `${g.collapsed ? "Collapsed · " : ""}${manual ? `Manual sizing${g.locked ? " · Locked" : editing ? " · Editing border" : ""}` : "Automatic sizing"}`;
   showCtx(`<div class="ctx-rel-head"><b>${esc(g.name || "Group")}</b><span>${g.itemIds.length} items · ${state}</span></div>
     <button data-a="select"><svg><use href="#i-lasso"/></svg>Select contents</button>
+    <button data-a="members"><svg><use href="#i-group"/></svg>${membersEditing ? "Finish editing contents" : "Edit contents"}</button>
+    <button data-a="moveall"><svg><use href="#i-fit"/></svg>Move system + contents</button>
+    <button data-a="collapse"><svg><use href="#${g.collapsed ? "i-plus" : "i-minus"}"/></svg>${g.collapsed ? "Expand system" : "Collapse system"}</button>
     <button data-a="rename"><svg><use href="#i-card"/></svg>Rename group area</button>
     <hr><button data-a="mode"><svg><use href="#i-group"/></svg>${manual ? "Use automatic sizing" : "Use manual sizing"}</button>
     ${manual ? `<button data-a="editbox"><svg><use href="#i-resize"/></svg>${editing ? "Finish resizing" : "Resize / move box"}</button>
@@ -1975,6 +2048,32 @@ function groupMenu(id, x, y) {
     const b = e.target.closest("button"); if (!b) return;
     hideCtx();
     if (b.dataset.a === "select") { setMulti((g.itemIds || []).filter(id => byId(id))); return; }
+    if (b.dataset.a === "members") {
+      if (membersEditing) {
+        editingGroupMembersId = ""; clearMulti(false); renderGroups(); toast("Finished editing system contents");
+      } else {
+        if (g.collapsed) { snap(); g.collapsed = false; save(); }
+        editingGroupMembersId = id; movingGroupContentsId = ""; editingGroupId = "";
+        setMulti((g.itemIds || []).filter(id => byId(id))); renderGroups();
+        toast("Tap cards or notes to add/remove them. Tap the system name when finished.", 4800);
+      }
+      return;
+    }
+    if (b.dataset.a === "moveall") {
+      if (g.collapsed) { snap(); g.collapsed = false; save(); }
+      editingGroupMembersId = ""; editingGroupId = ""; movingGroupContentsId = id;
+      setMulti((g.itemIds || []).filter(id => byId(id))); renderGroups();
+      toast("Drag any selected item to move the whole system. The boundary moves with it.", 4400);
+      return;
+    }
+    if (b.dataset.a === "collapse") {
+      snap(); g.collapsed = !g.collapsed;
+      if (editingGroupId === id) editingGroupId = "";
+      if (editingGroupMembersId === id) editingGroupMembersId = "";
+      if (movingGroupContentsId === id) movingGroupContentsId = "";
+      deselect(); renderAll(); save(); toast(g.collapsed ? "System collapsed" : "System expanded");
+      return;
+    }
     if (b.dataset.a === "rename") {
       const v = prompt("Rename group area", g.name || "Group");
       if (v !== null && v.trim()) { snap(); g.name = v.trim().slice(0, 48); renderGroups(); save(); }
@@ -1985,28 +2084,30 @@ function groupMenu(id, x, y) {
         snap(); g.mode = "auto"; g.locked = false; g.box = null; if (editingGroupId === id) editingGroupId = "";
         renderGroups(); save(); toast("Automatic sizing on — the boundary follows its contents.");
       } else {
-        const bounds = autoGroupBounds(g); if (!bounds) return;
-        snap(); g.mode = "manual"; g.locked = false; g.box = { ...bounds }; editingGroupId = id;
-        renderGroups(); save(); toast("Manual sizing on — drag the box to move it, or drag a corner to resize.", 4200);
+        const bounds = expandedGroupBounds(g); if (!bounds) return;
+        snap(); g.mode = "manual"; g.locked = false; g.box = { ...bounds }; editingGroupId = g.collapsed ? "" : id;
+        renderGroups(); save(); toast(g.collapsed ? "Manual sizing saved — expand the system to edit its border." : "Manual sizing on — drag the box to move it, or drag a corner to resize.", 4200);
       }
       return;
     }
     if (b.dataset.a === "editbox") {
       if (g.locked) { toast("Unlock this group box before resizing it."); return; }
+      if (g.collapsed) { snap(); g.collapsed = false; editingGroupId = id; renderAll(); save(); toast("System expanded — resize handles are active"); return; }
       editingGroupId = editing ? "" : id; renderGroups();
       toast(editing ? "Finished resizing" : "Drag the box to move it; drag a corner to resize.", editing ? 1800 : 3600);
       return;
     }
     if (b.dataset.a === "lock") {
       snap(); g.locked = !g.locked;
-      editingGroupId = g.locked ? "" : id;
+      editingGroupId = g.locked || g.collapsed ? "" : id;
       renderGroups(); save();
-      toast(g.locked ? "Group box locked" : "Group box unlocked — resize handles are active");
+      toast(g.locked ? "Group box locked" : (g.collapsed ? "Group box unlocked" : "Group box unlocked — resize handles are active"));
       return;
     }
     if (b.dataset.a === "del") {
-      snap(); board.groups = (board.groups || []).filter(k => k.id !== id); if (editingGroupId === id) editingGroupId = "";
-      renderGroups(); save(); toast("Group area removed — items kept");
+      snap(); board.groups = (board.groups || []).filter(k => k.id !== id);
+      if (editingGroupId === id) editingGroupId = ""; if (editingGroupMembersId === id) editingGroupMembersId = ""; if (movingGroupContentsId === id) movingGroupContentsId = "";
+      renderAll(); save(); toast("Group area removed — items kept");
     }
   };
 }
@@ -2082,7 +2183,7 @@ function drawThreads() {
   let out = "";
   const white = isDraftTheme();
   board.links.forEach(l => {
-    const A = byId(l.a), B = byId(l.b); if (!A || !B) return;
+    const A = linkEndpoint(l.a), B = linkEndpoint(l.b); if (!A || !B || A.id === B.id) return;
     const { d, head } = linkGeom(l, A, B);
     const col = threadCol(l.color);
     const dash = l.style === "dashed" ? ' stroke-dasharray="11 7"' : "";
@@ -2113,7 +2214,7 @@ function drawLabels() {
   $$(".tlabel").forEach(n => n.remove());
   board.links.forEach(l => {
     if (!l.label) return;
-    const A = byId(l.a), B = byId(l.b); if (!A || !B) return;
+    const A = linkEndpoint(l.a), B = linkEndpoint(l.b); if (!A || !B || A.id === B.id) return;
     const { mid } = linkGeom(l, A, B);
     const n = document.createElement("div");
     const rel = l.rel || "related";
@@ -2135,6 +2236,7 @@ function worldBounds() {
 function extents() {
   let x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
   board.items.forEach(i => {
+    if (itemHiddenByGroup(i.id)) return;
     x1 = Math.min(x1, i.x); y1 = Math.min(y1, i.y);
     x2 = Math.max(x2, i.x + i.w); y2 = Math.max(y2, i.y + i.h);
   });
@@ -2226,9 +2328,11 @@ function fitBoard(animate) {
 }
 function centerOn(it) {
   const r = viewport.getBoundingClientRect();
+  const target = (it && typeof linkEndpoint === "function" && linkEndpoint(it.id)) || it;
+  if (!target) return;
   world.style.transition = "transform .4s cubic-bezier(.2,.8,.25,1)";
-  view.x = r.width / 2 - (it.x + it.w / 2) * view.s;
-  view.y = r.height / 2 - (it.y + it.h / 2) * view.s;
+  view.x = r.width / 2 - (target.x + target.w / 2) * view.s;
+  view.y = r.height / 2 - (target.y + target.h / 2) * view.s;
   applyView(); setTimeout(() => world.style.transition = "", 420); save();
 }
 
@@ -2244,7 +2348,7 @@ function applyFilter() {
   board.items.forEach(it => {
     const el = els.get(it.id); if (!el) return;
     el.classList.remove("dim", "hit");
-    el.style.display = (hideDone && it.done) ? "none" : "";
+    el.style.display = ((hideDone && it.done) || itemHiddenByGroup(it.id)) ? "none" : "";
     const okText = !q || itemText(it).includes(q);
     const okTag = !filtering || (it.tags || []).some(t => activeTags.has(t));
     if (!okText || !okTag) { el.classList.add("dim"); return; }
@@ -2423,6 +2527,7 @@ viewport.addEventListener("pointerdown", e => {
     e.preventDefault();
 
     if (linking) { completeLink(it.id); return; }
+    if (editingGroupMembersId && toggleGroupMemberItem(it.id)) return;
 
     // checklist toggle
     const li = e.target.closest("li[data-task]");
@@ -2436,12 +2541,14 @@ viewport.addEventListener("pointerdown", e => {
 
     const group = multi.has(it.id) && multi.size > 1;
     if (!group) { selectItem(it.id); bump(it); }
+    const moveSystem = group && movingGroupContentsId ? (board.groups || []).find(g => g.id === movingGroupContentsId) : null;
     const p = toWorld(e.clientX, e.clientY);
     if (e.target.closest(".grip")) {
       resize = { id: it.id, sx: p.x, sy: p.y, w: it.w, h: it.h };
     } else {
       drag = { id: it.id, dx: p.x - it.x, dy: p.y - it.y, moved: false, ox: it.x, oy: it.y,
-        group: group ? [...multi].map(id => { const o = byId(id); return { id, x: o.x, y: o.y }; }) : null };
+        group: group ? [...multi].map(id => { const o = byId(id); return { id, x: o.x, y: o.y }; }) : null,
+        systemMove: moveSystem ? { id:moveSystem.id, box:moveSystem.mode === "manual" && moveSystem.box ? { ...moveSystem.box } : null } : null };
       itemEl.classList.add("dragging");
       pressT = setTimeout(() => { if (drag && !drag.moved) { itemMenu(it.id, e.clientX, e.clientY); endDrag(); } }, 520);
     }
@@ -2504,6 +2611,10 @@ viewport.addEventListener("pointermove", e => {
         o.x = g.x + ddx; o.y = g.y + ddy;
         const e2 = els.get(g.id); if (e2) { e2.style.left = o.x + "px"; e2.style.top = o.y + "px"; }
       });
+      if (drag.systemMove && drag.systemMove.box) {
+        const sg = (board.groups || []).find(g => g.id === drag.systemMove.id);
+        if (sg) sg.box = { ...drag.systemMove.box, x:drag.systemMove.box.x + ddx, y:drag.systemMove.box.y + ddy };
+      }
     } else {
       it.x = nx; it.y = ny;
       const el = els.get(it.id); el.style.left = nx + "px"; el.style.top = ny + "px";
@@ -2528,7 +2639,14 @@ viewport.addEventListener("pointermove", e => {
 let justMoved = false;
 function endDrag() {
   clearTimeout(pressT);
-  if (drag) { const el = els.get(drag.id); if (el) el.classList.remove("dragging"); if (drag.moved) { justMoved = true; save(); } }
+  if (drag) {
+    const el = els.get(drag.id); if (el) el.classList.remove("dragging");
+    if (drag.moved) {
+      justMoved = true;
+      if (drag.systemMove) movingGroupContentsId = "";
+      save(); renderGroups();
+    }
+  }
   if (resize) { justMoved = true; refresh(resize.id); save(); }
   drag = null; resize = null;
 }
@@ -2986,7 +3104,7 @@ async function exportPNG() {
   (board.groups || []).forEach(gp => {
     const b = groupBounds(gp); if (!b) return;
     c.save();
-    c.lineWidth = 2; c.setLineDash([8, 6]);
+    c.lineWidth = 2; c.setLineDash(gp.mode === "manual" ? [] : [8, 6]);
     if (blueprint) { c.strokeStyle = "rgba(141,216,255,.52)"; c.fillStyle = "rgba(141,216,255,.025)"; }
     else if (W_) { c.strokeStyle = "rgba(58,146,201,.46)"; c.fillStyle = "rgba(89,171,219,.035)"; }
     else { c.strokeStyle = "rgba(86,49,23,.36)"; c.fillStyle = "rgba(255,244,213,.055)"; }
@@ -3005,7 +3123,7 @@ async function exportPNG() {
 
   /* string, or marker lines */
   board.links.forEach(l => {
-    const A = byId(l.a), B = byId(l.b); if (!A || !B) return;
+    const A = linkEndpoint(l.a), B = linkEndpoint(l.b); if (!A || !B || A.id === B.id) return;
     const geo = linkGeom(l, A, B), col = threadCol(l.color);
     const body = new Path2D(geo.d);
     c.lineCap = "round"; c.lineJoin = "round";
@@ -3053,7 +3171,7 @@ async function exportPNG() {
   })));
 
   /* items */
-  const order = board.items.filter(i => !(hideDone && i.done)).sort((a, b) => (a.z || 0) - (b.z || 0));
+  const order = board.items.filter(i => !(hideDone && i.done) && !itemHiddenByGroup(i.id)).sort((a, b) => (a.z || 0) - (b.z || 0));
   for (const it of order) {
     c.save();
     c.translate(it.x + it.w / 2, it.y + 8);
@@ -3504,10 +3622,23 @@ function renderReleaseHistory() {
       </div>
     </details>`).join("");
 }
+function updateReleaseBadges() {
+  const unread = !!DB.lastSeenRelease && DB.lastSeenRelease !== VERSION;
+  $("#btn-cases").classList.toggle("has-update", unread);
+  $("#btn-releases").classList.toggle("has-update", unread);
+  $("#btn-cases").setAttribute("aria-label", unread ? "Boards — new update available" : "Boards");
+}
+function markLatestReleaseRead() {
+  if (DB.lastSeenRelease === VERSION) return;
+  DB.lastSeenRelease = VERSION;
+  updateReleaseBadges();
+  save(true);
+}
 function openReleaseHistory() {
   closePanel("cases");
   renderReleaseHistory();
   $("#releasewrap").hidden = false;
+  markLatestReleaseRead();
   requestAnimationFrame(() => $("#release-x").focus());
 }
 function closeReleaseHistory() { $("#releasewrap").hidden = true; }
@@ -4374,6 +4505,8 @@ addEventListener("keydown", e => {
   if (meta && e.key.toLowerCase() === "y") { e.preventDefault(); redo(); return; }
   if (e.key === "Escape") {
     if (ideaDrawerOpen()) { toggleIdeaDrawer(false); return; }
+    if (editingGroupMembersId) { editingGroupMembersId = ""; clearMulti(false); renderGroups(); toast("Finished editing system contents"); return; }
+    if (movingGroupContentsId) { movingGroupContentsId = ""; clearMulti(false); renderGroups(); toast("System move cancelled"); return; }
     if (activeTags.size) { activeTags.clear(); applyFilter(); return; }
     setPen(null); cancelLink(); setLasso(false); deselect(); hideCtx(); closePanel("cases"); return;
   }
@@ -4428,7 +4561,9 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) save(
 load();
 $("#version").textContent = "Pin It " + VERSION + " · " + BUILD;
 const wasVersion = DB.version;
+if (!DB.lastSeenRelease) DB.lastSeenRelease = wasVersion || VERSION;
 DB.version = VERSION;
+updateReleaseBadges();
 applyTheme();
 renderLegend();
 plate();
