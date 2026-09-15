@@ -139,7 +139,7 @@ Membership, collapse state, manual size, position and lock state are stored with
 
 The map button beside the zoom controls opens a compact live overview of the whole board. System boundaries and item clusters are drawn at board scale, with a highlighted rectangle showing the part currently on screen. Tap or drag anywhere in the map to move the camera there without changing the board itself.
 
-The map updates while you pan and zoom. It opens by default on desktop, can be collapsed at any time, and starts collapsed on narrow/mobile screens so it does not take over the working area.
+The map updates while you pan and zoom. It starts collapsed on desktop and mobile so it never takes over the working area; open or close it at any time from the map button.
 
 ## Board outline
 

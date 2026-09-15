@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Pin It — a corkboard for planning projects
-  Version 1.9.4 · 15 September 2026, 13:54 UTC
+  Version 1.9.5 · 15 September 2026, 14:08 UTC
 
   TO RELEASE AN UPDATE: bump VERSION and BUILD, add the release to
   RELEASES in the script below, and add the same release at the top
@@ -1436,14 +1436,27 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
    matching entry to CHANGELOG.md. Shown in the boards drawer,
    saved with the data, and stamped into exported boards.
    ───────────────────────────────────────────────────────────── */
-const VERSION = "1.9.4";
-const BUILD = "15 September 2026, 13:54 UTC";
+const VERSION = "1.9.5";
+const BUILD = "15 September 2026, 14:08 UTC";
 /*
   RELEASE HISTORY — mandatory for every future release.
   Before completing or pushing an update: bump VERSION/BUILD, add the new
   release here (newest first), and add the same release to CHANGELOG.md.
 */
 const RELEASES = [
+  {
+    version: "1.9.5", date: "15 September 2026, 14:08 UTC",
+    summary: "A reliability pass hardens storage, undo, backups and several edge cases found in the post-1.9.4 audit.",
+    items: [
+      "Hardened IndexedDB migration/fallback so an older localStorage copy cannot silently replace a newer IndexedDB database after a storage error.",
+      "Replaced queued full-database save payloads with a coalescing writer: rapid edits now collapse into the latest state instead of building a memory backlog.",
+      "Undo/redo now restores board tags and whole-board text settings as well as items, links, drawings, inbox ideas and systems; expired image history is pruned from memory.",
+      "Backup status is now tracked per board, so backing up one project no longer makes every board look safely backed up.",
+      "Hide Done now also suppresses strings and relationship labels attached to hidden finished items and excludes those items from fit calculations.",
+      "Fixed image-import board switching, stale progress/tag counts after deletes/duplicates/undo, minimap coverage for freehand drawings, onboarding example systems, theme-preview cancellation, New Board cancellation and Escape closing the outline.",
+      "Added stronger page-hide save flushing and corrected the Board Map documentation to match its collapsed-by-default behaviour."
+    ]
+  },
   {
     version: "1.9.4", date: "15 September 2026, 13:54 UTC",
     summary: "A board presentation polish pass keeps the map out of the way on load, removes visible cork tiling and gives the desktop board label proper clearance.",
@@ -1727,6 +1740,7 @@ const store = (() => {
   let mem = {}, openP = null;
   let localOK = true;
   let idbOK = typeof indexedDB !== "undefined";
+  let idbOpened = false, idbAuthoritative = false;
   try { localStorage.setItem("__t", "1"); localStorage.removeItem("__t"); } catch (e) { localOK = false; }
 
   function openDB() {
@@ -1740,7 +1754,7 @@ const store = (() => {
         const db = req.result;
         if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME);
       };
-      req.onsuccess = () => resolve(req.result);
+      req.onsuccess = () => { idbOpened = true; resolve(req.result); };
       req.onerror = () => { idbOK = false; openP = null; reject(req.error || new Error("IndexedDB open failed")); };
       req.onblocked = () => { openP = null; reject(new Error("IndexedDB open blocked")); };
     });
@@ -1774,32 +1788,63 @@ const store = (() => {
     if (!localOK) return;
     try { localStorage.removeItem(k); } catch (e) {}
   }
+  function payloadStamp(raw) {
+    try {
+      const d = JSON.parse(raw), boards = Array.isArray(d.boards) ? d.boards : [];
+      return { rev:+d.storageRev || 0, updated:boards.reduce((m,b) => Math.max(m,+b.updated || 0), 0) };
+    } catch (e) { return { rev:0, updated:0 }; }
+  }
+  function newer(a, b) {
+    const A = payloadStamp(a), B = payloadStamp(b);
+    if (A.rev || B.rev) return A.rev !== B.rev ? A.rev > B.rev : A.updated > B.updated;
+    return A.updated > B.updated;
+  }
 
   return {
     get persistent() { return idbOK || localOK; },
     get largeCapacity() { return idbOK; },
     async get(k) {
+      const legacy = legacyGet(k);
       if (idbOK) {
         try {
-          const v = await idbGet(k);
-          if (v != null) { clearLegacy(k); return v; }
-          const legacy = legacyGet(k);
+          const current = await idbGet(k);
+          if (current != null) {
+            idbAuthoritative = true;
+            if (legacy != null && newer(legacy, current)) {
+              await idbSet(k, legacy);
+              clearLegacy(k);
+              return legacy;
+            }
+            clearLegacy(k);
+            return current;
+          }
           if (legacy != null) {
-            try { await idbSet(k, legacy); clearLegacy(k); } catch (e) {}
+            await idbSet(k, legacy);
+            idbAuthoritative = true;
+            clearLegacy(k);
             return legacy;
           }
           return null;
-        } catch (e) { idbOK = false; openP = null; }
+        } catch (e) {
+          /* Once IndexedDB has opened/held real data, never resurrect a possibly stale local copy. */
+          if (idbOpened || idbAuthoritative) throw e;
+          idbOK = false; openP = null;
+        }
       }
-      return legacyGet(k);
+      return legacy;
     },
     async set(k, v) {
       if (idbOK) {
         try {
           await idbSet(k, v);
+          idbAuthoritative = true;
           clearLegacy(k);
           return true;
-        } catch (e) { idbOK = false; openP = null; }
+        } catch (e) {
+          /* Keep IDB as the authority and report failure; falling back here can create two divergent databases. */
+          if (idbOpened || idbAuthoritative) return false;
+          idbOK = false; openP = null;
+        }
       }
       if (!localOK) { mem[k] = v; return false; }
       try { localStorage.setItem(k, v); return true; }
@@ -1901,11 +1946,44 @@ const byId = id => board.items.find(i => i.id === id);
 /* ── persistence ── */
 let saveT = null;
 let storageWriteBlocked = false;
-let storageWriteP = Promise.resolve(true);
+let storageDirty = false;
+let storageFlushP = null;
+let storageOpP = Promise.resolve(true);
+let storageRevision = 0;
 function allowStorageRetry() { storageWriteBlocked = false; }
-function queueStorageWrite(payload) {
-  storageWriteP = storageWriteP.catch(() => false).then(() => store.set(KEY, payload));
-  return storageWriteP;
+function queueStorageOp(fn) {
+  storageOpP = storageOpP.catch(() => false).then(fn);
+  return storageOpP;
+}
+function flushStorage() {
+  storageDirty = true;
+  if (storageFlushP) return storageFlushP;
+  storageFlushP = queueStorageOp(async () => {
+    let ok = true;
+    while (storageDirty && !storageWriteBlocked) {
+      storageDirty = false;
+      DB.storageRev = Math.max(+DB.storageRev || 0, storageRevision) + 1;
+      storageRevision = DB.storageRev;
+      let payload;
+      try { payload = JSON.stringify(DB); }
+      catch (e) { flashSaved("not saved"); return false; }
+      ok = await store.set(KEY, payload);
+      payload = null;
+      if (!ok) {
+        storageWriteBlocked = true;
+        toast("Browser storage could not be written — saving is paused. Export a backup before closing this tab.", 6200);
+        flashSaved("not saved — storage unavailable");
+        return false;
+      }
+      if (!store.persistent) flashSaved("not saved — private mode");
+      else flashSaved("saved");
+    }
+    return ok;
+  }).finally(() => {
+    storageFlushP = null;
+    if (storageDirty && !storageWriteBlocked) void flushStorage();
+  });
+  return storageFlushP;
 }
 function save(now) {
   if (!board) return Promise.resolve(false);
@@ -1913,25 +1991,9 @@ function save(now) {
   board.view = { x: view.x, y: view.y, s: view.s, w: view.w, h: view.h };
   clearTimeout(saveT);
   renderTimeline();
-  const write = async () => {
-    if (storageWriteBlocked) { flashSaved("not saved — storage unavailable"); return false; }
-    let payload;
-    try { payload = JSON.stringify(DB); }
-    catch (e) { flashSaved("not saved"); return false; }
-    const okw = await queueStorageWrite(payload);
-    payload = null;
-    if (!okw) {
-      storageWriteBlocked = true;
-      toast("Browser storage could not be written — saving is paused. Export a backup before closing this tab.", 6200);
-      flashSaved("not saved — storage unavailable");
-      return false;
-    }
-    if (!store.persistent) flashSaved("not saved — private mode");
-    else flashSaved("saved");
-    return true;
-  };
-  if (now) return write();
-  saveT = setTimeout(() => { void write(); }, 450);
+  storageDirty = true;
+  if (now) return flushStorage();
+  saveT = setTimeout(() => { void flushStorage(); }, 300);
   return Promise.resolve(true);
 }
 function flashSaved(txt) {
@@ -1946,10 +2008,11 @@ async function load() {
     const b = newBoard("Untitled board");
     DB.boards.push(b); DB.current = b.id; FRESH = true;
   }
-  board = DB.boards.find(b => b.id === DB.current) || DB.boards[0];
   DB.boards.forEach(normalise);
+  board = DB.boards.find(b => b.id === DB.current) || DB.boards[0];
   if (!DB.flags) DB.flags = {};
   DB.current = board.id;
+  storageRevision = +DB.storageRev || 0;
   view = Object.assign({ x: 0, y: 0, s: 1 }, board.view || {});
 }
 
@@ -1957,6 +2020,15 @@ async function load() {
 const undoMediaByValue = new Map(), undoMediaByKey = new Map();
 let undoMediaSeq = 0;
 function clearUndoMedia() { undoMediaByValue.clear(); undoMediaByKey.clear(); undoMediaSeq = 0; }
+function pruneUndoMedia() {
+  const keep = new Set();
+  for (const s of [...history, ...future]) {
+    const re = /"_undoSrc":"([^"]+)"/g;
+    let m; while ((m = re.exec(s))) keep.add(m[1]);
+  }
+  for (const [key] of undoMediaByKey) if (!keep.has(key)) undoMediaByKey.delete(key);
+  for (const [src, key] of undoMediaByValue) if (!keep.has(key)) undoMediaByValue.delete(src);
+}
 function snapshotState() {
   const items = board.items.map(it => {
     if (!it.src || typeof it.src !== "string") return it;
@@ -1966,16 +2038,18 @@ function snapshotState() {
       undoMediaByValue.set(it.src, key);
       undoMediaByKey.set(key, it.src);
     }
-    const copy = Object.assign({}, it, { src: null, _undoSrc: key });
-    return copy;
+    return Object.assign({}, it, { src:null, _undoSrc:key });
   });
-  return JSON.stringify({ items, links: board.links, ink: board.ink, inbox: board.inbox, groups: board.groups });
+  return JSON.stringify({
+    items, links:board.links, ink:board.ink, inbox:board.inbox, groups:board.groups,
+    tags:board.tags, fs:board.fs, tagStyle:board.tagStyle, theme:board.theme
+  });
 }
 function inflateSnapshot(s) {
   const d = JSON.parse(s);
   d.items = (d.items || []).map(it => {
     if (!it || !it._undoSrc) return it;
-    const copy = Object.assign({}, it, { src: undoMediaByKey.get(it._undoSrc) || "" });
+    const copy = Object.assign({}, it, { src:undoMediaByKey.get(it._undoSrc) || "" });
     delete copy._undoSrc;
     return copy;
   });
@@ -1984,23 +2058,27 @@ function inflateSnapshot(s) {
 function snap() {
   history.push(snapshotState());
   if (history.length > 40) history.shift();
-  future.length = 0; updateUndo();
+  future.length = 0; pruneUndoMedia(); updateUndo();
 }
 function applySnap(s) {
-  const d = inflateSnapshot(s); board.items = d.items; board.links = d.links; board.ink = d.ink || []; board.inbox = d.inbox || []; board.groups = d.groups || [];
-  sel = null; renderAll(); closePanel("inspect"); save();
+  const d = inflateSnapshot(s);
+  board.items = d.items || []; board.links = d.links || []; board.ink = d.ink || [];
+  board.inbox = d.inbox || []; board.groups = d.groups || []; board.tags = d.tags || [];
+  if (+d.fs > 0) board.fs = +d.fs;
+  if (d.tagStyle) board.tagStyle = d.tagStyle;
+  if (d.theme) board.theme = d.theme;
+  sel = null; clearMulti(true); applyTheme(); renderAll(); plate(); renderTimeline(); renderLegend(); renderMeter();
+  closePanel("inspect"); save();
 }
 function undo() {
   if (!history.length) return;
-  future.push(snapshotState());
-  if (future.length > 40) future.shift();
-  applySnap(history.pop()); updateUndo();
+  future.push(snapshotState()); if (future.length > 40) future.shift();
+  applySnap(history.pop()); pruneUndoMedia(); updateUndo();
 }
 function redo() {
   if (!future.length) return;
-  history.push(snapshotState());
-  if (history.length > 40) history.shift();
-  applySnap(future.pop()); updateUndo();
+  history.push(snapshotState()); if (history.length > 40) history.shift();
+  applySnap(future.pop()); pruneUndoMedia(); updateUndo();
 }
 function updateUndo() {
   $("#btn-undo").style.opacity = history.length ? 1 : .4;
@@ -2477,6 +2555,7 @@ function drawThreads() {
   const white = isDraftTheme();
   board.links.forEach(l => {
     const A = linkEndpoint(l.a), B = linkEndpoint(l.b); if (!A || !B || A.id === B.id) return;
+    if (hideDone && ((byId(l.a) && byId(l.a).done) || (byId(l.b) && byId(l.b).done))) return;
     const { d, head } = linkGeom(l, A, B);
     const col = threadCol(l.color);
     const dash = l.style === "dashed" ? ' stroke-dasharray="11 7"' : "";
@@ -2508,6 +2587,7 @@ function drawLabels() {
   board.links.forEach(l => {
     if (!l.label) return;
     const A = linkEndpoint(l.a), B = linkEndpoint(l.b); if (!A || !B || A.id === B.id) return;
+    if (hideDone && ((byId(l.a) && byId(l.a).done) || (byId(l.b) && byId(l.b).done))) return;
     const { mid } = linkGeom(l, A, B);
     const n = document.createElement("div");
     const rel = l.rel || "related";
@@ -2529,7 +2609,7 @@ function worldBounds() {
 function extents() {
   let x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
   board.items.forEach(i => {
-    if (itemHiddenByGroup(i.id)) return;
+    if (itemHiddenByGroup(i.id) || (hideDone && i.done)) return;
     x1 = Math.min(x1, i.x); y1 = Math.min(y1, i.y);
     x2 = Math.max(x2, i.x + i.w); y2 = Math.max(y2, i.y + i.h);
   });
@@ -2597,8 +2677,14 @@ function minimapBounds() {
     if (b) rects.push(b);
   });
   (board.items || []).forEach(it => {
-    if (typeof itemHiddenByGroup === "function" && itemHiddenByGroup(it.id)) return;
+    if ((hideDone && it.done) || (typeof itemHiddenByGroup === "function" && itemHiddenByGroup(it.id))) return;
     rects.push({ x:it.x, y:it.y, w:it.w, h:it.h });
+  });
+  (board.ink || []).forEach(st => {
+    const p = st && st.pts || []; if (p.length < 2) return;
+    let x1=Infinity,y1=Infinity,x2=-Infinity,y2=-Infinity;
+    for (let i=0;i<p.length;i+=2) { x1=Math.min(x1,p[i]); x2=Math.max(x2,p[i]); y1=Math.min(y1,p[i+1]); y2=Math.max(y2,p[i+1]); }
+    if (x1 !== Infinity) rects.push({x:x1,y:y1,w:Math.max(1,x2-x1),h:Math.max(1,y2-y1)});
   });
   if (!rects.length) {
     const s = Math.max(.05, view.s || 1);
@@ -2645,9 +2731,16 @@ function renderMinimap() {
   });
   c.globalAlpha = .62; c.fillStyle = fg;
   (board.items || []).forEach(it => {
-    if (typeof itemHiddenByGroup === "function" && itemHiddenByGroup(it.id)) return;
+    if ((hideDone && it.done) || (typeof itemHiddenByGroup === "function" && itemHiddenByGroup(it.id))) return;
     const x = ox + it.x * sc, y = oy + it.y * sc;
     c.fillRect(x, y, Math.max(2.2, it.w * sc), Math.max(2.2, it.h * sc));
+  });
+  c.globalAlpha = .45; c.strokeStyle = fg; c.lineWidth = 1;
+  (board.ink || []).forEach(st => {
+    const p=st && st.pts || []; if (p.length < 4) return;
+    c.beginPath(); c.moveTo(ox+p[0]*sc, oy+p[1]*sc);
+    for (let i=2;i<p.length;i+=2) c.lineTo(ox+p[i]*sc, oy+p[i+1]*sc);
+    c.stroke();
   });
   const s = Math.max(.05, view.s || 1);
   const vx = -view.x / s, vy = -view.y / s, vw = viewport.clientWidth / s, vh = viewport.clientHeight / s;
@@ -2778,7 +2871,7 @@ function removeMany(ids) {
   board.links = board.links.filter(l => !kill.has(l.a) && !kill.has(l.b));
   pruneGroups(); renderGroups();
   ids.forEach(id => { const el = els.get(id); if (el) el.remove(); els.delete(id); });
-  deselect(); drawThreads(); updateEmpty(); renderTimeline(); save();
+  deselect(); drawThreads(); updateEmpty(); renderTimeline(); plate(); renderLegend(); renderMinimap(); save();
   toast(ids.length + " items removed");
 }
 $("#selbar").addEventListener("click", e => {
@@ -2799,7 +2892,7 @@ $("#selbar").addEventListener("click", e => {
         const c = JSON.parse(JSON.stringify(o)); c.id = uid(); c.x += 30; c.y += 30; c.z = nextZ();
         board.items.push(c); autoJoinItemToContainingSystem(c); makeEl(c); refresh(c.id); made.push(c.id);
       });
-      setMulti(made); save();
+      setMulti(made); plate(); renderLegend(); renderMinimap(); save();
     }
     if (a === "del") removeMany([...multi]);
     return;
@@ -2809,7 +2902,7 @@ $("#selbar").addEventListener("click", e => {
   if (a === "edit") startEdit(sel, "text");
   if (a === "link") { linking = { from: sel, to: null }; $("#btn-link").classList.add("on"); $$(".item").forEach(n => n.classList.toggle("linkable", n.dataset.id !== sel)); toast("Now tap what it connects to"); }
   if (a === "style") openInspector();
-  if (a === "dup") { snap(); const c = JSON.parse(JSON.stringify(it)); c.id = uid(); c.x += 26; c.y += 26; c.z = nextZ(); board.items.push(c); autoJoinItemToContainingSystem(c); makeEl(c); refresh(c.id); selectItem(c.id); save(); }
+  if (a === "dup") { snap(); const c = JSON.parse(JSON.stringify(it)); c.id = uid(); c.x += 26; c.y += 26; c.z = nextZ(); board.items.push(c); autoJoinItemToContainingSystem(c); makeEl(c); refresh(c.id); selectItem(c.id); plate(); renderLegend(); renderMinimap(); save(); }
   if (a === "del") removeItem(sel);
 });
 function bump(it) { it.z = nextZ(); els.get(it.id).style.zIndex = it.z; }
@@ -3251,7 +3344,7 @@ function itemMenu(id, x, y) {
     if (act === "link") { linking = { from: id, to: null }; $("#btn-link").classList.add("on"); $$(".item").forEach(n => n.classList.toggle("linkable", n.dataset.id !== id)); toast("Now tap what it connects to"); }
     if (act === "done") setDone([id]);
     if (act === "props") openInspector();
-    if (act === "dup") { snap(); const c = JSON.parse(JSON.stringify(it)); c.id = uid(); c.x += 26; c.y += 26; c.z = nextZ(); board.items.push(c); autoJoinItemToContainingSystem(c); makeEl(c); refresh(c.id); selectItem(c.id); save(); }
+    if (act === "dup") { snap(); const c = JSON.parse(JSON.stringify(it)); c.id = uid(); c.x += 26; c.y += 26; c.z = nextZ(); board.items.push(c); autoJoinItemToContainingSystem(c); makeEl(c); refresh(c.id); selectItem(c.id); plate(); renderLegend(); renderMinimap(); save(); }
     if (act === "front") { snap(); bump(it); save(); }
     if (act === "back") { snap(); const m = Math.min(...board.items.map(i => i.z || 1)); it.z = m - 1; place(els.get(id), it); save(); }
     if (act === "inbox") storeItemInInbox(id);
@@ -3291,7 +3384,7 @@ function removeItem(id) {
   pruneGroups(); renderGroups();
   const el = els.get(id); if (el) el.remove(); els.delete(id);
   if (sel === id) deselect();
-  drawThreads(); updateEmpty(); renderTimeline(); save();
+  drawThreads(); updateEmpty(); renderTimeline(); plate(); renderLegend(); renderMinimap(); save();
 }
 </script>
 <script>
@@ -3843,20 +3936,20 @@ function quietPersistOnce() {
   addEventListener("pointerdown", go, true);
 }
 
-function markBackup() { DB.lastBackup = Date.now(); save(true); renderMeter(); }
-function backupAge() {
-  if (!DB.lastBackup) return null;
-  return Math.floor((Date.now() - DB.lastBackup) / 86400000);
+function markBackup(b = board) { if (!b) return; b.lastBackup = Date.now(); save(true); renderMeter(); }
+function backupAge(b = board) {
+  if (!b || !b.lastBackup) return null;
+  return Math.floor((Date.now() - b.lastBackup) / 86400000);
 }
 function backupLine() {
   const el = $("#backuplab"); if (!el) return;
-  const d = backupAge();
-  const total = DB.boards.reduce((n, b) => n + b.items.length, 0);
+  const d = backupAge(board);
+  const total = board ? board.items.length : 0;
   let txt;
   if (!total) txt = "Nothing to back up yet.";
-  else if (d === null) txt = "Never backed up. Use Back up to keep a copy.";
-  else if (d === 0) txt = "Backed up today.";
-  else txt = `Last backup ${d} day${d === 1 ? "" : "s"} ago.`;
+  else if (d === null) txt = "This board has never been backed up. Use Back up to keep a copy.";
+  else if (d === 0) txt = "This board was backed up today.";
+  else txt = `This board was last backed up ${d} day${d === 1 ? "" : "s"} ago.`;
   if (persisted === true) txt += " Storage is protected on this device.";
   el.textContent = txt;
   el.classList.toggle("stale", total > 0 && (d === null || d > 14));
@@ -3872,7 +3965,7 @@ async function shareBoard(b) {
     const file = new File([json], name, { type: "application/json" });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       await navigator.share({ files: [file], title: b.name });
-      markBackup();
+      markBackup(b);
       return true;
     }
   } catch (e) {
@@ -3913,7 +4006,7 @@ async function safetyCheck() {
     });
     return;
   }
-  const d = backupAge();
+  const d = backupAge(board);
   if (total >= 4 && (d === null || d > 21) && !flag("backupNudge" + (d === null ? "" : Math.floor(d / 21)))) {
     setFlag("backupNudge" + (d === null ? "" : Math.floor(d / 21)), 1);
     showNotice({
@@ -3954,9 +4047,10 @@ function endTour(how) {
     if (name && name !== board.name) { board.name = name.slice(0, 60); plate(); }
     if (tourPick && tourPick !== board.theme) { board.theme = tourPick; applyTheme(); }
   }
+  if (how === "skip") applyTheme();
   if (how === "example" && !board.items.length) {
     const seed = seedBoard();
-    board.items = seed.items; board.links = seed.links; board.inbox = seed.inbox || [];
+    board.items = seed.items; board.links = seed.links; board.inbox = seed.inbox || []; board.groups = seed.groups || []; board.tags = seed.tags || []; board.ink = seed.ink || [];
   }
   tourWrap().hidden = true;
   renderAll(); fitBoard(false); save(true);
@@ -4577,7 +4671,7 @@ function openInspector() {
   };
   $("#inspect-foot").onclick = e => {
     const b = e.target.closest("button"); if (!b) return;
-    if (b.dataset.a === "dup") { snap(); const c = JSON.parse(JSON.stringify(it)); c.id = uid(); c.x += 28; c.y += 28; c.z = nextZ(); board.items.push(c); autoJoinItemToContainingSystem(c); makeEl(c); refresh(c.id); selectItem(c.id); save(); }
+    if (b.dataset.a === "dup") { snap(); const c = JSON.parse(JSON.stringify(it)); c.id = uid(); c.x += 28; c.y += 28; c.z = nextZ(); board.items.push(c); autoJoinItemToContainingSystem(c); makeEl(c); refresh(c.id); selectItem(c.id); plate(); renderLegend(); renderMinimap(); save(); }
     if (b.dataset.a === "front") { snap(); bump(it); save(); toast("Brought to front"); }
     if (b.dataset.a === "del") removeItem(it.id);
   };
@@ -4721,11 +4815,13 @@ $("#filepick").addEventListener("change", e => {
 });
 function readImage(file, id, at) {
   if (!file.type.startsWith("image/")) { toast("That file isn't a picture"); return; }
+  const sourceBoardId = board && board.id;
   const original = file.size || 0;
   const fr = new FileReader();
   fr.onload = () => {
     const img = new Image();
     img.onload = () => {
+      if (!board || board.id !== sourceBoardId) { toast("Picture not added — you changed boards while it was loading. Try again on that board.", 4800); return; }
       const room = storageBudget() - dbBytes();
       const budget = clamp(Math.round(room * .25), 60 * 1024, 240 * 1024);
       const got = squeeze(img, budget);
@@ -4862,7 +4958,7 @@ function storeItemInInbox(id) {
   const el = els.get(id); if (el) el.remove(); els.delete(id);
   if (sel === id) deselect();
   multi.delete(id); markSelected();
-  drawThreads(); updateEmpty(); renderTimeline(); renderIdeaInbox(); save();
+  drawThreads(); updateEmpty(); renderTimeline(); renderIdeaInbox(); plate(); renderLegend(); renderMinimap(); save();
   toast("Moved to Idea Inbox");
 }
 $("#idea-tab").addEventListener("click", () => toggleIdeaDrawer());
@@ -4954,7 +5050,7 @@ async function download(b) {
   a.href = URL.createObjectURL(blob);
   a.download = (b.name.replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "-").toLowerCase() || "board") + ".pinit.json";
   a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-  markBackup();
+  markBackup(b);
   toast("Backed up — keep that file somewhere safe");
 }
 $("#btn-export").addEventListener("click", () => download(board));
@@ -4979,23 +5075,27 @@ $("#jsonpick").addEventListener("change", e => {
         b.updated = Date.now();
         return b;
       });
-      const candidate = Object.assign({}, DB, { boards: DB.boards.concat(staged) });
+      clearTimeout(saveT);
+      if (storageDirty && !await flushStorage()) {
+        toast("Import cancelled — finish resolving the current storage error first.", 6200); return;
+      }
+      const candidate = Object.assign({}, DB, { boards:DB.boards.concat(staged) });
+      candidate.storageRev = Math.max(+DB.storageRev || 0, storageRevision) + 1;
       let payload = JSON.stringify(candidate);
       if (!store.largeCapacity && payload.length * 2 > LEGACY_QUOTA * .96) {
         payload = null;
         toast("Import cancelled — this browser fell back to limited local storage. Export/remove a board or try a normal browser window.", 6200);
         return;
       }
-      clearTimeout(saveT);
-      await storageWriteP.catch(() => false);
-      if (!await queueStorageWrite(payload)) {
-        payload = null;
+      const persisted = await queueStorageOp(() => store.set(KEY, payload));
+      payload = null;
+      if (!persisted) {
         toast("Import cancelled — browser database storage could not be written. Your existing boards were left unchanged.", 6200);
         return;
       }
-      payload = null;
       DB.boards.push(...staged);
-      storageWriteBlocked = false;
+      DB.storageRev = candidate.storageRev; storageRevision = DB.storageRev;
+      storageWriteBlocked = false; storageDirty = false;
       if (!store.persistent) flashSaved("not saved — private mode"); else flashSaved("saved");
       renderCases(); renderMeter();
       toast(staged.length + " board" + (staged.length > 1 ? "s" : "") + " imported");
@@ -5007,7 +5107,8 @@ $("#jsonpick").addEventListener("change", e => {
 /* ═══════════════ chrome wiring ═══════════════ */
 $("#btn-cases").addEventListener("click", () => openPanel("cases"));
 $("#btn-newcase").addEventListener("click", () => {
-  const b = newBoard(prompt("Name this board", "New board") || "Untitled board");
+  const name = prompt("Name this board", "New board"); if (name === null) return;
+  const b = newBoard(name.trim() || "Untitled board");
   DB.boards.push(b); save(true); switchBoard(b.id); closePanel("cases");
 });
 $("#caseplate").addEventListener("click", () => {
@@ -5062,6 +5163,8 @@ addEventListener("keydown", e => {
   if (meta && e.key.toLowerCase() === "y") { e.preventDefault(); redo(); return; }
   if (e.key === "Escape") {
     if (ideaDrawerOpen()) { toggleIdeaDrawer(false); return; }
+    if ($("#outline").classList.contains("show")) { closePanel("outline"); return; }
+    if ($("#cases").classList.contains("show")) { closePanel("cases"); return; }
     if (editingGroupMembersId) { editingGroupMembersId = ""; clearMulti(false); renderGroups(); toast("Finished editing system contents"); return; }
     if (movingGroupContentsId) { movingGroupContentsId = ""; clearMulti(false); renderGroups(); toast("System move cancelled"); return; }
     if (activeTags.size) { activeTags.clear(); applyFilter(); return; }
@@ -5076,7 +5179,7 @@ addEventListener("keydown", e => {
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "d" && sel) {
     e.preventDefault(); const it = byId(sel); if (!it) return;
     snap(); const c = JSON.parse(JSON.stringify(it)); c.id = uid(); c.x += 28; c.y += 28; c.z = nextZ();
-    board.items.push(c); autoJoinItemToContainingSystem(c); makeEl(c); refresh(c.id); selectItem(c.id); save(); return;
+    board.items.push(c); autoJoinItemToContainingSystem(c); makeEl(c); refresh(c.id); selectItem(c.id); plate(); renderLegend(); renderMinimap(); save(); return;
   }
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "a") { e.preventDefault(); setMulti(board.items.map(i => i.id)); return; }
   if (e.key.toLowerCase() === "t") { toggleTimeline(); document.body.classList.toggle("tl", tlOpen); return; }
@@ -5111,8 +5214,10 @@ addEventListener("resize", () => {
   }, 220);
 });
 addEventListener("orientationchange", () => setTimeout(() => { if (board.items.length && !anyVisible()) fitBoard(true); }, 350));
-addEventListener("beforeunload", () => save(true));
-document.addEventListener("visibilitychange", () => { if (document.hidden) save(true); });
+const flushForExit = () => { clearTimeout(saveT); if (board) { storageDirty = true; void flushStorage(); } };
+addEventListener("beforeunload", flushForExit);
+addEventListener("pagehide", flushForExit);
+document.addEventListener("visibilitychange", () => { if (document.hidden) flushForExit(); });
 
 /* ═══════════════ go ═══════════════ */
 (async function bootPinIt() {

@@ -8,6 +8,21 @@ Numbers follow the usual shape: **major** for a change that breaks old saved boa
 
 ---
 
+## 1.9.5 — 15 September 2026, 14:08 UTC
+
+- Hardened IndexedDB/localStorage reconciliation so an old fallback copy cannot silently replace newer IndexedDB data after a storage error.
+- Replaced the old queued full-database payloads with a **coalescing latest-state writer**, preventing rapid edits from accumulating multiple large serialized database copies in memory.
+- Added a monotonically increasing storage revision used by migration/reconciliation.
+- Expanded undo/redo snapshots to restore board tags and whole-board text/theme metadata, and prune image payloads once no remaining undo/redo state references them.
+- Backup timestamps are now **per board** rather than global, so backing up one project no longer marks unrelated boards as backed up.
+- **Hide Done** now hides connected strings/relationship labels and omits hidden finished items from board-fit extents.
+- Freehand drawings now contribute to Board Map bounds and appear in the minimap.
+- Fixed an asynchronous photo load being able to land on a different board after switching projects.
+- Refreshed progress/tag/minimap chrome after deletes, duplications, inbox moves and undo/redo so counts do not remain stale.
+- The onboarding example now retains its example system; cancelling onboarding after previewing another theme restores the actual board theme.
+- Cancelling **New board** no longer creates an Untitled board, and Escape now closes the Board Outline/Boards drawer first.
+- Added page-hide save flushing and corrected README Board Map behaviour.
+
 ## 1.9.4 — 15 September 2026, 13:54 UTC
 
 - Changed **Board Map** so it starts closed on desktop as well as mobile; it now opens only when requested.
