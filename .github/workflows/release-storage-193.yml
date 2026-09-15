@@ -1,0 +1,48 @@
+name: Release Pin It 1.9.3 IndexedDB storage fix
+
+on:
+  push:
+    paths:
+      - '.github/workflows/release-storage-193.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Apply IndexedDB storage fix
+        run: python3 .github/scripts/release_storage_193.py
+
+      - name: Second pass checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          grep -F 'const VERSION = "1.9.3";' index.html
+          grep -F 'const BUILD = "15 September 2026, 13:46 UTC";' index.html
+          grep -F 'version: "1.9.3", date: "15 September 2026, 13:46 UTC"' index.html
+          grep -F 'async function load()' index.html
+          grep -F 'indexedDB.open(DB_NAME, 1)' index.html
+          grep -F 'await idbSet(k, legacy); clearLegacy(k);' index.html
+          grep -F 'if (!await queueStorageWrite(payload))' index.html
+          grep -F 'navigator.storage.estimate()' index.html
+          grep -F '## 1.9.3 — 15 September 2026, 13:46 UTC' CHANGELOG.md
+
+      - name: Commit release to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/scripts/release_storage_193.py .github/workflows/release-storage-193.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Release Pin It 1.9.3 IndexedDB storage fix'
+          git push origin main
