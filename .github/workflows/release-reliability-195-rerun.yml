@@ -26,8 +26,13 @@ jobs:
           old="html=rep(html,'markBackup();','markBackup(b);','download backup target',1)\nhtml=rep(html,'markBackup();\\n      return true;','markBackup(b);\\n      return true;','share backup target',1)"
           new="html=rep(html,'markBackup();','markBackup(b);','backup targets',2)"
           if old not in s:
-              raise SystemExit('backup retry patch target missing')
+              raise SystemExit('backup target patch missing')
           s=s.replace(old,new,1)
+          old2="html=sub(html,r'function markBackup\\(\\) \\{.*?\\n\\}\\nfunction backupAge\\(\\) \\{.*?\\n\\}\\nfunction backupLine\\(\\) \\{.*?\\n\\}',backup_new,'backup functions')"
+          new2="html=sub(html,r'function markBackup\\(\\).*?\\n\\}\\n\\n/\\* on a phone',backup_new+'\\n\\n/* on a phone','backup functions')"
+          if old2 not in s:
+              raise SystemExit('backup function regex patch missing')
+          s=s.replace(old2,new2,1)
           p.write_text(s,encoding='utf-8')
           PY
           python .github/scripts/release_reliability_195.py
