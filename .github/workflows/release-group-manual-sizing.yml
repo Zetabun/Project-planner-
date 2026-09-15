@@ -1,0 +1,51 @@
+name: Pin It manual group sizing release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/release-group-manual-sizing.yml
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Apply Pin It 1.7.0
+        run: |
+          python3 .github/scripts/release_group_manual_sizing.py
+
+      - name: Second pass checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          grep -q 'const VERSION = "1.7.0";' index.html
+          grep -q 'function beginGroupBoxGesture(e, g, n, kind)' index.html
+          grep -q 'Use manual sizing' index.html
+          grep -q 'Use automatic sizing' index.html
+          grep -q 'Lock box' index.html
+          grep -q 'Unlock box' index.html
+          grep -q 'group-resize-handle nw' index.html
+          grep -q '## 1.7.0 — 15 September 2026, 10:07 UTC' CHANGELOG.md
+          grep -q 'four touch-friendly corner handles' README.md
+          echo "Second pass: manual/automatic sizing, move/resize, lock state, persistence and release docs verified."
+
+      - name: Commit release to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/release-group-manual-sizing.yml
+          rm -f .github/scripts/release_group_manual_sizing.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "Release Pin It 1.7.0 manual group sizing"
+          git push origin HEAD:main
