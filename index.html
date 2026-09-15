@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Pin It — a corkboard for planning projects
-  Version 1.9.5 · 15 September 2026, 14:08 UTC
+  Version 1.9.6 · 15 September 2026, 14:17 UTC
 
   TO RELEASE AN UPDATE: bump VERSION and BUILD, add the release to
   RELEASES in the script below, and add the same release at the top
@@ -1436,14 +1436,26 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
    matching entry to CHANGELOG.md. Shown in the boards drawer,
    saved with the data, and stamped into exported boards.
    ───────────────────────────────────────────────────────────── */
-const VERSION = "1.9.5";
-const BUILD = "15 September 2026, 14:08 UTC";
+const VERSION = "1.9.6";
+const BUILD = "15 September 2026, 14:17 UTC";
 /*
   RELEASE HISTORY — mandatory for every future release.
   Before completing or pushing an update: bump VERSION/BUILD, add the new
   release here (newest first), and add the same release to CHANGELOG.md.
 */
 const RELEASES = [
+  {
+    version: "1.9.6", date: "15 September 2026, 14:17 UTC",
+    summary: "Multi-tab protection and another storage-performance pass reduce the remaining ways two sessions or large projects could lose or stall work.",
+    items: [
+      "Added an active-tab lease with a blocking safety screen: a second Pin It tab opens protected instead of silently competing to save the same boards.",
+      "Added safe Take over & reload handling, storage revision broadcasts and cross-tab Web Locks where supported so control can move between tabs without last-write-wins corruption.",
+      "Tabs now detect a newer saved revision even if the other tab has already closed, forcing a reload before stale in-memory data can save over it.",
+      "The project-size meter now reuses the size of the most recently serialized database instead of stringifying the whole project again just to measure it.",
+      "Imports now participate in the same cross-tab write lock/revision protocol as autosave, closing a remaining race between imports and another open session.",
+      "Added Page Lifecycle freeze flushing and a focused retry path for transient IndexedDB write failures."
+    ]
+  },
   {
     version: "1.9.5", date: "15 September 2026, 14:08 UTC",
     summary: "A reliability pass hardens storage, undo, backups and several edge cases found in the post-1.9.4 audit.",
@@ -1854,6 +1866,168 @@ const store = (() => {
 })();
 const KEY = "pinit.v1";
 
+/* ── multi-tab guard: one writer at a time, with reload-before-takeover semantics ── */
+const TAB_LEASE_KEY = "pinit.tabLease.v1";
+const TAB_REV_KEY = "pinit.storageRev.v1";
+const TAB_CHANNEL_NAME = "pin-it-tabs-v1";
+const TAB_LEASE_TTL = 7000;
+const TAB_HEARTBEAT_MS = 2200;
+const TAB_STARTED_AT = Date.now();
+let tabGuardStarted = false, tabReadOnly = false, tabLeaseTimer = null, tabChannel = null;
+let tabLeaseStorageOK = true, tabForceTakeover = false;
+let TAB_ID = "";
+try {
+  TAB_ID = sessionStorage.getItem("pinit.tabId.v1") || (Date.now().toString(36) + "-" + Math.random().toString(36).slice(2));
+  sessionStorage.setItem("pinit.tabId.v1", TAB_ID);
+  tabForceTakeover = sessionStorage.getItem("pinit.tabTakeover.v1") === "1";
+  sessionStorage.removeItem("pinit.tabTakeover.v1");
+} catch (e) {
+  TAB_ID = Date.now().toString(36) + "-" + Math.random().toString(36).slice(2);
+}
+try { localStorage.setItem("__pinit_tab_test", "1"); localStorage.removeItem("__pinit_tab_test"); }
+catch (e) { tabLeaseStorageOK = false; }
+
+function readTabLease() {
+  if (!tabLeaseStorageOK) return null;
+  try { const raw = localStorage.getItem(TAB_LEASE_KEY); return raw ? JSON.parse(raw) : null; }
+  catch (e) { tabLeaseStorageOK = false; return null; }
+}
+function tabLeaseFresh(l) { return !!(l && l.id && Date.now() - (+l.ts || 0) < TAB_LEASE_TTL); }
+function readExternalRevision() {
+  if (!tabLeaseStorageOK) return 0;
+  try { return +(localStorage.getItem(TAB_REV_KEY) || 0); } catch (e) { return 0; }
+}
+function writeTabLease(force) {
+  if (!tabLeaseStorageOK) return false;
+  try {
+    const cur = readTabLease();
+    if (!force && tabLeaseFresh(cur) && cur.id !== TAB_ID) return false;
+    localStorage.setItem(TAB_LEASE_KEY, JSON.stringify({ id:TAB_ID, ts:Date.now(), rev:+storageRevision || 0 }));
+    return true;
+  } catch (e) { tabLeaseStorageOK = false; return false; }
+}
+function announceTab(msg) {
+  if (!tabChannel) return;
+  try { tabChannel.postMessage(Object.assign({ id:TAB_ID, started:TAB_STARTED_AT, rev:+storageRevision || 0 }, msg)); } catch (e) {}
+}
+function ensureTabGuardUI() {
+  if (document.getElementById("tabguard")) return;
+  const style = document.createElement("style");
+  style.textContent = `#tabguard{position:fixed;inset:0;z-index:100000;display:grid;place-items:center;padding:24px;background:rgba(8,8,8,.64);backdrop-filter:blur(4px)}
+  #tabguard[hidden]{display:none}#tabguard .tg-card{width:min(520px,calc(100vw - 32px));padding:22px;border:1px solid var(--ui-line);border-radius:10px;background:linear-gradient(180deg,var(--ui-1),var(--ui-2));color:var(--ui-fg);box-shadow:0 24px 70px rgba(0,0,0,.45);font-family:var(--ui)}
+  #tabguard .tg-card h2{margin:0 0 9px;font-size:20px;color:var(--pan-head)}#tabguard .tg-card p{margin:0 0 18px;line-height:1.45;color:var(--pan-sub)}
+  #tabguard .tg-actions{display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end}#tabguard button{padding:10px 14px;border:1px solid var(--ui-line);border-radius:7px;background:var(--pan-soft2);color:var(--ui-fg);font-weight:700}
+  #tabguard button.primary{background:linear-gradient(180deg,var(--btn1),var(--btn2));color:var(--btnfg);border-color:var(--ui-online)}`;
+  document.head.appendChild(style);
+  const guard = document.createElement("div");
+  guard.id = "tabguard"; guard.hidden = true;
+  guard.innerHTML = `<div class="tg-card" role="dialog" aria-modal="true" aria-labelledby="tg-title"><h2 id="tg-title">Pin It is active in another tab</h2><p id="tg-copy">This tab is protected from saving so two copies cannot overwrite each other. Reload this tab, or move control here and reload the latest saved state.</p><div class="tg-actions"><button type="button" id="tg-reload">Reload this tab</button><button type="button" class="primary" id="tg-takeover">Use this tab instead</button></div></div>`;
+  document.body.appendChild(guard);
+  document.getElementById("tg-reload").onclick = () => location.reload();
+  document.getElementById("tg-takeover").onclick = async () => {
+    try { sessionStorage.setItem("pinit.tabTakeover.v1", "1"); } catch (e) {}
+    await withCrossTabStorageLock(async () => { writeTabLease(true); announceTab({ type:"takeover" }); });
+    location.reload();
+  };
+}
+function setTabReadOnly(on, message) {
+  tabReadOnly = !!on;
+  ensureTabGuardUI();
+  const guard = document.getElementById("tabguard");
+  const copy = document.getElementById("tg-copy");
+  if (copy && message) copy.textContent = message;
+  if (guard) guard.hidden = !tabReadOnly;
+  if (tabReadOnly) { clearInterval(tabLeaseTimer); tabLeaseTimer = null; clearTimeout(saveT); }
+}
+async function withCrossTabStorageLock(fn) {
+  if (navigator.locks && navigator.locks.request) {
+    try { return await navigator.locks.request("pin-it-storage-write-v1", { mode:"exclusive" }, fn); }
+    catch (e) {}
+  }
+  return fn();
+}
+function tabCanWrite() {
+  if (!tabGuardStarted) return true;
+  if (tabReadOnly) return false;
+  const externalRev = readExternalRevision();
+  if (externalRev > (+storageRevision || 0)) {
+    setTabReadOnly(true, "A newer Pin It save exists from another tab. Reload before editing so this older in-memory copy cannot overwrite it.");
+    return false;
+  }
+  if (tabLeaseStorageOK) {
+    const cur = readTabLease();
+    if (tabLeaseFresh(cur) && cur.id !== TAB_ID) {
+      setTabReadOnly(true, "Another Pin It tab currently controls saving. Reload here, or use this tab instead to transfer control safely.");
+      return false;
+    }
+    if (!writeTabLease(false)) return false;
+  }
+  return !tabReadOnly;
+}
+function publishTabRevision() {
+  if (tabLeaseStorageOK) {
+    try { localStorage.setItem(TAB_REV_KEY, String(+storageRevision || 0)); } catch (e) {}
+    writeTabLease(true);
+  }
+  announceTab({ type:"saved", rev:+storageRevision || 0 });
+}
+function handleTabMessage(data) {
+  if (!data || data.id === TAB_ID) return;
+  const otherRev = +data.rev || 0;
+  if (data.type === "saved" && otherRev > (+storageRevision || 0)) {
+    setTabReadOnly(true, "Another Pin It tab saved newer changes. Reload this tab before continuing so those changes cannot be overwritten.");
+    return;
+  }
+  if (data.type === "takeover") {
+    setTabReadOnly(true, "Another Pin It tab has taken control of saving. Reload this tab to continue from the newest saved state.");
+    return;
+  }
+  if (!tabLeaseStorageOK && (data.type === "hello" || data.type === "primary")) {
+    const otherWins = (+data.started || 0) < TAB_STARTED_AT || ((+data.started || 0) === TAB_STARTED_AT && String(data.id) < TAB_ID);
+    if (otherWins) setTabReadOnly(true, "Another Pin It tab was opened first, so this copy is protected from saving. Reload or take over to continue here.");
+    else if (!tabReadOnly) announceTab({ type:"primary" });
+  }
+  if (data.type === "hello" && !tabReadOnly) announceTab({ type:"primary" });
+}
+function checkTabGuard() {
+  if (!tabGuardStarted || tabReadOnly) return !tabReadOnly;
+  return tabCanWrite();
+}
+function initTabGuard() {
+  ensureTabGuardUI();
+  if (!tabGuardStarted) {
+    tabGuardStarted = true;
+    if (typeof BroadcastChannel !== "undefined") {
+      try { tabChannel = new BroadcastChannel(TAB_CHANNEL_NAME); tabChannel.onmessage = e => handleTabMessage(e.data); } catch (e) { tabChannel = null; }
+    }
+    addEventListener("storage", e => {
+      if (e.key === TAB_REV_KEY && +(e.newValue || 0) > (+storageRevision || 0)) {
+        setTabReadOnly(true, "Another Pin It tab saved newer changes. Reload this tab before continuing.");
+      }
+      if (e.key === TAB_LEASE_KEY) {
+        const l = readTabLease();
+        if (tabLeaseFresh(l) && l.id !== TAB_ID) setTabReadOnly(true, "Another Pin It tab now controls saving. Reload or take over before continuing here.");
+      }
+    });
+  }
+  if (readExternalRevision() > (+storageRevision || 0)) {
+    setTabReadOnly(true, "A newer saved revision already exists. Reload this tab before making changes.");
+    return false;
+  }
+  const cur = readTabLease();
+  if (!tabForceTakeover && tabLeaseFresh(cur) && cur.id !== TAB_ID) {
+    setTabReadOnly(true, "Pin It is already open in another tab. This copy is read-only to prevent one tab overwriting the other.");
+  } else {
+    writeTabLease(!!tabForceTakeover);
+    tabForceTakeover = false;
+    setTabReadOnly(false);
+    clearInterval(tabLeaseTimer);
+    tabLeaseTimer = setInterval(() => { if (!tabReadOnly) writeTabLease(false); }, TAB_HEARTBEAT_MS);
+  }
+  announceTab({ type:"hello" });
+  return !tabReadOnly;
+}
+
 /* ── state ── */
 let DB = { boards: [], current: null, lastBackup: 0, flags: {} };
 let FRESH = false;
@@ -1950,6 +2124,7 @@ let storageDirty = false;
 let storageFlushP = null;
 let storageOpP = Promise.resolve(true);
 let storageRevision = 0;
+let lastKnownDbBytes = 0;
 function allowStorageRetry() { storageWriteBlocked = false; }
 function queueStorageOp(fn) {
   storageOpP = storageOpP.catch(() => false).then(fn);
@@ -1957,6 +2132,7 @@ function queueStorageOp(fn) {
 }
 function flushStorage() {
   storageDirty = true;
+  if (!tabCanWrite()) { flashSaved("read-only — another tab"); return Promise.resolve(false); }
   if (storageFlushP) return storageFlushP;
   storageFlushP = queueStorageOp(async () => {
     let ok = true;
@@ -1964,17 +2140,25 @@ function flushStorage() {
       storageDirty = false;
       DB.storageRev = Math.max(+DB.storageRev || 0, storageRevision) + 1;
       storageRevision = DB.storageRev;
+      if (!tabCanWrite()) { flashSaved("read-only — another tab"); return false; }
       let payload;
       try { payload = JSON.stringify(DB); }
       catch (e) { flashSaved("not saved"); return false; }
-      ok = await store.set(KEY, payload);
+      const payloadBytes = payload.length;
+      ok = await withCrossTabStorageLock(async () => {
+        if (!tabCanWrite()) return false;
+        return store.set(KEY, payload);
+      });
       payload = null;
       if (!ok) {
+        if (tabReadOnly) { flashSaved("read-only — another tab"); return false; }
         storageWriteBlocked = true;
         toast("Browser storage could not be written — saving is paused. Export a backup before closing this tab.", 6200);
         flashSaved("not saved — storage unavailable");
         return false;
       }
+      lastKnownDbBytes = payloadBytes;
+      publishTabRevision();
       if (!store.persistent) flashSaved("not saved — private mode");
       else flashSaved("saved");
     }
@@ -1987,6 +2171,7 @@ function flushStorage() {
 }
 function save(now) {
   if (!board) return Promise.resolve(false);
+  if (tabGuardStarted && tabReadOnly) { flashSaved("read-only — another tab"); return Promise.resolve(false); }
   board.updated = Date.now();
   board.view = { x: view.x, y: view.y, s: view.s, w: view.w, h: view.h };
   clearTimeout(saveT);
@@ -2002,7 +2187,10 @@ function flashSaved(txt) {
 }
 async function load() {
   let raw = await store.get(KEY);
-  if (raw) { try { DB = JSON.parse(raw); } catch (e) { DB = { boards: [], current: null }; } }
+  if (raw) {
+    lastKnownDbBytes = String(raw).length;
+    try { DB = JSON.parse(raw); } catch (e) { DB = { boards: [], current: null }; }
+  }
   if (!DB.boards || !DB.boards.length) {
     DB = { boards: [], current: null };
     const b = newBoard("Untitled board");
@@ -4140,8 +4328,12 @@ function squeeze(img, budget = 240 * 1024, startDim = 1100) {
   return { data: out, size, w: cv.width, h: cv.height };
 }
 function dbBytes() {
-  try { return new Blob([JSON.stringify(DB)]).size; }
-  catch (e) { try { return JSON.stringify(DB).length; } catch (e2) { return 0; } }
+  if (lastKnownDbBytes > 0) return lastKnownDbBytes;
+  try {
+    const raw = JSON.stringify(DB);
+    lastKnownDbBytes = raw.length;
+    return lastKnownDbBytes;
+  } catch (e) { return 0; }
 }
 const LEGACY_QUOTA = 5 * 1024 * 1024;
 const IDB_SOFT_BUDGET = 64 * 1024 * 1024;
@@ -5075,6 +5267,9 @@ $("#jsonpick").addEventListener("change", e => {
         b.updated = Date.now();
         return b;
       });
+      if (!tabCanWrite()) {
+        toast("Import cancelled — another Pin It tab currently controls saving. Reload or take over first.", 6200); return;
+      }
       clearTimeout(saveT);
       if (storageDirty && !await flushStorage()) {
         toast("Import cancelled — finish resolving the current storage error first.", 6200); return;
@@ -5087,7 +5282,11 @@ $("#jsonpick").addEventListener("change", e => {
         toast("Import cancelled — this browser fell back to limited local storage. Export/remove a board or try a normal browser window.", 6200);
         return;
       }
-      const persisted = await queueStorageOp(() => store.set(KEY, payload));
+      const payloadBytes = payload.length;
+      const persisted = await queueStorageOp(() => withCrossTabStorageLock(async () => {
+        if (!tabCanWrite()) return false;
+        return store.set(KEY, payload);
+      }));
       payload = null;
       if (!persisted) {
         toast("Import cancelled — browser database storage could not be written. Your existing boards were left unchanged.", 6200);
@@ -5095,6 +5294,7 @@ $("#jsonpick").addEventListener("change", e => {
       }
       DB.boards.push(...staged);
       DB.storageRev = candidate.storageRev; storageRevision = DB.storageRev;
+      lastKnownDbBytes = payloadBytes; publishTabRevision();
       storageWriteBlocked = false; storageDirty = false;
       if (!store.persistent) flashSaved("not saved — private mode"); else flashSaved("saved");
       renderCases(); renderMeter();
@@ -5218,10 +5418,20 @@ const flushForExit = () => { clearTimeout(saveT); if (board) { storageDirty = tr
 addEventListener("beforeunload", flushForExit);
 addEventListener("pagehide", flushForExit);
 document.addEventListener("visibilitychange", () => { if (document.hidden) flushForExit(); });
+document.addEventListener("freeze", flushForExit);
+addEventListener("pageshow", () => {
+  checkTabGuard();
+  if (!tabReadOnly && storageWriteBlocked && storageDirty) { storageWriteBlocked = false; void flushStorage(); }
+});
+addEventListener("focus", () => {
+  checkTabGuard();
+  if (!tabReadOnly && storageWriteBlocked && storageDirty) { storageWriteBlocked = false; void flushStorage(); }
+});
 
 /* ═══════════════ go ═══════════════ */
 (async function bootPinIt() {
   await load();
+  initTabGuard();
   $("#version").textContent = "Pin It " + VERSION + " · " + BUILD;
   const wasVersion = DB.version;
   if (!DB.lastSeenRelease) DB.lastSeenRelease = wasVersion || VERSION;

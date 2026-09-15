@@ -218,7 +218,11 @@ An item's panel also has **Fit height to the text**, which trims or grows the it
 
 ## Keeping boards safe
 
-Boards live in the browser, and browsers do clear storage — iOS Safari is the strict one, wiping script-writable storage for sites it hasn't seen in roughly a week of use. Four things guard against that:
+Boards live in the browser, and browsers do clear storage — iOS Safari is the strict one, wiping script-writable storage for sites it hasn't seen in roughly a week of use.
+
+**One editing tab at a time.** Pin It protects the database with an active-tab lease. If the same app is opened in another tab/window, the second copy is blocked from saving rather than competing with the first. **Use this tab instead** transfers control and reloads the newest saved state before editing, and storage revisions catch stale tabs even after the other window has closed. Browsers that support Web Locks also serialize the actual database write across tabs.
+
+Four other things guard against loss:
 
 - **Persistent storage.** The app asks the browser to mark its storage persistent, which exempts it from routine eviction. Supported in Safari 17+, Chrome, Edge and Firefox. Browsers can refuse; the boards drawer tells you which mode you're in, with a button to ask again.
 - **Install prompt.** On an iPhone in Safari, once you've got a few things pinned up, a one-off card explains the eviction rule and how to add the app to your home screen — installed web apps aren't part of Safari and keep their own usage clock.

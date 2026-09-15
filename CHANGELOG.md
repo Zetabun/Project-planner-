@@ -8,6 +8,17 @@ Numbers follow the usual shape: **major** for a change that breaks old saved boa
 
 ---
 
+## 1.9.6 — 15 September 2026, 14:17 UTC
+
+- Added **single-writer multi-tab protection**: a second Pin It tab/window is blocked from saving instead of silently racing the first one.
+- Added a persistent active-tab lease, heartbeat and saved-revision marker, plus `BroadcastChannel` notifications where available.
+- **Use this tab instead** now transfers control and reloads the latest saved database before the new tab can edit it.
+- Database writes and imports use the browser **Web Locks API** where available, providing another cross-tab serialization layer around IndexedDB.
+- Tabs detect a newer revision even if the other tab has already closed, preventing a stale in-memory copy from overwriting newer work.
+- Reworked the storage-size meter to reuse the most recently serialized payload size instead of running another whole-project `JSON.stringify()` solely for metering.
+- Board imports now follow the same tab-ownership, lock and revision-publication path as autosave.
+- Added Page Lifecycle `freeze` flushing and automatic retry of a transient IndexedDB failure when the app returns to focus.
+
 ## 1.9.5 — 15 September 2026, 14:08 UTC
 
 - Hardened IndexedDB/localStorage reconciliation so an old fallback copy cannot silently replace newer IndexedDB data after a storage error.
