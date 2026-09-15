@@ -8,6 +8,14 @@ Numbers follow the usual shape: **major** for a change that breaks old saved boa
 
 ---
 
+## 1.9.8 — 15 September 2026, 14:43 UTC
+
+- Added sensible sticky/detail-note resize limits so a low-zoom resize cannot accidentally create a board-filling sticky sheet.
+- Existing/imported oversized sticky notes are repaired automatically during board normalisation.
+- **Move system + contents** now clears its temporary multi-selection when the move finishes.
+- The active system menu now changes to **Finish moving system**, giving desktop and touch users an explicit way to cancel the move mode before dragging.
+- Tapping empty board space also exits system-moving mode cleanly.
+
 ## 1.9.7 — 15 September 2026, 14:23 UTC
 
 - Follow-up hardening for the new multi-tab safety system.

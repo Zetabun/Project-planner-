@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Pin It — a corkboard for planning projects
-  Version 1.9.7 · 15 September 2026, 14:23 UTC
+  Version 1.9.8 · 15 September 2026, 14:43 UTC
 
   TO RELEASE AN UPDATE: bump VERSION and BUILD, add the release to
   RELEASES in the script below, and add the same release at the top
@@ -1436,14 +1436,25 @@ body[data-theme="blueprint"] #btn-pen{display:grid}
    matching entry to CHANGELOG.md. Shown in the boards drawer,
    saved with the data, and stamped into exported boards.
    ───────────────────────────────────────────────────────────── */
-const VERSION = "1.9.7";
-const BUILD = "15 September 2026, 14:23 UTC";
+const VERSION = "1.9.8";
+const BUILD = "15 September 2026, 14:43 UTC";
 /*
   RELEASE HISTORY — mandatory for every future release.
   Before completing or pushing an update: bump VERSION/BUILD, add the new
   release here (newest first), and add the same release to CHANGELOG.md.
 */
 const RELEASES = [
+  {
+    version: "1.9.8", date: "15 September 2026, 14:43 UTC",
+    summary: "A focused interaction fix keeps sticky notes within a sensible size and makes system-moving mode easy to exit.",
+    items: [
+      "Sticky/detail notes now have a sensible maximum size, preventing an accidental resize at low zoom from turning a note into a board-filling sheet.",
+      "Existing or imported oversized sticky notes are clamped back into the supported range during normalisation, so already-affected boards repair themselves on load.",
+      "Move system + contents now clears the temporary multi-selection after a completed move instead of leaving every member selected.",
+      "While system-moving mode is active, the system menu changes to Finish moving system so the mode can be cancelled explicitly before a drag, including on touch devices.",
+      "Tapping empty board space while system-moving mode is active now exits the mode cleanly."
+    ]
+  },
   {
     version: "1.9.7", date: "15 September 2026, 14:23 UTC",
     summary: "A follow-up hardening pass closes duplicate-tab and reload edge cases found while second-checking the new single-writer protection.",
@@ -1754,6 +1765,11 @@ const DEFAULTS = {
   tag:    { w: 176, h: 42, text: "Evidence 01" },
   marker: { w: 260, h: 60, text: "Heading" }
 };
+
+function itemSizeLimits(type) {
+  if (type === "sticky") return { minW:110, minH:110, maxW:520, maxH:520 };
+  return { minW:90, minH:type === "tag" ? 34 : 70, maxW:1400, maxH:1400 };
+}
 
 /* ── storage: IndexedDB first; localStorage is migration/fallback only ── */
 const store = (() => {
@@ -2111,6 +2127,9 @@ function normalise(b) {
     i.done = i.type === "list" && i.tasks.length ? i.tasks.every(t => t.done) : !!i.done;
     if (!i.stamp) i.stamp = "";
     ["w", "h", "x", "y"].forEach(k => { if (typeof i[k] !== "number") i[k] = DEFAULTS[i.type] ? DEFAULTS[i.type][k] || 0 : 0; });
+    const lim = itemSizeLimits(i.type);
+    i.w = Math.round(clamp(i.w, lim.minW, lim.maxW));
+    i.h = Math.round(clamp(i.h, lim.minH, lim.maxH));
   });
   b.ink = b.ink.filter(s => s && Array.isArray(s.pts) && s.pts.length >= 2);
   const ids = new Set(b.items.map(i => i.id));
@@ -2607,11 +2626,12 @@ function groupMenu(id, x, y) {
   const manual = g.mode === "manual";
   const editing = manual && !g.locked && !g.collapsed && editingGroupId === id;
   const membersEditing = editingGroupMembersId === id;
-  const state = `${g.collapsed ? "Collapsed · " : ""}${manual ? `Manual sizing${g.locked ? " · Locked" : editing ? " · Editing border" : ""}` : "Automatic sizing"}`;
+  const moving = movingGroupContentsId === id;
+  const state = `${moving ? "Moving contents · " : ""}${g.collapsed ? "Collapsed · " : ""}${manual ? `Manual sizing${g.locked ? " · Locked" : editing ? " · Editing border" : ""}` : "Automatic sizing"}`;
   showCtx(`<div class="ctx-rel-head"><b>${esc(g.name || "Group")}</b><span>${g.itemIds.length} items · ${state}</span></div>
     <button data-a="select"><svg><use href="#i-lasso"/></svg>Select contents</button>
     <button data-a="members"><svg><use href="#i-group"/></svg>${membersEditing ? "Finish editing contents" : "Edit contents"}</button>
-    <button data-a="moveall"><svg><use href="#i-fit"/></svg>Move system + contents</button>
+    <button data-a="moveall"><svg><use href="#i-fit"/></svg>${moving ? "Finish moving system" : "Move system + contents"}</button>
     <button data-a="collapse"><svg><use href="#${g.collapsed ? "i-plus" : "i-minus"}"/></svg>${g.collapsed ? "Expand system" : "Collapse system"}</button>
     <button data-a="rename"><svg><use href="#i-card"/></svg>Rename group area</button>
     <hr><button data-a="mode"><svg><use href="#i-group"/></svg>${manual ? "Use automatic sizing" : "Use manual sizing"}</button>
@@ -2634,10 +2654,15 @@ function groupMenu(id, x, y) {
       return;
     }
     if (b.dataset.a === "moveall") {
+      if (moving) {
+        movingGroupContentsId = ""; clearMulti(false); renderGroups();
+        toast("Finished moving system");
+        return;
+      }
       if (g.collapsed) { snap(); g.collapsed = false; save(); }
       editingGroupMembersId = ""; editingGroupId = ""; movingGroupContentsId = id;
       setMulti((g.itemIds || []).filter(id => byId(id))); renderGroups();
-      toast("Drag any selected item to move the whole system. The boundary moves with it.", 4400);
+      toast("Drag any selected item to move the whole system. Tap empty space or the system name to finish.", 4800);
       return;
     }
     if (b.dataset.a === "collapse") {
@@ -3223,6 +3248,7 @@ viewport.addEventListener("pointerdown", e => {
 
   // background
   if (linking) { cancelLink(); return; }
+  if (movingGroupContentsId) { movingGroupContentsId = ""; renderGroups(); }
   deselect();
   if (lassoMode || e.shiftKey) {
     e.preventDefault();
@@ -3289,9 +3315,9 @@ viewport.addEventListener("pointermove", e => {
   if (resize) {
     const p = toWorld(e.clientX, e.clientY), it = byId(resize.id); if (!it) return;
     preSnap();
-    const min = it.type === "tag" ? 34 : 70;
-    it.w = Math.round(clamp(resize.w + (p.x - resize.sx), 90, 1400));
-    it.h = Math.round(clamp(resize.h + (p.y - resize.sy), min, 1400));
+    const lim = itemSizeLimits(it.type);
+    it.w = Math.round(clamp(resize.w + (p.x - resize.sx), lim.minW, lim.maxW));
+    it.h = Math.round(clamp(resize.h + (p.y - resize.sy), lim.minH, lim.maxH));
     place(els.get(it.id), it); redraw(); return;
   }
   if (pan) {
@@ -3308,7 +3334,7 @@ function endDrag() {
     const el = els.get(drag.id); if (el) el.classList.remove("dragging");
     if (drag.moved) {
       justMoved = true;
-      if (drag.systemMove) movingGroupContentsId = "";
+      if (drag.systemMove) { movingGroupContentsId = ""; clearMulti(false); }
       const movedIds = drag.group ? drag.group.map(o => o.id) : [drag.id];
       autoJoinItemsToContainingSystems(movedIds);
       save(); renderGroups();
